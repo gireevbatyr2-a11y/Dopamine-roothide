@@ -1,0 +1,23 @@
+{
+  "commit": "9617d75f476423fdfd33477299c8a1349eb6f375",
+  "root_tree": "ee537a59f263ba058fb17ccb0dbdf7ab11ba0aa3",
+  "counts": {
+    "directory": 242,
+    "file": 1092,
+    "gitlink": 7,
+    "symlink": 2
+  },
+  "categories": {
+    "build/configuration": 113,
+    "other": 58,
+    "resource": 95,
+    "source": 750,
+    "localization": 27,
+    "binary/package/signing material": 15,
+    "documentation": 29,
+    "script": 5,
+    "signing material (not read or hashed)": 2
+  },
+  "submodules": 7,
+  "out": "/home/workspace/Dopamine-roothide-reconstruction-9617d75f-20261124T024805Z/evidence/source"
+}

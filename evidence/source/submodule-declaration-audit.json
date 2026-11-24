@@ -1,0 +1,85 @@
+{
+  "root_commit": "9617d75f476423fdfd33477299c8a1349eb6f375",
+  "contexts": [
+    {
+      "repo_path": ".",
+      "declared_submodules": [
+        "BaseBin/ChOma",
+        "BaseBin/XPF",
+        "Application/Dopamine/Dopamine/Exploits/kfd/kfd",
+        "BaseBin/opainject",
+        "BaseBin/_external/modules/litehook"
+      ],
+      "gitlink_paths": [
+        "BaseBin/ChOma",
+        "BaseBin/XPF",
+        "BaseBin/_external/modules/litehook",
+        "BaseBin/opainject"
+      ],
+      "declared_without_gitlink": [
+        "Application/Dopamine/Dopamine/Exploits/kfd/kfd"
+      ],
+      "gitlinks_without_declaration": []
+    },
+    {
+      "repo_path": "BaseBin/ChOma",
+      "declared_submodules": [],
+      "gitlink_paths": [],
+      "declared_without_gitlink": [],
+      "gitlinks_without_declaration": []
+    },
+    {
+      "repo_path": "BaseBin/XPF",
+      "declared_submodules": [
+        "external/ChOma",
+        "external/img4lib"
+      ],
+      "gitlink_paths": [
+        "external/ChOma",
+        "external/img4lib"
+      ],
+      "declared_without_gitlink": [],
+      "gitlinks_without_declaration": []
+    },
+    {
+      "repo_path": "BaseBin/XPF/external/ChOma",
+      "declared_submodules": [],
+      "gitlink_paths": [],
+      "declared_without_gitlink": [],
+      "gitlinks_without_declaration": []
+    },
+    {
+      "repo_path": "BaseBin/XPF/external/img4lib",
+      "declared_submodules": [
+        "lzfse"
+      ],
+      "gitlink_paths": [
+        "lzfse"
+      ],
+      "declared_without_gitlink": [],
+      "gitlinks_without_declaration": []
+    },
+    {
+      "repo_path": "BaseBin/XPF/external/img4lib/lzfse",
+      "declared_submodules": [],
+      "gitlink_paths": [],
+      "declared_without_gitlink": [],
+      "gitlinks_without_declaration": []
+    },
+    {
+      "repo_path": "BaseBin/_external/modules/litehook",
+      "declared_submodules": [],
+      "gitlink_paths": [],
+      "declared_without_gitlink": [],
+      "gitlinks_without_declaration": []
+    },
+    {
+      "repo_path": "BaseBin/opainject",
+      "declared_submodules": [],
+      "gitlink_paths": [],
+      "declared_without_gitlink": [],
+      "gitlinks_without_declaration": []
+    }
+  ],
+  "all_gitlinks_declared": true
+}

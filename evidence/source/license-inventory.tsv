@@ -1,0 +1,24 @@
+path	identified_license	bytes
+Application/Dopamine/Resources/LICENSE.md	MIT	1083
+Application/Dopamine/Resources/LICENSE_ChOma.md	MIT	1069
+Application/Dopamine/Resources/LICENSE_ElleKit.md	BSD-style (inspect full notice)	1466
+Application/Dopamine/Resources/LICENSE_Fugu15.md	MIT	1070
+Application/Dopamine/Resources/LICENSE_Fugu15_Rootful.md	MIT	1075
+Application/Dopamine/Resources/LICENSE_Procursus.md	see full notice	665
+Application/Dopamine/Resources/LICENSE_Sileo.md	BSD-style (inspect full notice)	1617
+Application/Dopamine/Resources/LICENSE_XPF.md	MIT	1069
+Application/Dopamine/Resources/LICENSE_Zebra.md	GPL-3.0	35149
+Application/Dopamine/Resources/LICENSE_dimentio.md	Apache-2.0	10173
+Application/Dopamine/Resources/LICENSE_kfd.md	MIT	1080
+Application/Dopamine/Resources/LICENSE_libc.md	APSL-2.0	19829
+Application/Dopamine/Resources/LICENSE_libgrabkernel2.md	see full notice	1055
+Application/Dopamine/Resources/LICENSE_opainject.md	MIT	1069
+Application/Dopamine/Resources/LICENSE_plooshinit.md	MIT	4459
+Application/Dopamine/Resources/LICENSE_weightBufs.md	MIT	1071
+BaseBin/ChOma/LICENSE	MIT	1069
+BaseBin/XPF/LICENSE.md	MIT	1069
+BaseBin/XPF/external/ChOma/LICENSE	MIT	1069
+BaseBin/XPF/external/img4lib/lzfse/LICENSE	BSD-style (inspect full notice)	1514
+BaseBin/_external/modules/litehook/LICENSE	MIT	1074
+BaseBin/opainject/LICENSE	MIT	1069
+LICENSE.md	MIT	1083

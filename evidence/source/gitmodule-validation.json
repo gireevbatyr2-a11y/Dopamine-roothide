@@ -1,0 +1,70 @@
+{
+  "declared_root_paths": [
+    "BaseBin/ChOma",
+    "BaseBin/XPF",
+    "Application/Dopamine/Dopamine/Exploits/kfd/kfd",
+    "BaseBin/opainject",
+    "BaseBin/_external/modules/litehook"
+  ],
+  "root_gitlink_paths": [
+    "BaseBin/ChOma",
+    "BaseBin/XPF",
+    "BaseBin/_external/modules/litehook",
+    "BaseBin/opainject"
+  ],
+  "declared_without_root_gitlink": [
+    "Application/Dopamine/Dopamine/Exploits/kfd/kfd"
+  ],
+  "root_gitlinks_without_declaration": [],
+  "recursive_pinned_submodules": [
+    {
+      "path": "BaseBin/ChOma",
+      "parent": "",
+      "gitlink_sha": "7dccded6bc17081c08f5f5cdbd7a4b051543a825",
+      "checked_out_sha": "7dccded6bc17081c08f5f5cdbd7a4b051543a825",
+      "match": true
+    },
+    {
+      "path": "BaseBin/XPF",
+      "parent": "",
+      "gitlink_sha": "9e12b8faa7444f6fe7f699aec6b6c96d151455d3",
+      "checked_out_sha": "9e12b8faa7444f6fe7f699aec6b6c96d151455d3",
+      "match": true
+    },
+    {
+      "path": "BaseBin/XPF/external/ChOma",
+      "parent": "BaseBin/XPF",
+      "gitlink_sha": "7dccded6bc17081c08f5f5cdbd7a4b051543a825",
+      "checked_out_sha": "7dccded6bc17081c08f5f5cdbd7a4b051543a825",
+      "match": true
+    },
+    {
+      "path": "BaseBin/XPF/external/img4lib",
+      "parent": "BaseBin/XPF",
+      "gitlink_sha": "69772c72f3c08f021ec9fa4c386f2b3df60a38b7",
+      "checked_out_sha": "69772c72f3c08f021ec9fa4c386f2b3df60a38b7",
+      "match": true
+    },
+    {
+      "path": "BaseBin/XPF/external/img4lib/lzfse",
+      "parent": "BaseBin/XPF/external/img4lib",
+      "gitlink_sha": "88e2d2788b4021d0b2eb9fe2d97352ae9190f128",
+      "checked_out_sha": "88e2d2788b4021d0b2eb9fe2d97352ae9190f128",
+      "match": true
+    },
+    {
+      "path": "BaseBin/_external/modules/litehook",
+      "parent": "",
+      "gitlink_sha": "4f062946a964575694878130acecb7c990baba38",
+      "checked_out_sha": "4f062946a964575694878130acecb7c990baba38",
+      "match": true
+    },
+    {
+      "path": "BaseBin/opainject",
+      "parent": "",
+      "gitlink_sha": "0068566501f3ddd04830f1ef0f1b74a8d1512281",
+      "checked_out_sha": "0068566501f3ddd04830f1ef0f1b74a8d1512281",
+      "match": true
+    }
+  ]
+}
