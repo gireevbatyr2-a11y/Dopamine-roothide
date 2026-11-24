@@ -11,5 +11,9 @@
 
 - [build your own Dopamine ipa/tipa on github action](BUILD.md).
 
-- or ref to [.github/workflows/roothide.yml](.github/workflows/main.yml) if you want to build it on macOS.
+- or refer to [.github/workflows/main.yml](.github/workflows/main.yml) if you want to build it on macOS.
+
+# Research notes
+
+See [docs/README.md](docs/README.md) for repository provenance, a high-level architecture map, CI evidence, and verification limits.
 

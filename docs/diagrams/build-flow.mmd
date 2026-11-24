@@ -1,0 +1,7 @@
+flowchart TD
+    E[Push / pull request / manual dispatch] --> R[GitHub-hosted macOS runner]
+    R --> C[Checkout repository and submodule references]
+    C --> T[Set up Xcode and build dependencies]
+    T --> B[Run project build]
+    B --> I[Upload IPA artifact]
+    B --> P[Upload TIPA artifact]
