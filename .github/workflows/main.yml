@@ -81,16 +81,37 @@ jobs:
         run: |
           brew install libarchive
 
+      - name: Pin zstd to upstream-resolved revision
+        run: |
+          set -x
+          mkdir -p Application/Dopamine.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+          printf '%s\n' \
+            '{' \
+            '  "pins" : [' \
+            '    {' \
+            '      "identity" : "zstd",' \
+            '      "kind" : "remoteSourceControl",' \
+            '      "location" : "https://github.com/facebook/zstd.git",' \
+            '      "state" : {' \
+            '        "branch" : "dev",' \
+            '        "revision" : "49bf1d14c8ffc6a25c32667ce878c4148f43ac4f"' \
+            '      }' \
+            '    }' \
+            '  ],' \
+            '  "version" : 3' \
+            '}' > Application/Dopamine.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
       - name: Build
         run: |
           set -x
           export BASEDIR="$(pwd)"
           export THEOS="${BASEDIR}/theos"
+          export COMMIT_HASH_OVERRIDE="9617d75f476423fdfd33477299c8a1349eb6f375"
           plutil -insert items.4 -xml "<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>BUILDER</string></dict>" ./Application/Dopamine/UI/Settings/Credits.plist
-          plutil -insert items.5 -xml "<dict><key>cell</key><string>PSGroupCell</string><key>headerCellClass</key><string>DOCreditsCell</string><key>names</key><array><dict><key>name</key><string>${{ github.actor }}</string><key>link</key><string>https://github.com/${{ github.repository }}</string></dict></array></dict>" ./Application/Dopamine/UI/Settings/Credits.plist
-          gmake -j$(sysctl -n hw.logicalcpu) NIGHTLY=1
+          plutil -insert items.5 -xml "<dict><key>cell</key><string>PSGroupCell</string><key>headerCellClass</key><string>DOCreditsCell</string><key>names</key><array><dict><key>name</key><string>roothider</string><key>link</key><string>https://github.com/roothide/Dopamine-roothide</string></dict></array></dict>" ./Application/Dopamine/UI/Settings/Credits.plist
+          gmake -j$(sysctl -n hw.logicalcpu) NIGHTLY=1 COMMIT_HASH="${COMMIT_HASH_OVERRIDE}"
           APP_VERSION="$(cat ./BaseBin/_external/basebin/.version)-$(cat ./BaseBin/_external/basebin/.version-roothide)"
-          VERSION="(${APP_VERSION}-$(git rev-parse --short HEAD))-$(TZ=UTC git show -s --date=format-local:'%Y.%m.%d-%Z-%H.%M.%S' --format='%cd' HEAD)"
+          VERSION="(${APP_VERSION}-9617d75)-2026.11.06-UTC-02.17.10"
           mv "./Application/Dopamine-roothide-${APP_VERSION}.ipa"  "./Application/roothide-Dopamine-${VERSION}.ipa"
           mv "./Application/Dopamine-roothide-${APP_VERSION}.tipa" "./Application/roothide-Dopamine-${VERSION}.tipa"
           echo "version=${VERSION}" >> $GITHUB_ENV
