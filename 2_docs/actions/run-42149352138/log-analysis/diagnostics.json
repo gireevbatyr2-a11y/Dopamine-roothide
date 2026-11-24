@@ -1,0 +1,165 @@
+{
+  "log": "/home/workspace/Dopamine-roothide-reconstruction-9617d75f-20261124T024805Z/evidence/actions/run-42149352138/full-run.log",
+  "line_count": 15417,
+  "warning_diagnostic_lines": 595,
+  "unique_warning_diagnostics": 205,
+  "generic_warning_lines": [
+    {
+      "line": 1107,
+      "message": "ld: warning: -undefined dynamic_lookup is deprecated on iOS"
+    },
+    {
+      "line": 1267,
+      "message": "ld: warning: -undefined dynamic_lookup is deprecated on iOS"
+    },
+    {
+      "line": 2223,
+      "message": "ld: warning: -multiply_defined is obsolete"
+    },
+    {
+      "line": 2234,
+      "message": "ld: warning: ignoring missing indirect library: library for install name '@loader_path/libroothider.dylib' not found"
+    },
+    {
+      "line": 2324,
+      "message": "ld: warning: -multiply_defined is obsolete"
+    },
+    {
+      "line": 2325,
+      "message": "ld: warning: ignoring missing indirect library: library for install name '@loader_path/libroothider.dylib' not found"
+    },
+    {
+      "line": 2456,
+      "message": "clang: warning: using sysroot for 'MacOSX' but targeting 'iPhone' [-Wincompatible-sysroot]"
+    },
+    {
+      "line": 3078,
+      "message": "ld: warning: -multiply_defined is obsolete"
+    },
+    {
+      "line": 3082,
+      "message": "ld: warning: -multiply_defined is obsolete"
+    },
+    {
+      "line": 3091,
+      "message": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: warning: changes being made to the file will invalidate the code signature in: /Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/roothidehooks/.theos/obj/roothidehooks.dylib (for architecture arm64)"
+    },
+    {
+      "line": 3092,
+      "message": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: warning: changes being made to the file will invalidate the code signature in: /Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/roothidehooks/.theos/obj/roothidehooks.dylib (for architecture arm64e)"
+    },
+    {
+      "line": 3094,
+      "message": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: warning: changes being made to the file will invalidate the code signature in: /Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/roothidehooks/.theos/obj/roothidehooks.dylib (for architecture arm64)"
+    },
+    {
+      "line": 3095,
+      "message": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: warning: changes being made to the file will invalidate the code signature in: /Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/roothidehooks/.theos/obj/roothidehooks.dylib (for architecture arm64e)"
+    },
+    {
+      "line": 4626,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: momentarius: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 4667,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: multicast_bytecopy: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 4823,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: weightBufs: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 6172,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: dmaFail: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 6189,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: kfd: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 6350,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: badRecovery: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 6659,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: DarkSword: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 7258,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: ClearSword: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 12066,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: Titan: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 12772,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Assets.xcassets:./AppIcon.appiconset: warning: A 60x60@2x app icon is required for iPhone apps targeting iOS 7.0 and later"
+    },
+    {
+      "line": 12773,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Assets.xcassets:./AppIcon.appiconset: warning: A 76x76@2x app icon is required for iPad apps targeting iOS 7.0 and later"
+    },
+    {
+      "line": 12774,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Assets.xcassets:./AppIcon.appiconset: warning: A 83.5x83.5@2x app icon is required for iPad apps targeting iOS 9.0 and later"
+    },
+    {
+      "line": 12775,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Assets.xcassets:./AppIcon.appiconset: warning: A 1024x1024 app store icon is required for iOS apps"
+    },
+    {
+      "line": 14898,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: Dopamine: ld: warning: search path '/Users/runner/work/Dopamine-roothide/Exploits' not found"
+    },
+    {
+      "line": 14899,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: Dopamine: ld: warning: building for iOS-15.0, but linking with dylib '@rpath/Titan.framework/Titan' which was built for newer version 26.1"
+    },
+    {
+      "line": 14970,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: warning: DEFINES_MODULE was set, but no umbrella header could be found to generate the module map (in target 'momentarius' from project 'Dopamine')"
+    },
+    {
+      "line": 14973,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: warning: DEFINES_MODULE was set, but no umbrella header could be found to generate the module map (in target 'dmaFail' from project 'Dopamine')"
+    },
+    {
+      "line": 14975,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: warning: DEFINES_MODULE was set, but no umbrella header could be found to generate the module map (in target 'badRecovery' from project 'Dopamine')"
+    },
+    {
+      "line": 14977,
+      "message": "/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine.xcodeproj: warning: DEFINES_MODULE was set, but no umbrella header could be found to generate the module map (in target 'Titan' from project 'Dopamine')"
+    },
+    {
+      "line": 14978,
+      "message": "warning: Run script build phase 'Run Script' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking \"Based on dependency analysis\" in the script phase. (in target 'Titan' from project 'Dopamine')"
+    },
+    {
+      "line": 14993,
+      "message": "ld: warning: -multiply_defined is obsolete"
+    },
+    {
+      "line": 15001,
+      "message": "ld: warning: -multiply_defined is obsolete"
+    },
+    {
+      "line": 15011,
+      "message": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: warning: changes being made to the file will invalidate the code signature in: /Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/palera1n/.theos/_/usr/lib/palera1n.dylib"
+    }
+  ],
+  "error_diagnostic_lines": [],
+  "build_markers": [
+    {
+      "line": 3042,
+      "message": "** ARCHIVE SUCCEEDED **"
+    },
+    {
+      "line": 14981,
+      "message": "** BUILD SUCCEEDED **"
+    }
+  ],
+  "test_markers": [],
+  "test_markers_interpretation": "No test command or test execution markers found in the original workflow log."
+}

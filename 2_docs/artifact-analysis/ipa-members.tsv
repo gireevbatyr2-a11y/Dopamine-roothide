@@ -1,0 +1,159 @@
+path	bytes	sha256	crc32	compression	unix_mode	symlink
+Payload/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/de.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/de.lproj/Localizable.strings	9863	088260aad8e66b1914bb8133dc1cdea754e4c7d526a9b77f34923fb4aa33847b	d4ba8ff8	8	0o100644	False
+Payload/Dopamine.app/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/_CodeSignature/CodeResources	36861	3ef694b94d59ff0b307c91f312fd76d0fc73d8d4da31375ce1a7983adf52a0e1	203e5936	8	0o100644	False
+Payload/Dopamine.app/ur.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/ur.lproj/Localizable.strings	2821	c526de93cc4d6783efd84e1a55abe43c30045be329b19a0d67359f1a0a373d51	c4ec64b5	8	0o100644	False
+Payload/Dopamine.app/LICENSE_ElleKit.md	1466	ac3842df55783a43c093806730c480cecdd3c011dfb7fd001ec1ed5258fb0c08	7e858a50	8	0o100644	False
+Payload/Dopamine.app/ar.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/ar.lproj/Localizable.strings	6289	daf4aba1061d8aa79656ddf4803414d41cff086df0f844c217adeec4ecc3c233	c2de1587	8	0o100644	False
+Payload/Dopamine.app/el.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/el.lproj/Localizable.strings	3622	c55bcc32acd5a17dc7d37abd06a798da0fdf9e399d11ea66afeb2488015a96dd	1856739d	8	0o100644	False
+Payload/Dopamine.app/zh-Hans.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/zh-Hans.lproj/Localizable.strings	4984	6c549c671fe1b5094ef24e7cbab75179805ef210220766d93ef3c437465ab6d5	74b58ff4	8	0o100644	False
+Payload/Dopamine.app/ja.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/ja.lproj/Localizable.strings	6850	b099c29c2a637d7a3a0aeae043245ecb5efce660fbd02d88f066b3695c4048e6	92c31dd5	8	0o100644	False
+Payload/Dopamine.app/zh-TW.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/zh-TW.lproj/Localizable.strings	5864	2f6a5ac6ddba25557e95b73d23637fc86d222e8bba8febf5ef41059342037a02	dcd9d2ab	8	0o100644	False
+Payload/Dopamine.app/LICENSE.md	1083	00ab7cfe23b677778ac0e90cdbe825e29be6b13a71925c119113149f672b32e1	6c7e17f6	8	0o100644	False
+Payload/Dopamine.app/LICENSE_Fugu15.md	1070	c519c4f4ed0f23fbc09041dc8c1f9061c45e648511f0162454741aef1e549f78	e89149bc	8	0o100644	False
+Payload/Dopamine.app/LICENSE_XPF.md	1069	381eb52c09afd77dd3be504500ef991035b0eb320be4aa6c6d1c6ee4e279e413	ce5b574b	8	0o100644	False
+Payload/Dopamine.app/en.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/en.lproj/Localizable.strings	6802	768098b1241183bcfd9f19d674901da0650b7f89e0bfca7156566171f21d7d85	64b5fdc5	8	0o100644	False
+Payload/Dopamine.app/libroot.deb	12620	250cbbf5bbe5865c43c026cfb5e6d96c61afe18529c1b182ca3325178d6d752f	7a04f0f5	8	0o100644	False
+Payload/Dopamine.app/libjailbreak.dylib	605584	2a9c3c7004381ec4f828acaf62cd979beadb0a403cf9619d14b270d2eb249af0	3df333d9	8	0o100755	False
+Payload/Dopamine.app/uk.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/uk.lproj/Localizable.strings	3080	fdc7553c627985af9fefa350940892f103286dac5fdf5e93b85b7f99a022ef2d	c1621a4d	8	0o100644	False
+Payload/Dopamine.app/zh-HK.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/zh-HK.lproj/Localizable.strings	1891	15ba7ddde5154c6f08626471c4f7d87355caca5ade546f8e2e32b8ab0d153381	a0fe2170	8	0o100644	False
+Payload/Dopamine.app/Dopamine	2678080	01379b78c8dd7504d82df3f5a2ec53ceccc2638cb7b259f560c15488ecf3ed59	f5e2b5b3	8	0o100755	False
+Payload/Dopamine.app/es.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/es.lproj/Localizable.strings	10226	060f8c3cf02cf2e7aa8628cfd024267817c5db11b78683ce4a5ffe712c1bbd1a	96f9a3cc	8	0o100644	False
+Payload/Dopamine.app/PkgManagers.plist	180	f35c6946bce8107aee65a0b1389a484c50974d189579e97327d02485096f006c	2da5f18c	8	0o100644	False
+Payload/Dopamine.app/LICENSE_Zebra.md	35149	3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986	97673d00	8	0o100644	False
+Payload/Dopamine.app/bootstrap_1900.tar.zst	19431572	0c9d3a78814526188ca380cc656b3bfb0ceca4d01641951561a33b8593aa5bed	5a87f91e	8	0o100644	False
+Payload/Dopamine.app/da.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/da.lproj/Localizable.strings	2871	f767c11ebc7e07b0a8e2d886d6935fba678715c029723b0a1b9b9ef7e3effe43	17a0c51f	8	0o100644	False
+Payload/Dopamine.app/it.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/it.lproj/Localizable.strings	6107	9ffb00961716dfa2264017ecb8b99d08c441656ec6b53d3b79eea467afbce630	ec747247	8	0o100644	False
+Payload/Dopamine.app/libchoma.dylib	404992	d6d3764b6bde430b5900c7f8fa3176801dcd5d24e0ead6ce33f17582bd29833c	4f336501	8	0o100755	False
+Payload/Dopamine.app/sileo.deb	3794664	ba1e5c2f07e58aadba1acfcff946472de74eb8a7d34fcc79f54101e6c22ff636	cc392a83	8	0o100644	False
+Payload/Dopamine.app/kk.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/kk.lproj/Localizable.strings	2610	431b61188e148d38c62b1f5f747c8fc8946bf707850479ee665bca1ab24f05f1	536f2435	8	0o100644	False
+Payload/Dopamine.app/basebin.tar	6215680	cd1f47abc4870feeef537c42ff4af2910d3676bf9eb2e897041b5bbe4e6f7809	72879e84	8	0o100644	False
+Payload/Dopamine.app/libxpf.dylib	457712	eff2e3584d7441b8a194acc9aaba5421feb65a1e51062a6e7f7bbae9cc14d09d	a32a43d8	8	0o100755	False
+Payload/Dopamine.app/launchctl_1_1.2.0_iphoneos-arm64e.deb	53212	099b801916097498801d5d1981f07d4edbfa8b04273f9f196c19ed202e82d541	d3aa82e6	8	0o100644	False
+Payload/Dopamine.app/sv.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/sv.lproj/Localizable.strings	2571	fce7f7b2df13d2ede6b82be4cc82bc6f2c6a4cd97098a9de798ea7bf14439c40	9d1544ae	8	0o100644	False
+Payload/Dopamine.app/ko.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/ko.lproj/Localizable.strings	7296	c1f913eb12ab5059af1ccc0c3dce38f28429b56703042bc1037098bb54603667	14ec052a	8	0o100644	False
+Payload/Dopamine.app/fil.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/fil.lproj/Localizable.strings	5083	df0b46acdcba245cfe3293aef578a067866535e20f9deec26eba7922d6ce7d8b	61193acc	8	0o100644	False
+Payload/Dopamine.app/Base.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Base.lproj/LaunchScreen.storyboardc/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Base.lproj/LaunchScreen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib	1225	107980c54274d72fb604e1e82ef4f0820de45b9dd36cd5899c20f972f8ceb582	6d22352b	8	0o100644	False
+Payload/Dopamine.app/Base.lproj/LaunchScreen.storyboardc/UIViewController-01J-lp-oVM.nib	924	54f3637f671feba5f19e82ec4f4a7fb448bb3cfc0fb180f089aa571fc8f053e2	3b660226	8	0o100644	False
+Payload/Dopamine.app/Base.lproj/LaunchScreen.storyboardc/Info.plist	258	1f255d5cc53b531e3f29a9406a8df49a958e2bf9443d3e20bd8374f707f7d5c8	3ed5e388	8	0o100644	False
+Payload/Dopamine.app/bootstrap_1800.tar.zst	19402633	3350ed91d77163e0cd73f0f90185b5c9b87d9d294133e25ced3a29329e90370e	43eff88e	8	0o100644	False
+Payload/Dopamine.app/LICENSE_libgrabkernel2.md	1055	51e3c1fa2d85dda5ade7089d278f9ef37ccf101539e8a1170c8577f17b7a52d4	8c94e6cc	8	0o100644	False
+Payload/Dopamine.app/Credits.plist	3181	cbc17518bb123e4eaed4d22e201082da6febcfa08526a28185a66d194a49b82d	e3533a90	8	0o100644	False
+Payload/Dopamine.app/LICENSE_kfd.md	1080	479c329d82a2a0945f7ee2aae8527a57fca9eed695d6a85c153168397228bc27	af961092	8	0o100644	False
+Payload/Dopamine.app/zebra.deb	5120110	41aa4cd37d2397a4d22e549b6d3e3125fea417dd741d4efb31fd6d41b68f8caa	740d88a5	8	0o100644	False
+Payload/Dopamine.app/Assets.car	3834856	0ab58fbc820239ecbd5510fabe630481982980d56e7374a98c7ddc7eb2b5da09	ad3241a7	8	0o100644	False
+Payload/Dopamine.app/tr.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/tr.lproj/Localizable.strings	2961	9871aaacab74a39732a57bb4a6c7852a45eb94a7f88694b6b12f079203c9fd53	cf6679da	8	0o100644	False
+Payload/Dopamine.app/LICENSE_libc.md	19829	e5881019d8766c1e88a5fe1dbca4ba40c78011d41fcb18f6e9f50df60182685b	09913eb2	8	0o100644	False
+Payload/Dopamine.app/pl.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/pl.lproj/Localizable.strings	3284	7e102efceb54f86a8a06789b42b4cb57bc713d5584ee8d78e95bf5a75f7be971	ef90c5dc	8	0o100644	False
+Payload/Dopamine.app/LICENSE_Procursus.md	665	8cd9d413d6e1ab162cb16337ddd141df58063a0ecd1f545b5201e0c228ec36fd	05831cf7	8	0o100644	False
+Payload/Dopamine.app/pt-BR.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/pt-BR.lproj/Localizable.strings	3130	1e07523e67e74baa60ade91838d91b3d62a30763cfa44811f38a477b4d02704d	ec651e7a	8	0o100644	False
+Payload/Dopamine.app/vi.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/vi.lproj/Localizable.strings	9310	9b7f930dfcfc5f43aee366628f2a27f698bd9904288fa0eec86a8f004eda3ee9	d0a1d13a	8	0o100644	False
+Payload/Dopamine.app/ru.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/ru.lproj/Localizable.strings	7810	8940a0363d9e6a2644d95c3a3f8d5e3c61ac9d9b224a780daadef1247f179f9b	912f9d1b	8	0o100644	False
+Payload/Dopamine.app/LICENSE_plooshinit.md	4459	7215c909eba10e610478c479ada73c14908018e1e35b0e88800d5271e21ef561	6f181d27	8	0o100644	False
+Payload/Dopamine.app/LICENSE_Sileo.md	1617	4f3fd304c668e9a82c5a495236272f2b66a042bce0569761c5befefedd860792	2c4865e2	8	0o100644	False
+Payload/Dopamine.app/zh-CN.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/zh-CN.lproj/Localizable.strings	4984	6c549c671fe1b5094ef24e7cbab75179805ef210220766d93ef3c437465ab6d5	74b58ff4	8	0o100644	False
+Payload/Dopamine.app/LICENSE_dimentio.md	10173	a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9	b8c21ebb	8	0o100644	False
+Payload/Dopamine.app/launchctl_1_1.2.0_iphoneos-arm64.deb	51976	b8f715bc0cbccae2adac1d208707c760130568fbc3387054f4c981564bdd8bda	47378835	8	0o100644	False
+Payload/Dopamine.app/libroothider.dylib	544272	56d3c5b8d96824345c2b2401e53f29e32f1a230a8d15b8c6a45f7c06fb94154a	7b872ef2	8	0o100755	False
+Payload/Dopamine.app/basebin-link.deb	738	9184207466c6cbbe4e13becc59abf2c84ffe0eddc6ff8439e0a55f568ef0967b	c4586986	8	0o100644	False
+Payload/Dopamine.app/fr.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/fr.lproj/Localizable.strings	7188	c39f1b2cbd1bf6b917c18d0b12ff1c46e000b3149ffcebc34331c5572b93ed44	0c767404	8	0o100644	False
+Payload/Dopamine.app/basebin.tc	794	9f360f027dbb7eafba85b3e568e7962ebde47c70026e683b59677ac825b52f16	bdb38157	0	0o100644	False
+Payload/Dopamine.app/nl.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/nl.lproj/Localizable.strings	2451	bb634addb52af93e076952ce8e1c5d100e151aac62be0d7fb50ee9d0b5f6cef2	e0f65e05	8	0o100644	False
+Payload/Dopamine.app/th.lproj/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/th.lproj/Localizable.strings	5659	ae2f7bed5ade6a8cb8fe1b81c42622150df13f8964af8e9bd2befda5a42c0d69	e97ad7d1	8	0o100644	False
+Payload/Dopamine.app/roothideapp.deb	756344	51c2b92260921908bd281bc06285196a2ae73e4d51258fe5f2db10dd5d21dca7	602eb8f4	8	0o100644	False
+Payload/Dopamine.app/LICENSE_opainject.md	1069	6ec79f848deb860ae50faf63cd330aafef1dd17360ede0b4d718f4208a09a2bc	61ea4724	8	0o100644	False
+Payload/Dopamine.app/Frameworks/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/momentarius.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/momentarius.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/momentarius.framework/_CodeSignature/CodeResources	2122	8f5054e60f34ffaadb9cfeabf5462ce625685e3db65fdcc2fa622962282a487c	0e912ac1	8	0o100644	False
+Payload/Dopamine.app/Frameworks/momentarius.framework/momentarius	57680	e6e0c97579b4b127ba3b9f24a247ba137b4d1d5b755ba9a107f50449e538013e	05955a78	8	0o100755	False
+Payload/Dopamine.app/Frameworks/momentarius.framework/Frameworks/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/momentarius.framework/Frameworks/libjailbreak.dylib	605568	5b5febe2a96e11e3bfb2a1e5b2fa486dffd97913c66f10c0015e80969f4b5400	288aa2ed	8	0o100755	False
+Payload/Dopamine.app/Frameworks/momentarius.framework/Info.plist	1055	99536b8f0412771f1e03baee3c0ba9647cc09d2a24ee6f21e7b70618c7c3483d	d5f71a26	8	0o100644	False
+Payload/Dopamine.app/Frameworks/ClearSword.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/ClearSword.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/ClearSword.framework/_CodeSignature/CodeResources	1798	1810eb34b8fd8e10e9b2c9707b2bcc3a960230fb87bf835ea5c70a04a6adbc71	be50c80a	8	0o100644	False
+Payload/Dopamine.app/Frameworks/ClearSword.framework/ClearSword	80368	e46c4d58a9226a2eaf84d105ba367d6b7f23b2b5f0c334c99cb66665bde3b98b	73c48289	8	0o100755	False
+Payload/Dopamine.app/Frameworks/ClearSword.framework/Info.plist	1092	4488e1cdc354cc748c7b0b42da345ed3056a806ef210b0ad67863504e9c0865d	53fb61aa	8	0o100644	False
+Payload/Dopamine.app/Frameworks/weightBufs.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/weightBufs.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/weightBufs.framework/_CodeSignature/CodeResources	2090	09c43849f140b16715b5fdfa066c2fbcc6999163df2c7eb80b623a26a6335067	c1c69a41	8	0o100644	False
+Payload/Dopamine.app/Frameworks/weightBufs.framework/model_tmp.hwx	65536	3f15d77d22028ae7f285c3dedc31f97c356d4865eabe32f45ebb162d4591dc5c	0ae84044	8	0o100755	False
+Payload/Dopamine.app/Frameworks/weightBufs.framework/weightBufs	101488	dc1ec5b6f2a621642f65f83851b478c8bdae29683881a0cf530d9d43628fcfec	df8b5830	8	0o100755	False
+Payload/Dopamine.app/Frameworks/weightBufs.framework/Info.plist	985	52e6435daa1929f74fb155c10f4a49b6ba51dc2b558c2d66a40a8d7fd619ac43	2bd20c7e	8	0o100644	False
+Payload/Dopamine.app/Frameworks/multicast_bytecopy.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/multicast_bytecopy.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/multicast_bytecopy.framework/_CodeSignature/CodeResources	1798	072c5e50ffc605ed14504afada86c64367959de08512e002e16b577cc40c1c6d	9e341808	8	0o100644	False
+Payload/Dopamine.app/Frameworks/multicast_bytecopy.framework/multicast_bytecopy	81888	d5b1c5425f12e0034593525dac3e1b716a8815a8a38d2272ab59f8a9f9bf1af1	0452ee44	8	0o100755	False
+Payload/Dopamine.app/Frameworks/multicast_bytecopy.framework/Info.plist	1115	f55124b6e90cd56e85ff48d72893e6e7c0720ea7577bcb2309d7c71332b426e7	5b34f0af	8	0o100644	False
+Payload/Dopamine.app/Frameworks/Titan.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/Titan.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/Titan.framework/_CodeSignature/CodeResources	2122	5e0e2e5be1cd8a98a907d84ee381bcbaeff2a5d2dd22a17f69f25d981e013bd8	b954386d	8	0o100644	False
+Payload/Dopamine.app/Frameworks/Titan.framework/Titan	120448	b0709cb6a806d2d9418914b7dc18708274e10701fcbb17348762aec84e7c054f	d66460cc	8	0o100755	False
+Payload/Dopamine.app/Frameworks/Titan.framework/Frameworks/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/Titan.framework/Frameworks/libjailbreak.dylib	605552	955590c31f332820040e13e1dc29e52fad8b4dcdefd6e0430445356373d2ae7f	378b7793	8	0o100755	False
+Payload/Dopamine.app/Frameworks/Titan.framework/Info.plist	1076	2326f0ab7e5ec6dc184484e1c88409e373ca237365e3e047ad5f1e4f8dc3ac1c	4fb748a4	8	0o100644	False
+Payload/Dopamine.app/Frameworks/kfd.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/kfd.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/kfd.framework/_CodeSignature/CodeResources	1798	edd4c16cdeaaf58b4ad4eb93ba714874b4b0a00f472019d48b0f917ce6f6ad28	b24fcc4b	8	0o100644	False
+Payload/Dopamine.app/Frameworks/kfd.framework/kfd	169712	91173bb3d7711b50248d537e9aa2b883ff54e57f31a3fbf5c6c16b6cbad1a2cd	cdb61704	8	0o100755	False
+Payload/Dopamine.app/Frameworks/kfd.framework/Info.plist	1163	876f629ff9da27cdf1c1d1b5c9cef72399b432785a506f7abf6305a63bcd1799	ba0f8e44	8	0o100644	False
+Payload/Dopamine.app/Frameworks/DarkSword.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/DarkSword.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/DarkSword.framework/_CodeSignature/CodeResources	1798	3d0a71145391907e1f98c7903238d99bb5b89fa673d02b7b5505ac7bd26ee7c9	02ffd12e	8	0o100644	False
+Payload/Dopamine.app/Frameworks/DarkSword.framework/DarkSword	98592	636151fd407525b9f62352f67359ee794b95fa36c534acdd524a2bfed36cf68a	ced60771	8	0o100755	False
+Payload/Dopamine.app/Frameworks/DarkSword.framework/Info.plist	1090	8d92e8c3b8fcbb1c627ad86e382e0349182ab9c4fdbc3e064ac6d304abb12b85	560bf6c1	8	0o100644	False
+Payload/Dopamine.app/Frameworks/badRecovery.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/badRecovery.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/badRecovery.framework/_CodeSignature/CodeResources	1798	0a46c52954c12ca827a21d2ef87b04831e4208f86ecb1c61b6117bc486d25767	83615b9e	8	0o100644	False
+Payload/Dopamine.app/Frameworks/badRecovery.framework/badRecovery	74560	ed85a5e80e741c1734f5a7e438cbe95e1ce26adeb2cbc5c8fc4507677d513780	eeefac58	8	0o100755	False
+Payload/Dopamine.app/Frameworks/badRecovery.framework/Info.plist	1013	5b8b971081635f96414905864faa73acf9625b5b5de89b481d07c53e47f31bee	e94b353c	8	0o100644	False
+Payload/Dopamine.app/Frameworks/dmaFail.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/dmaFail.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/dmaFail.framework/_CodeSignature/CodeResources	1798	b5e453387ee234ff17f3fa80010a79a77ff8a5446d6ea8d620cf7d49a1b63596	d933c2e3	8	0o100644	False
+Payload/Dopamine.app/Frameworks/dmaFail.framework/dmaFail	72240	e8bdc28bf9e867de7be3c9fc245287beaa44086f20a398d475ee853484a443e0	939b4a2b	8	0o100755	False
+Payload/Dopamine.app/Frameworks/dmaFail.framework/Info.plist	1090	70c5e9a711269b9e0cfdfdb2da1e3d368357a684d7808ea7ac72cc385f57fc55	70bb5493	8	0o100644	False
+Payload/Dopamine.app/Frameworks/palera1n.framework/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/palera1n.framework/_CodeSignature/	0		00000000	0	0o40755	False
+Payload/Dopamine.app/Frameworks/palera1n.framework/_CodeSignature/CodeResources	2092	482d6cfea778a9fcea38d63fac783d086408cef4de4ade4beb7f3786359e9b72	eb71deb7	8	0o100644	False
+Payload/Dopamine.app/Frameworks/palera1n.framework/exploit_server	53600	f6a262be5dc10259915007075437093cceb536126dc8bc744deeedc10021054a	3db96671	8	0o100755	False
+Payload/Dopamine.app/Frameworks/palera1n.framework/Info.plist	1241	b6e0da472e65b7edadbc9958915876f9f97e737476c38d0f50b110d6ad1cbcd2	c4b2aaa6	8	0o100644	False
+Payload/Dopamine.app/Frameworks/palera1n.framework/palera1n	71088	9810e7dabb9519ec560d3a5f2b1bb88c643ca3c8bb03404b32253c72fb95c169	82c6380d	8	0o100755	False
+Payload/Dopamine.app/LICENSE_Fugu15_Rootful.md	1075	6111cd29bb9f2aa7bcc517da9de920d9ab31b152eb867058622e793a4362e0aa	3faada3b	8	0o100644	False
+Payload/Dopamine.app/LICENSE_weightBufs.md	1071	9e08d20341045e6321e0774339be27c958e65294f76fd497e0f95ba6832754e3	b8c5a97f	8	0o100644	False
+Payload/Dopamine.app/Dopamine.roothide	0	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	00000000	0	0o100644	False
+Payload/Dopamine.app/LICENSE_ChOma.md	1069	5d5934d4f97e50d4e2abf195c017cdff6f5dee899b50b8f19292b6a41b6bb8b9	0835be29	8	0o100644	False
+Payload/Dopamine.app/libkrw-dopamine.deb	3286	8d76eb8bee6059ae6ceaefc7a8f71c0720345cc0d92bd4d56be4b5317b6197b2	b5a16de3	8	0o100644	False
+Payload/Dopamine.app/Info.plist	1936	b7ab37629a48a84d2627d748aa1b549f573091281691760e9aa4b5f1d64cb4cf	fe0db85c	8	0o100644	False
+Payload/Dopamine.app/Themes.plist	661	fcd3e8d0ca37d7a5efef70b9f61e1db7ec27d9066e850e07b25014616bc5ec9f	b65378b9	8	0o100644	False
+Payload/Dopamine.app/PkgInfo	8	82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0	5b8a0449	0	0o100644	False

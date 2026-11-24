@@ -1,0 +1,30 @@
+=== iOS Reverse Engineering: Dependency Check ===
+
+[OK] ipsw found: /root/.local/bin/ipsw
+[MISSING] otool is not installed (install Xcode Command Line Tools)
+[OK] strings detected
+[MISSING] plutil/plistutil not found (optional — needed for plist parsing)
+[MISSING] codesign not found (optional — macOS only, for entitlements extraction)
+[OK] unzip detected
+[MISSING] jtool2 not found (optional — advanced Mach-O analysis)
+[MISSING] swift-demangle not found (optional — for demangling Swift symbols)
+[MISSING] frida not found (optional — dynamic instrumentation)
+[MISSING] libimobiledevice not found (optional — for device interaction)
+[MISSING] lipo not found (optional — for fat binary manipulation)
+[OK] nm detected (optional)
+[MISSING] radare2/rizin not found (optional — deep binary reversing & decompilation)
+[MISSING] Ghidra headless not found (optional — decompilation & advanced analysis)
+
+INSTALL_REQUIRED:xcode-cli-tools
+INSTALL_OPTIONAL:plutil
+INSTALL_OPTIONAL:codesign
+INSTALL_OPTIONAL:jtool2
+INSTALL_OPTIONAL:swift-demangle
+INSTALL_OPTIONAL:frida
+INSTALL_OPTIONAL:libimobiledevice
+INSTALL_OPTIONAL:lipo
+INSTALL_OPTIONAL:radare2
+INSTALL_OPTIONAL:ghidra
+
+*** 1 required dependency/ies missing. ***
+Run install-dep.sh <name> to install, or see references/setup-guide.md.

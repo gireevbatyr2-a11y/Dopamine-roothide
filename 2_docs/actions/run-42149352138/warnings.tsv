@@ -1,0 +1,596 @@
+path	source_line	message	log_line
+machoparse/cdhash.c	202	'SHA1_Init' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	683
+machoparse/cdhash.c	203	'SHA1_Update' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	697
+machoparse/cdhash.c	204	'SHA1_Final' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	709
+machoparse/cdhash.c	213	'SHA256_Init' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	723
+machoparse/cdhash.c	214	'SHA256_Update' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	736
+machoparse/cdhash.c	215	'SHA256_Final' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	748
+machoparse/cdhash.c	224	'SHA384_Init' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	762
+machoparse/cdhash.c	225	'SHA384_Update' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	775
+machoparse/cdhash.c	226	'SHA384_Final' is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]	787
+src/common.m	647	passing 'const posix_spawnattr_t *' (aka 'void *const *') to parameter of type 'posix_spawnattr_t *' (aka 'void **') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	948
+src/common.m	701	incompatible pointer types passing 'cdhash_t' (aka 'unsigned char[20]') to parameter of type 'cdhash_t *' (aka 'unsigned char (*)[20]'); take the address with & [-Wincompatible-pointer-types]	954
+src/launchd.m	343	incompatible pointer types passing 'int (**)(int, const struct sockaddr *, socklen_t)' (aka 'int (**)(int, const struct sockaddr *, unsigned int)') to parameter of type 'void **' [-Wincompatible-pointer-types]	962
+src/launchd.m	348	incompatible pointer types passing 'int (**)(__strong xpc_object_t)' (aka 'int (**)(NSObject<OS_xpc_object> *__strong)') to parameter of type 'void **' [-Wincompatible-pointer-types]	968
+src/launchd.m	349	incompatible pointer types passing 'xpc_object_t (**)(__strong xpc_object_t)' (aka 'NSObject<OS_xpc_object> *(**)(NSObject<OS_xpc_object> *__strong)') to parameter of type 'void **' [-Wincompatible-pointer-types]	974
+src/unsandbox1.m	69	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v1 **' [-Wformat]	981
+src/unsandbox1.m	70	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v1 *' [-Wformat]	984
+src/unsandbox2.m	107	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v2 **' [-Wformat]	988
+src/unsandbox2.m	108	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v2 *' [-Wformat]	991
+src/xpc_hook.m	53	returning 'volatile NSDictionary *__strong' from a function with result type 'NSDictionary *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	995
+src/xpc_hook.m	190	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	998
+src/xpc_hook.m	192	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1001
+src/xpc_hook.m	193	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1007
+src/xpc_hook.m	193	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1013
+src/xpc_hook.m	285	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1019
+src/xpc_hook.m	286	assigning to 'volatile char *' from 'const volatile char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1025
+src/xpc_hook.m	287	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1028
+src/xpc_hook.m	289	passing 'volatile char **' to parameter of type 'char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1034
+src/xpc_hook.m	291	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1040
+src/xpc_hook.m	294	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1046
+src/xpc_hook.m	302	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1052
+src/xpc_hook.m	304	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1055
+src/xpc_hook.m	305	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1061
+src/xpc_hook.m	305	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1067
+src/xpc_hook.m	320	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1073
+src/xpc_hook.m	322	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1076
+src/xpc_hook.m	324	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1079
+src/xpc_hook.m	326	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1082
+src/xpc_hook.m	327	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1088
+src/xpc_hook.m	328	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1094
+src/xpc_hook.m	328	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1100
+src/common.m	647	passing 'const posix_spawnattr_t *' (aka 'void *const *') to parameter of type 'posix_spawnattr_t *' (aka 'void **') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1108
+src/common.m	701	incompatible pointer types passing 'cdhash_t' (aka 'unsigned char[20]') to parameter of type 'cdhash_t *' (aka 'unsigned char (*)[20]'); take the address with & [-Wincompatible-pointer-types]	1114
+src/launchd.m	343	incompatible pointer types passing 'int (**)(int, const struct sockaddr *, socklen_t)' (aka 'int (**)(int, const struct sockaddr *, unsigned int)') to parameter of type 'void **' [-Wincompatible-pointer-types]	1122
+src/launchd.m	348	incompatible pointer types passing 'int (**)(__strong xpc_object_t)' (aka 'int (**)(NSObject<OS_xpc_object> *__strong)') to parameter of type 'void **' [-Wincompatible-pointer-types]	1128
+src/launchd.m	349	incompatible pointer types passing 'xpc_object_t (**)(__strong xpc_object_t)' (aka 'NSObject<OS_xpc_object> *(**)(NSObject<OS_xpc_object> *__strong)') to parameter of type 'void **' [-Wincompatible-pointer-types]	1134
+src/unsandbox1.m	69	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v1 **' [-Wformat]	1141
+src/unsandbox1.m	70	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v1 *' [-Wformat]	1144
+src/unsandbox2.m	107	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v2 **' [-Wformat]	1148
+src/unsandbox2.m	108	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v2 *' [-Wformat]	1151
+src/xpc_hook.m	53	returning 'volatile NSDictionary *__strong' from a function with result type 'NSDictionary *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1155
+src/xpc_hook.m	190	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1158
+src/xpc_hook.m	192	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1161
+src/xpc_hook.m	193	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1167
+src/xpc_hook.m	193	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1173
+src/xpc_hook.m	285	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1179
+src/xpc_hook.m	286	assigning to 'volatile char *' from 'const volatile char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1185
+src/xpc_hook.m	287	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1188
+src/xpc_hook.m	289	passing 'volatile char **' to parameter of type 'char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1194
+src/xpc_hook.m	291	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1200
+src/xpc_hook.m	294	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1206
+src/xpc_hook.m	302	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1212
+src/xpc_hook.m	304	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1215
+src/xpc_hook.m	305	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1221
+src/xpc_hook.m	305	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1227
+src/xpc_hook.m	320	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1233
+src/xpc_hook.m	322	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1236
+src/xpc_hook.m	324	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1239
+src/xpc_hook.m	326	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1242
+src/xpc_hook.m	327	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1248
+src/xpc_hook.m	328	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1254
+src/xpc_hook.m	328	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1260
+src/primitives_IOSurface.m	199	incompatible pointer types passing 'void **' to parameter of type 'vm_address_t *' (aka 'unsigned long *') [-Wincompatible-pointer-types]	1272
+src/primitives_IOSurface.m	199	incompatible pointer types passing 'void **' to parameter of type 'vm_address_t *' (aka 'unsigned long *') [-Wincompatible-pointer-types]	1279
+../.include/../systemhook/src/common/private.h	24	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1294
+src/main.m	150	'/*' within block comment [-Wcomment]	1300
+../.include/../systemhook/src/common/private.h	24	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1306
+src/roothider.m	117	passing 'const char **' to parameter of type 'char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1312
+src/roothider.m	183	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1318
+src/roothider.m	440	passing 'char *const *restrict' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1324
+src/roothider.m	440	passing 'char *const *restrict' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1330
+src/roothider.m	463	passing 'volatile pid_t *' (aka 'volatile int *') to parameter of type 'pid_t *' (aka 'int *') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1336
+src/roothider.m	465	passing 'volatile pid_t *' (aka 'volatile int *') to parameter of type 'pid_t *' (aka 'int *') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1342
+src/roothider.m	471	passing 'volatile pid_t *' (aka 'volatile int *') to parameter of type 'pid_t *' (aka 'int *') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1348
+../.include/libroothider/ptrace.h	86	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1358
+src/common/private.h	6	'SYS_ptrace' macro redefined [-Wmacro-redefined]	1369
+src/common/private.h	7	'SYS_execve' macro redefined [-Wmacro-redefined]	1377
+src/common/private.h	8	'SYS_posix_spawn' macro redefined [-Wmacro-redefined]	1385
+src/common/private.h	9	'SYS_csops' macro redefined [-Wmacro-redefined]	1393
+src/common/private.h	10	'SYS_csops_audittoken' macro redefined [-Wmacro-redefined]	1401
+src/common/private.h	11	'SYS_necp_match_policy' macro redefined [-Wmacro-redefined]	1409
+src/common/private.h	12	'SYS_necp_open' macro redefined [-Wmacro-redefined]	1417
+src/common/private.h	13	'SYS_necp_client_action' macro redefined [-Wmacro-redefined]	1425
+src/common/private.h	14	'SYS_necp_session_open' macro redefined [-Wmacro-redefined]	1433
+src/common/private.h	15	'SYS_necp_session_action' macro redefined [-Wmacro-redefined]	1441
+src/roothider_main.c	181	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1448
+src/roothider_main.c	291	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1454
+src/roothider_main.c	371	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1460
+src/roothider_main.c	580	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1466
+../.include/libroothider/ptrace.h	86	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1476
+../.include/libroothider/ptrace.h	86	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1486
+../systemhook/src/common/private.h	6	'SYS_ptrace' macro redefined [-Wmacro-redefined]	1495
+../systemhook/src/common/private.h	7	'SYS_execve' macro redefined [-Wmacro-redefined]	1503
+../systemhook/src/common/private.h	8	'SYS_posix_spawn' macro redefined [-Wmacro-redefined]	1511
+../systemhook/src/common/private.h	9	'SYS_csops' macro redefined [-Wmacro-redefined]	1519
+../systemhook/src/common/private.h	10	'SYS_csops_audittoken' macro redefined [-Wmacro-redefined]	1527
+../systemhook/src/common/private.h	11	'SYS_necp_match_policy' macro redefined [-Wmacro-redefined]	1535
+../systemhook/src/common/private.h	12	'SYS_necp_open' macro redefined [-Wmacro-redefined]	1543
+../systemhook/src/common/private.h	13	'SYS_necp_client_action' macro redefined [-Wmacro-redefined]	1551
+../systemhook/src/common/private.h	14	'SYS_necp_session_open' macro redefined [-Wmacro-redefined]	1559
+../systemhook/src/common/private.h	15	'SYS_necp_session_action' macro redefined [-Wmacro-redefined]	1567
+src/common/private.h	6	'SYS_ptrace' macro redefined [-Wmacro-redefined]	1576
+src/common/private.h	7	'SYS_execve' macro redefined [-Wmacro-redefined]	1584
+src/common/private.h	8	'SYS_posix_spawn' macro redefined [-Wmacro-redefined]	1592
+src/common/private.h	9	'SYS_csops' macro redefined [-Wmacro-redefined]	1600
+src/common/private.h	10	'SYS_csops_audittoken' macro redefined [-Wmacro-redefined]	1608
+src/common/private.h	11	'SYS_necp_match_policy' macro redefined [-Wmacro-redefined]	1616
+src/common/private.h	12	'SYS_necp_open' macro redefined [-Wmacro-redefined]	1624
+src/common/private.h	13	'SYS_necp_client_action' macro redefined [-Wmacro-redefined]	1632
+src/common/private.h	14	'SYS_necp_session_open' macro redefined [-Wmacro-redefined]	1640
+src/common/private.h	15	'SYS_necp_session_action' macro redefined [-Wmacro-redefined]	1648
+src/roothider_main.c	181	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1655
+src/roothider_main.c	291	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1661
+src/roothider_main.c	371	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1667
+src/roothider_main.c	580	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1673
+../.include/../systemhook/src/common/private.h	24	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1681
+src/main.m	150	'/*' within block comment [-Wcomment]	1687
+../.include/libroothider/ptrace.h	86	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1695
+../.include/../systemhook/src/common/private.h	24	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1704
+src/roothider.m	117	passing 'const char **' to parameter of type 'char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1710
+src/roothider.m	183	passing 'char **' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1716
+src/roothider.m	191	passing 'char *const *restrict' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1722
+src/roothider.m	421	passing 'char *const *restrict' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1728
+src/roothider.m	421	passing 'char *const *restrict' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1734
+src/roothider.m	440	passing 'char *const *restrict' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1740
+src/roothider.m	440	passing 'char *const *restrict' to parameter of type 'const char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	1746
+src/roothider.m	463	passing 'volatile pid_t *' (aka 'volatile int *') to parameter of type 'pid_t *' (aka 'int *') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1752
+src/roothider.m	465	passing 'volatile pid_t *' (aka 'volatile int *') to parameter of type 'pid_t *' (aka 'int *') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1758
+src/roothider.m	471	passing 'volatile pid_t *' (aka 'volatile int *') to parameter of type 'pid_t *' (aka 'int *') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	1764
+../.include/libroothider/ptrace.h	86	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1774
+../.include/libroothider/ptrace.h	86	'PT_ATTACH' macro redefined [-Wmacro-redefined]	1784
+../systemhook/src/common/private.h	6	'SYS_ptrace' macro redefined [-Wmacro-redefined]	1796
+../systemhook/src/common/private.h	7	'SYS_execve' macro redefined [-Wmacro-redefined]	1804
+../systemhook/src/common/private.h	8	'SYS_posix_spawn' macro redefined [-Wmacro-redefined]	1812
+../systemhook/src/common/private.h	9	'SYS_csops' macro redefined [-Wmacro-redefined]	1820
+../systemhook/src/common/private.h	10	'SYS_csops_audittoken' macro redefined [-Wmacro-redefined]	1828
+../systemhook/src/common/private.h	11	'SYS_necp_match_policy' macro redefined [-Wmacro-redefined]	1836
+../systemhook/src/common/private.h	12	'SYS_necp_open' macro redefined [-Wmacro-redefined]	1844
+../systemhook/src/common/private.h	13	'SYS_necp_client_action' macro redefined [-Wmacro-redefined]	1852
+../systemhook/src/common/private.h	14	'SYS_necp_session_open' macro redefined [-Wmacro-redefined]	1860
+../systemhook/src/common/private.h	15	'SYS_necp_session_action' macro redefined [-Wmacro-redefined]	1868
+src/common.m	647	passing 'const posix_spawnattr_t *' (aka 'void *const *') to parameter of type 'posix_spawnattr_t *' (aka 'void **') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2334
+src/common.m	701	incompatible pointer types passing 'cdhash_t' (aka 'unsigned char[20]') to parameter of type 'cdhash_t *' (aka 'unsigned char (*)[20]'); take the address with & [-Wincompatible-pointer-types]	2340
+src/launchd.m	343	incompatible pointer types passing 'int (**)(int, const struct sockaddr *, socklen_t)' (aka 'int (**)(int, const struct sockaddr *, unsigned int)') to parameter of type 'void **' [-Wincompatible-pointer-types]	2355
+src/launchd.m	348	incompatible pointer types passing 'int (**)(__strong xpc_object_t)' (aka 'int (**)(NSObject<OS_xpc_object> *__strong)') to parameter of type 'void **' [-Wincompatible-pointer-types]	2361
+src/launchd.m	349	incompatible pointer types passing 'xpc_object_t (**)(__strong xpc_object_t)' (aka 'NSObject<OS_xpc_object> *(**)(NSObject<OS_xpc_object> *__strong)') to parameter of type 'void **' [-Wincompatible-pointer-types]	2367
+src/unsandbox1.m	69	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v1 **' [-Wformat]	2490
+src/unsandbox1.m	70	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v1 *' [-Wformat]	2493
+src/unsandbox2.m	107	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v2 **' [-Wformat]	2503
+src/unsandbox2.m	108	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v2 *' [-Wformat]	2506
+src/xpc_hook.m	53	returning 'volatile NSDictionary *__strong' from a function with result type 'NSDictionary *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2518
+src/xpc_hook.m	190	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2521
+src/xpc_hook.m	192	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2524
+src/xpc_hook.m	193	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2530
+src/xpc_hook.m	193	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2536
+src/xpc_hook.m	285	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2542
+src/xpc_hook.m	286	assigning to 'volatile char *' from 'const volatile char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2548
+src/xpc_hook.m	287	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2551
+src/xpc_hook.m	289	passing 'volatile char **' to parameter of type 'char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	2557
+src/xpc_hook.m	291	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2563
+src/xpc_hook.m	294	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2569
+src/xpc_hook.m	302	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2575
+src/xpc_hook.m	304	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2579
+src/xpc_hook.m	305	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2587
+src/xpc_hook.m	305	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2593
+src/xpc_hook.m	320	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2599
+src/xpc_hook.m	322	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2602
+src/xpc_hook.m	324	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2605
+src/xpc_hook.m	326	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2608
+src/xpc_hook.m	327	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2614
+src/xpc_hook.m	328	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2620
+src/xpc_hook.m	328	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2626
+src/common.m	647	passing 'const posix_spawnattr_t *' (aka 'void *const *') to parameter of type 'posix_spawnattr_t *' (aka 'void **') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2651
+src/common.m	701	incompatible pointer types passing 'cdhash_t' (aka 'unsigned char[20]') to parameter of type 'cdhash_t *' (aka 'unsigned char (*)[20]'); take the address with & [-Wincompatible-pointer-types]	2657
+src/launchd.m	343	incompatible pointer types passing 'int (**)(int, const struct sockaddr *, socklen_t)' (aka 'int (**)(int, const struct sockaddr *, unsigned int)') to parameter of type 'void **' [-Wincompatible-pointer-types]	2675
+src/launchd.m	348	incompatible pointer types passing 'int (**)(__strong xpc_object_t)' (aka 'int (**)(NSObject<OS_xpc_object> *__strong)') to parameter of type 'void **' [-Wincompatible-pointer-types]	2681
+src/launchd.m	349	incompatible pointer types passing 'xpc_object_t (**)(__strong xpc_object_t)' (aka 'NSObject<OS_xpc_object> *(**)(NSObject<OS_xpc_object> *__strong)') to parameter of type 'void **' [-Wincompatible-pointer-types]	2687
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/idownloadd/src/idownloadd/iDownloadKRW.swift	116	'withUnsafeBytes' is deprecated: use `withUnsafeBytes<R>(_: (UnsafeRawBufferPointer) throws -> R) rethrows -> R` instead	2694
+src/unsandbox1.m	69	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v1 **' [-Wformat]	2726
+src/unsandbox1.m	70	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v1 *' [-Wformat]	2729
+src/unsandbox2.m	107	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v2 **' [-Wformat]	2749
+src/unsandbox2.m	108	format specifies type 'unsigned long long' but the argument has type 'struct namecache_v2 *' [-Wformat]	2753
+src/xpc_hook.m	53	returning 'volatile NSDictionary *__strong' from a function with result type 'NSDictionary *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2780
+src/xpc_hook.m	190	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2783
+src/xpc_hook.m	192	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2789
+src/xpc_hook.m	193	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2796
+src/xpc_hook.m	193	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2802
+src/xpc_hook.m	285	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2810
+src/xpc_hook.m	286	assigning to 'volatile char *' from 'const volatile char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2818
+src/xpc_hook.m	287	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2821
+src/xpc_hook.m	289	passing 'volatile char **' to parameter of type 'char **' discards qualifiers in nested pointer types [-Wincompatible-pointer-types-discards-qualifiers]	2831
+src/xpc_hook.m	291	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2837
+src/xpc_hook.m	294	passing 'const volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2847
+src/xpc_hook.m	302	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2857
+src/xpc_hook.m	304	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2861
+src/xpc_hook.m	305	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2870
+src/xpc_hook.m	305	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2876
+src/xpc_hook.m	320	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2882
+src/xpc_hook.m	322	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2885
+src/xpc_hook.m	324	initializing 'volatile char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2888
+src/xpc_hook.m	326	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2891
+src/xpc_hook.m	327	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2897
+src/xpc_hook.m	328	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2903
+src/xpc_hook.m	328	passing 'volatile char *' to parameter of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	2909
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	2954
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	2958
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	2962
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	2971
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	2975
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	2984
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	2992
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	2996
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	3000
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	3004
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	3008
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	3012
+src/spinlock_fix.c	108	unknown attribute 'optimize' ignored [-Wunknown-attributes]	3105
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4546
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4550
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4554
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4561
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4565
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4572
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4578
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4582
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4586
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4590
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4594
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	4598
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/weightBufs/exploit/exploit.h	18	'FOR_EACH_COMMAND' macro redefined [-Wmacro-redefined]	4768
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/weightBufs/exploit/exploit.m	180	'cString' is deprecated: first deprecated in iOS 2.0 - Use -cStringUsingEncoding: instead [-Wdeprecated-declarations]	4776
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/weightBufs/exploit/exploit.m	180	'cString' is deprecated: first deprecated in iOS 2.0 - Use -cStringUsingEncoding: instead [-Wdeprecated-declarations]	4783
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/weightBufs/exploit/exploit.m	217	'cString' is deprecated: first deprecated in iOS 2.0 - Use -cStringUsingEncoding: instead [-Wdeprecated-declarations]	4790
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/weightBufs/exploit/exploit.m	217	'cString' is deprecated: first deprecated in iOS 2.0 - Use -cStringUsingEncoding: instead [-Wdeprecated-declarations]	4797
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5192
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5196
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5200
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5207
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5211
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5218
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5224
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5228
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5232
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5236
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5240
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	5244
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/puaf/smith.h	83	variable length array folded to constant array as an extension [-Wgnu-folding-constant]	5266
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/puaf/smith.h	271	unused variable 'tmp_value' [-Wunused-variable]	5269
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/puaf.h	132	variable length array folded to constant array as an extension [-Wgnu-folding-constant]	5274
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_kqueue_workloop_ctl.h	31	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5280
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_kqueue_workloop_ctl.h	76	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5290
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_kqueue_workloop_ctl.h	102	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5300
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_sem_open.h	35	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5310
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_sem_open.h	72	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5320
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_sem_open.h	108	implicit conversion loses integer precision: 'u64' (aka 'unsigned long long') to 'i32' (aka 'int') [-Wshorten-64-to-32]	5330
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_sem_open.h	157	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5351
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_sem_open.h	185	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5361
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/../IOSurface_shared.h	174	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5372
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/../IOSurface_shared.h	193	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5388
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kread/kread_IOSurface.h	32	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5403
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	16	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5423
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	19	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5443
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	30	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5458
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	46	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5473
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	53	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5493
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	81	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5513
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	135	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5533
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	137	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	5543
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_dup.h	137	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5553
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw/kwrite/kwrite_sem_open.h	69	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5573
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	76	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5592
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	80	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5606
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	81	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5620
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	85	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5634
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	131	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5648
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	137	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5662
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	178	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5676
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	162	unused variable 'res' [-Wunused-variable]	5695
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	280	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5698
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/krkw.h	290	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5720
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	14	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5742
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	15	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5756
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	16	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5770
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	26	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5784
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	33	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5803
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	34	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5817
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	35	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5831
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	59	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5845
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	78	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5864
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	87	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5883
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	96	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5897
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	116	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5911
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	117	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5925
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	165	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5939
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	168	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5953
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	170	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5967
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	173	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5981
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	137	implicit conversion loses integer precision: 'u64' (aka 'unsigned long long') to 'u32' (aka 'unsigned int') [-Wshorten-64-to-32]	5995
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	224	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	5998
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	225	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6017
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	246	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6036
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd/perf.h	298	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6050
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd.h	156	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6068
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd.h	179	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6086
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd.h	180	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6099
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd.h	181	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6112
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd.h	182	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6125
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/Exploit/libkfd.h	183	ambiguous expansion of macro 'assert' [-Wambiguous-macro]	6138
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/kfd/kfd.m	230	unused variable 'res' [-Wunused-variable]	6150
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6250
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6254
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6258
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6262
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6269
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6273
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6280
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6286
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6290
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6294
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6298
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6302
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6306
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6558
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6562
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6566
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6570
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6577
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6581
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6588
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6594
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6598
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6602
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6606
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6610
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6614
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/DarkSword/DarkSword.m	232	'syscall' is deprecated: first deprecated in iOS 10.0 - syscall(2) is unsupported; please switch to a supported interface. For SYS_kdebug_trace use kdebug_signpost(). [-Wdeprecated-declarations]	6618
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/DarkSword/DarkSword.m	232	unused variable 'r' [-Wunused-variable]	6625
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/DarkSword/DarkSword.m	376	unused variable 'r' [-Wunused-variable]	6628
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6686
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6690
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6694
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6702
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6706
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6714
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6721
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6725
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6729
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6733
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6737
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6741
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6757
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6761
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6765
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6773
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6777
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6785
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6792
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6796
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6800
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6804
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6808
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6812
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6828
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6832
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6836
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6844
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6848
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6856
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6863
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6867
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6871
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6875
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6879
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	6883
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Exploits/ClearSword/exploit/free_thread.c	71	incompatible integer to pointer conversion returning 'int' from a function with result type 'void *' [-Wint-conversion]	6992
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7017
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7021
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7025
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7032
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7036
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7043
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7049
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7053
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7057
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7061
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7065
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7069
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7092
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7096
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7100
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7104
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7112
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7116
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7124
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7131
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7135
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7139
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7143
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7147
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7151
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7167
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7171
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7175
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7179
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7187
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7191
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7199
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7206
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7210
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7214
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7218
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7222
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	7226
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	11998
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12002
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12006
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12010
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12018
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12022
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12030
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12037
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12041
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12045
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12049
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12053
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	12057
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13074
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13078
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13082
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13089
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13093
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13100
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13106
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13110
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13114
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13118
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13122
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13126
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13297
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13301
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13305
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13309
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13313
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13317
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Extensions/UIImage+JPEG2000.m	11	'kUTTypeJPEG2000' is deprecated: first deprecated in iOS 15.0 - JPEG2000 is no longer supported by this operating system. [-Wdeprecated-declarations]	13329
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOUIManager.m	253	'keyWindow' is deprecated: first deprecated in iOS 13.0 - Should not be used for applications that support multiple scenes as it returns a key window across all connected scenes [-Wdeprecated-declarations]	13373
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	13418
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	13427
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	13435
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/Log/DOProgressiveBlurView.m	38	performSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks]	13520
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	13589
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	13596
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	13602
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	13619
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	13626
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	13632
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	13668
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	13676
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	13683
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	13701
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	13709
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	13716
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	13733
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	13740
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	13746
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13756
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13760
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13764
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13768
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13775
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13779
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13786
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13792
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13796
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13800
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13804
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13808
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13812
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/Settings/DOSettingsController.m	627	assigning to 'id<UINavigationControllerDelegate,UIImagePickerControllerDelegate> _Nullable' from incompatible type 'DOSettingsController *const __strong'	13816
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	13845
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	13854
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	13862
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	13929
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	13937
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	13944
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13955
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13959
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13963
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13967
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13975
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13979
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13987
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13994
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	13998
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14002
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14006
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14010
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14014
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOMainViewController.m	48	'keyWindow' is deprecated: first deprecated in iOS 13.0 - Should not be used for applications that support multiple scenes as it returns a key window across all connected scenes [-Wdeprecated-declarations]	14018
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	14064
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	14071
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	14077
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/Log/DOLogCrashViewController.m	17	auto property synthesis will not synthesize property 'title'; it will be implemented by its superclass, use @dynamic to acknowledge intention [-Wobjc-property-synthesis]	14084
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	14132
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	14139
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	14145
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOJailbreakButton.m	50	'keyWindow' is deprecated: first deprecated in iOS 13.0 - Should not be used for applications that support multiple scenes as it returns a key window across all connected scenes [-Wdeprecated-declarations]	14178
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOJailbreakButton.m	89	'keyWindow' is deprecated: first deprecated in iOS 13.0 - Should not be used for applications that support multiple scenes as it returns a key window across all connected scenes [-Wdeprecated-declarations]	14186
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOJailbreakButton.m	113	'keyWindow' is deprecated: first deprecated in iOS 13.0 - Should not be used for applications that support multiple scenes as it returns a key window across all connected scenes [-Wdeprecated-declarations]	14194
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOJailbreakButton.m	145	'keyWindow' is deprecated: first deprecated in iOS 13.0 - Should not be used for applications that support multiple scenes as it returns a key window across all connected scenes [-Wdeprecated-declarations]	14202
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14221
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14225
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14229
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14233
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14240
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14244
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14251
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14257
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14261
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14265
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14269
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14273
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14277
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOJailbreaker.m	917	ignoring return value of function declared with 'warn_unused_result' attribute [-Wunused-result]	14281
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOGlobalAppearance.m	99	'keyWindow' is deprecated: first deprecated in iOS 13.0 - Should not be used for applications that support multiple scenes as it returns a key window across all connected scenes [-Wdeprecated-declarations]	14320
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOGlobalAppearance.m	109	'keyWindow' is deprecated: first deprecated in iOS 13.0 - Should not be used for applications that support multiple scenes as it returns a key window across all connected scenes [-Wdeprecated-declarations]	14328
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/DOGlobalAppearance.m	12	method definition for 'windowColorWithAlpha:' not found [-Wincomplete-implementation]	14336
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14403
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14407
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14411
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14415
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14422
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14426
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14433
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14439
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14443
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14447
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14451
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14455
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14459
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOEnvironmentManager.m	36	method definition for 'locateJailbreakRoot' not found [-Wincomplete-implementation]	14463
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOEnvironmentManager.m	36	method definition for 'ensureJailbreakRootExists' not found [-Wincomplete-implementation]	14470
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	2	double-quoted include "PSViewController.h" in framework header, expected angle-bracketed instead [-Wquoted-include-in-framework-header]	14522
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSViewController.h	7	not a Doxygen trailing comment [-Wdocumentation]	14529
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Frameworks/Preferences.framework/Headers/PSListController.h	34	'UIPopoverController' is deprecated: first deprecated in iOS 9.0 - UIPopoverController is deprecated. Popovers are now implemented as UIViewController presentations. Use a modal presentation style of UIModalPresentationPopover and UIPopoverPresentationController. [-Wdeprecated-declarations]	14535
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/Settings/Specifiers/DOCreditsCell.m	108	assigning to 'id<UICollectionViewDelegate> _Nullable' from incompatible type 'DOCreditsCell *__strong'	14564
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/Settings/Specifiers/DOCreditsCell.m	109	assigning to 'id<UICollectionViewDataSource> _Nullable' from incompatible type 'DOCreditsCell *__strong'	14567
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/Settings/Specifiers/DOButtonCell.m	23	performSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks]	14578
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/UI/Settings/Specifiers/DOButtonCell.m	15	conflicting parameter types in implementation of 'initWithStyle:reuseIdentifier:specifier:': 'int' vs 'long long' [-Wmismatched-parameter-types]	14584
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	15	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14617
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	22	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14621
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	45	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14625
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/common.h	108	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14629
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	23	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14636
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/jailbreakd.h	24	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14640
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libroothider/crashreporter.h	10	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14647
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	50	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14653
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	51	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14657
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	52	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14661
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	53	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14665
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	54	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14669
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/BaseBin/.include/libjailbreak/jbclient_xpc.h	60	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14673
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	47	method definition for 'prepareBootstrapWithCompletion:' not found [-Wincomplete-implementation]	14677
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	47	method definition for 'updateVarJbSymlink' not found [-Wincomplete-implementation]	14684
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	47	method definition for 'ensurePrivatePrebootIsWritable' not found [-Wincomplete-implementation]	14691
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	47	method definition for 'finalizeBootstrap' not found [-Wincomplete-implementation]	14698
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	47	method definition for 'deleteBootstrap' not found [-Wincomplete-implementation]	14705
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	47	class 'DOBootstrapper' does not conform to protocol 'NSURLSessionDownloadDelegate' [-Wprotocol]	14712
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	870	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14718
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	871	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14722
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	932	passing 'NS_RETURNS_INNER_POINTER const char *' to parameter of type 'char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	14726
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	944	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14732
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	951	a function declaration without a prototype is deprecated in all versions of C [-Wstrict-prototypes]	14736
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1186	passing 'NS_RETURNS_INNER_POINTER const char *' to parameter of type 'char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	14740
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1516	'directoryContentsAtPath:' is deprecated: first deprecated in iOS 2.0 - Use -contentsOfDirectoryAtPath:error: instead [-Wdeprecated-declarations]	14746
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1518	passing 'NS_RETURNS_INNER_POINTER const char *' to parameter of type 'char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	14753
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1526	'directoryContentsAtPath:' is deprecated: first deprecated in iOS 2.0 - Use -contentsOfDirectoryAtPath:error: instead [-Wdeprecated-declarations]	14759
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1528	passing 'NS_RETURNS_INNER_POINTER const char *' to parameter of type 'char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]	14766
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1546	implicit conversion loses integer precision: 'NSUInteger' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]	14772
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1546	implicit conversion loses integer precision: 'NSUInteger' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]	14775
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1247	category is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation]	14778
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1392	category is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation]	14785
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1508	category is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation]	14792
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1554	category is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation]	14799
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/Jailbreak/DOBootstrapper.m	1567	category is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation]	14806
+/Users/runner/work/Dopamine-roothide/Dopamine-roothide/Application/Dopamine/App Delegates/DOAppDelegate.m	41	'UI_USER_INTERFACE_IDIOM' is deprecated: first deprecated in iOS 13.0 - Use -[UIDevice userInterfaceIdiom] directly. [-Wdeprecated-declarations]	14849
