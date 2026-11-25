@@ -11,6 +11,13 @@
 #import "DOGlobalAppearance.h"
 #import "DOThemeManager.h"
 
+@interface DOJailbreakButton ()
+@property NSArray<NSLayoutConstraint *> *expandedConstraints;
+@property NSArray<NSLayoutConstraint *> *originalConstraints;
+@property UILabel *titleLabel;
+@property DODoubleHelixIndicator *indicator;
+@end
+
 @implementation DOJailbreakButton
 
 - (instancetype)initWithAction:(UIAction *)actions
@@ -54,15 +61,17 @@
     
     [self setupLog: topPadding];
     
+    self.originalConstraints = constraints;
     [NSLayoutConstraint deactivateConstraints:constraints];
 
 
-    [NSLayoutConstraint activateConstraints:@[
+    self.expandedConstraints = @[
         [self.leadingAnchor constraintEqualToAnchor:window.leadingAnchor],
         [self.trailingAnchor constraintEqualToAnchor:window.trailingAnchor],
         [self.topAnchor constraintEqualToAnchor:window.topAnchor constant:topPadding],
         [self.bottomAnchor constraintEqualToAnchor:window.bottomAnchor constant:100] // slightly out of the screen to hide corners on i8
-    ]];
+    ];
+    [NSLayoutConstraint activateConstraints:self.expandedConstraints];
     
     [self.button setUserInteractionEnabled:NO];
 
@@ -72,7 +81,7 @@
         [self.button setAlpha:0.0];
     } completion:nil];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.25 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        [self setupTitle];
+        if (self.didExpand) [self setupTitle];
     });
 
     // Kernel-R/W-only: no package manager picker, start immediately.
@@ -108,34 +117,61 @@
 {
     UIWindow *window = [[UIApplication sharedApplication] keyWindow];
 
-    UILabel *titleLabel = [[UILabel alloc] init];
-    titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    titleLabel.text = @"Kernel R/W";
-    titleLabel.textColor = [UIColor whiteColor];
-    titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightRegular];
-    titleLabel.textAlignment = NSTextAlignmentCenter;
-    titleLabel.alpha = 0.0;
-    [self addSubview:titleLabel];
+    self.titleLabel = [[UILabel alloc] init];
+    self.titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.titleLabel.text = @"Kernel R/W";
+    self.titleLabel.textColor = [UIColor whiteColor];
+    self.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightRegular];
+    self.titleLabel.textAlignment = NSTextAlignmentCenter;
+    self.titleLabel.alpha = 0.0;
+    [self addSubview:self.titleLabel];
 
     [NSLayoutConstraint activateConstraints:@[
-        [titleLabel.centerXAnchor constraintEqualToAnchor:window.centerXAnchor constant:20],
-        [titleLabel.topAnchor constraintEqualToAnchor:self.topAnchor constant:20],
+        [self.titleLabel.centerXAnchor constraintEqualToAnchor:window.centerXAnchor constant:20],
+        [self.titleLabel.topAnchor constraintEqualToAnchor:self.topAnchor constant:20],
     ]];
 
     [UIView animateWithDuration:0.2 animations:^{
-        titleLabel.alpha = 1.0;
+        self.titleLabel.alpha = 1.0;
     }];
 
-    DODoubleHelixIndicator *indicator = [[DODoubleHelixIndicator alloc] init];
-    [self addSubview:indicator];
-    indicator.translatesAutoresizingMaskIntoConstraints = NO;
+    self.indicator = [[DODoubleHelixIndicator alloc] init];
+    [self addSubview:self.indicator];
+    self.indicator.translatesAutoresizingMaskIntoConstraints = NO;
 
     [NSLayoutConstraint activateConstraints:@[
-        [indicator.trailingAnchor constraintEqualToAnchor:titleLabel.leadingAnchor constant:-10],
-        [indicator.centerYAnchor constraintEqualToAnchor:titleLabel.centerYAnchor],
-        [indicator.widthAnchor constraintEqualToConstant:30],
-        [indicator.heightAnchor constraintEqualToConstant:12],
+        [self.indicator.trailingAnchor constraintEqualToAnchor:self.titleLabel.leadingAnchor constant:-10],
+        [self.indicator.centerYAnchor constraintEqualToAnchor:self.titleLabel.centerYAnchor],
+        [self.indicator.widthAnchor constraintEqualToConstant:30],
+        [self.indicator.heightAnchor constraintEqualToConstant:12],
     ]];
+}
+
+- (void)collapseButton
+{
+    if (!self.didExpand) return;
+    self.didExpand = NO;
+
+    [self.logView removeFromSuperview];
+    self.logView = nil;
+    [[DOUIManager sharedInstance] setLogView:nil];
+
+    [self.titleLabel removeFromSuperview];
+    self.titleLabel = nil;
+    [self.indicator removeFromSuperview];
+    self.indicator = nil;
+
+    [NSLayoutConstraint deactivateConstraints:self.expandedConstraints];
+    self.expandedConstraints = nil;
+    if (self.originalConstraints) {
+        [NSLayoutConstraint activateConstraints:self.originalConstraints];
+    }
+
+    [self.button setAlpha:1.0];
+    [self.button setUserInteractionEnabled:YES];
+    [UIView animateWithDuration:0.3 animations:^{
+        [self.superview layoutIfNeeded];
+    }];
 }
 
 - (void)setEnabled:(BOOL)enabled

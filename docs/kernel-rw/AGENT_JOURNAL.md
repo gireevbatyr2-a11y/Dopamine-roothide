@@ -375,6 +375,33 @@ Dead jailbreak code removed:
 - `main.m`: TrollStore `delete-bootstrap`, legacy `prepare_jbupdate` (which
   called `reboot`) and the `isJailbroken` PATH/TERM block.
 
+## 8e. Post-success UI collapse and boot-session guard (2026-11-26)
+
+The user's log (`DopamineKernelRW.log`) shows ClearSword, DarkSword and kfd
+`landa` all completing on a fresh boot. The panic only happened when a second
+exploit was started in the same boot after relaunching the app.
+
+Fixes:
+
+- `DOJailbreakButton.collapseButton` removes the log view, title and
+  `DODoubleHelixIndicator` (stops the infinite animation), deactivates the
+  expanded constraints and reactivates the original ones. The button returns
+  to the bottom and the main UI (Settings/Processes/Credits) becomes usable.
+- `DOMainViewController.finishKernelRWUI` calls `collapseButton` on both
+  success and failure, restores the header transform, re-enables the update
+  button and restores the home indicator.
+- `DOJailbreaker.obtainKernelRW` now stores `kern.bootsessionuuid` and
+  `DOKRWExploitRan` in `NSUserDefaults`. After a successful exploit, a second
+  attempt in the same boot returns "Kernel R/W was already acquired in this
+  boot. Reboot the device before running the exploit again." instead of
+  re-running an exploit over modified kernel state (which panics). A new boot
+  UUID clears the flag automatically.
+
+The primitives (physrw, kread/kwrite) live in the app process, so kernel R/W
+persists while the app stays alive. If the app is killed, the primitives are
+lost; reboot before trying again. A persistent helper/daemon (Serotonin-style)
+would be needed to survive app termination.
+
 ## 9. Next steps
 
 1. Commit and push `kernel-rw-only`; trigger the Actions build; fix compile

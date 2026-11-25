@@ -36,6 +36,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 @property DOJailbreakButton *jailbreakBtn;
 @property NSArray<NSLayoutConstraint *> *jailbreakButtonConstraints;
 @property DOActionMenuButton *updateButton;
+@property DOHeaderView *headerView;
 @property(nonatomic) BOOL hideStatusBar;
 @property(nonatomic) BOOL hideHomeIndicator;
 
@@ -93,6 +94,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         [DOGlobalAppearance secondarySubtitleString:DOLocalizedString(@"Credits_Made_By")],
     ]];
     
+    self.headerView = headerView;
     [stackView addArrangedSubview:headerView];
 
     [NSLayoutConstraint activateConstraints:@[
@@ -202,10 +204,12 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
             if (error) {
                 DOKRWLog(@"UI: kernel R/W failed: %@", error.localizedDescription);
                 [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Kernel R/W failed: %@", error] debug:NO];
+                [self finishKernelRWUI];
                 [self.navigationController pushViewController:[[DOLogCrashViewController alloc] initWithTitle:[error localizedDescription]] animated:YES];
             }
             else {
                 [[DOUIManager sharedInstance] completeKernelRW];
+                [self finishKernelRWUI];
                 DOKRWLog(@"UI: kernel R/W ready base=0x%llx slide=0x%llx",
                          (unsigned long long)kernelRW.kernelBase,
                          (unsigned long long)kernelRW.kernelSlide);
@@ -219,6 +223,17 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         });
         [self.jailbreakBtn unlockMutex];
     });
+}
+
+- (void)finishKernelRWUI
+{
+    [self.jailbreakBtn collapseButton];
+    self.updateButton.userInteractionEnabled = YES;
+    [UIView animateWithDuration:0.3 animations:^{
+        self.updateButton.alpha = 1.0;
+        [self.headerView setTransform:CGAffineTransformIdentity];
+    }];
+    self.hideHomeIndicator = NO;
 }
 
 -(void)setupUpdateAvailable:(BOOL)environmentUpdate
