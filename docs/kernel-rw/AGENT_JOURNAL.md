@@ -335,8 +335,44 @@ The button no longer touches any jailbreak state:
   pipeline stops after physrw. No `elevatePrivileges`, `injectLaunchdHook`,
   `prepareBootstrap`, `finalize`, `removeJailbreak`, respring or reboot.
 
-The remaining `UI/PkgManagers/*` classes are unreachable dead code; they are
-still compiled but nothing presents them.
+The `UI/PkgManagers/*` picker classes have since been removed (see 8d);
+only `PkgManagers.plist` remains for `DOBootstrapper`.
+
+## 8d. Kernel panic diagnosis and fix (2026-11-25)
+
+The user's iPhone13,2 (A14) on iOS 16.6 (20G75) panicked after tapping
+Get Kernel R/W. `panic-full-2026-11-25-235533.000.ips`:
+
+- `Kernel data abort`, fault address `0xffffffdff2940000`.
+- Probabilistic GZAlloc: zone `semaphores`, element
+  `[0xffffffdff293ffc0, 0xffffffdff2940000)` (64 bytes), out-of-bounds,
+  1 byte past.
+- Panicked task: pid 981 `Dopamine`.
+
+That zone belongs to kfd `landa`, which was the default kernel exploit
+(priority 900; `kread_sem_open` / `kwrite_sem_open`). Fix:
+
+- Lowered `kfd` `landa` `DPFlavorPriority` from 900 to 880, so ClearSword
+  (895) is the preferred kernel exploit on iOS 16.6. ClearSword uses
+  socket/IOSurface primitives and does not touch the `semaphores` zone.
+- `kfd` remains selectable in Settings -> Kernel Exploit as a fallback.
+- If ClearSword still panics, select DarkSword (890); both are supported on
+  15.0-18.7.1.
+
+Logging fix: `DOKRWLog` now tries `/var/mobile/Documents/`,
+`/var/mobile/Library/Logs/` and the app container, logs the chosen path via
+`NSLog`, writes `main: launch` at startup, and the success alert shows the
+log path. The container path is
+`.../Containers/Data/Application/<UUID>/Documents/DopamineKernelRW.log`.
+
+Dead jailbreak code removed:
+
+- `UI/PkgManagers/DOPkgManagerPickerView.{h,m}`,
+  `DOPkgManagerPickerViewController.{h,m}`, `DOAppSwitch.{h,m}` and their
+  pbxproj entries. `PkgManagers.plist` stays because `DOBootstrapper` still
+  reads it.
+- `main.m`: TrollStore `delete-bootstrap`, legacy `prepare_jbupdate` (which
+  called `reboot`) and the `isJailbroken` PATH/TERM block.
 
 ## 9. Next steps
 

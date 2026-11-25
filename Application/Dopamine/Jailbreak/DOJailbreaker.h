@@ -20,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 // Appends a timestamped line to /var/mobile/Documents/DopamineKernelRW.log.
 // Falls back to the app container if that path is not writable.
 void DOKRWLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
+NSString *DOKRWLogPath(void);
 
 @interface DOJailbreaker : NSObject
 {

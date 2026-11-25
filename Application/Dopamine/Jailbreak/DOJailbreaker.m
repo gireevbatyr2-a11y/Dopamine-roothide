@@ -61,12 +61,11 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
 
 #pragma mark - File logging
 
-static void DOKRWEnsureLogDirectory(void)
+static NSString *gDOKRWLogPath;
+
+NSString *DOKRWLogPath(void)
 {
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        mkdir("/var/mobile/Documents", 0755);
-    });
+    return gDOKRWLogPath ?: @"(not written)";
 }
 
 static NSString *DOKRWLogFallbackPath(void)
@@ -96,14 +95,29 @@ void DOKRWLog(NSString *format, ...)
     NSString *line = [NSString stringWithFormat:@"[%s] %@\n", timestamp, message];
     NSLog(@"[KernelRW] %@", message);
 
-    DOKRWEnsureLogDirectory();
-    FILE *file = fopen("/var/mobile/Documents/DopamineKernelRW.log", "a");
-    if (!file) {
-        file = fopen(DOKRWLogFallbackPath().fileSystemRepresentation, "a");
+    NSArray<NSString *> *candidates = @[
+        @"/var/mobile/Documents/DopamineKernelRW.log",
+        @"/var/mobile/Library/Logs/DopamineKernelRW.log",
+        DOKRWLogFallbackPath(),
+    ];
+
+    FILE *file = NULL;
+    NSString *usedPath = nil;
+    for (NSString *path in candidates) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:[path stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+        file = fopen(path.fileSystemRepresentation, "a");
+        if (file) {
+            usedPath = path;
+            break;
+        }
     }
     if (file) {
         fputs(line.UTF8String, file);
         fclose(file);
+        if (!gDOKRWLogPath) {
+            gDOKRWLogPath = [usedPath copy];
+            NSLog(@"[KernelRW] log file: %@", gDOKRWLogPath);
+        }
     }
 }
 

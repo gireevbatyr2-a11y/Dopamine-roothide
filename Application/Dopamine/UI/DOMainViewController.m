@@ -209,7 +209,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
                 DOKRWLog(@"UI: kernel R/W ready base=0x%llx slide=0x%llx",
                          (unsigned long long)kernelRW.kernelBase,
                          (unsigned long long)kernelRW.kernelSlide);
-                NSString *message = [NSString stringWithFormat:@"Kernel R/W ready\n\nbase:  0x%016llx\nslide: 0x%016llx\nkcall: %@", kernelRW.kernelBase, kernelRW.kernelSlide, kernelRW.isKcallAvailable ? @"available" : @"unavailable"];
+                NSString *message = [NSString stringWithFormat:@"Kernel R/W ready\n\nbase:  0x%016llx\nslide: 0x%016llx\nkcall: %@\nlog: %@", kernelRW.kernelBase, kernelRW.kernelSlide, kernelRW.isKcallAvailable ? @"available" : @"unavailable", DOKRWLogPath()];
                 [[DOUIManager sharedInstance] sendLog:message debug:NO];
                 [self.jailbreakBtn.button setTitle:@"Kernel R/W Ready" forState:UIControlStateNormal];
                 UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Kernel R/W" message:message preferredStyle:UIAlertControllerStyleAlert];
