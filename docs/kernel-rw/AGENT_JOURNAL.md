@@ -287,17 +287,16 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-25)
 
-Write access became available; the branch was pushed at `2ff72c3`.
+Write access became available; the branch was pushed at `6ef26bf`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45691924997
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45696416257
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
 - Artifacts (not expired):
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `2ff72c3` (process list tab included).
+- The run built commit `6ef26bf` (process list + jailbreak-remnant cleanup).
 
-This confirms the new code compiles with the upstream workflow (macOS, Theos,
-iPhoneOS16.5 SDK). Runtime behaviour still needs a device run.
+Previous successful run: `45691924997` (commit `2ff72c3`, process list tab).
 
 ## 8b. Process list tab (added 2026-11-25)
 
