@@ -17,10 +17,15 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+// Appends a timestamped line to /var/mobile/Documents/DopamineKernelRW.log.
+// Falls back to the app container if that path is not writable.
+void DOKRWLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
+
 @interface DOJailbreaker : NSObject
 {
     xpc_object_t _systemInfoXdict;
     BOOL _kernelRWReady;
+    uint32_t _extmodOffset;
 }
 
 + (instancetype)sharedInstance;
@@ -29,6 +34,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) uint64_t kernelBase;
 @property (nonatomic, readonly) uint64_t kernelSlide;
 @property (nonatomic, readonly, getter=isKcallAvailable) BOOL kcallAvailable;
+// Resolved offset of task->extmod_statistics (0 if not resolved).
+@property (nonatomic, readonly) uint32_t extmodOffset;
 
 // Runs patchfinding, the kernel exploit (plus PAC/PPL bypass when required) and
 // builds the physrw primitive. Returns nil on success. On success this process
@@ -64,11 +71,18 @@ NS_ASSUME_NONNULL_BEGIN
 // Kernel task_t pointer for a pid (0 if not found).
 - (uint64_t)kernelTaskForPid:(pid_t)pid;
 
-// Zeroes the vm_extmod_statistics block (6 x int64, 48 bytes) at task + offset.
+// Zeroes the vm_extmod_statistics block (6 x int64, 48 bytes) located at task + offset.
 // The offset of task->extmod_statistics is kernel-build specific and is not
 // currently exported by XPF, so it must be supplied by the caller.
 - (BOOL)zeroExtmodStatisticsForTask:(uint64_t)task offset:(uint32_t)offset;
 - (BOOL)zeroExtmodStatisticsForPid:(pid_t)pid offset:(uint32_t)offset;
+
+// Resolves (and caches) the extmod offset for the running kernel build.
+// Resolution order: learned cache -> runtime discovery. Returns NO if the
+// offset could not be determined; no kernel write happens in that case.
+- (BOOL)resolveExtmodOffset;
+- (BOOL)zeroExtmodStatisticsForTask:(uint64_t)task;
+- (BOOL)zeroExtmodStatisticsForPid:(pid_t)pid;
 
 @end
 

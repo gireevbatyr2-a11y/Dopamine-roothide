@@ -12,8 +12,24 @@
 #import "DOEnvironmentManager.h"
 #import <libjailbreak/info.h>
 #import <libjailbreak/jbclient_xpc.h>
+#import <mach/mach.h>
+#include <unistd.h>
+#include <string.h>
+
+extern kern_return_t task_for_pid(mach_port_t target_tport, int pid, mach_port_t *t);
 
 int main(int argc, char * argv[]) {
+    if (argc >= 2 && !strcmp(argv[1], "krw-perturb-helper")) {
+        // The parent spawns us so that a task_for_pid lookup from a different
+        // task bumps its extmod_statistics counters (self lookups do not).
+        mach_port_t parentPort = MACH_PORT_NULL;
+        if (task_for_pid(mach_task_self(), getppid(), &parentPort) == KERN_SUCCESS) {
+            mach_port_deallocate(mach_task_self(), parentPort);
+        }
+        sleep(2);
+        return 0;
+    }
+
     if (argc >= 3) {
         if (!strcmp(argv[1], "trollstore")) {
             if (!strcmp(argv[2], "delete-bootstrap")) {

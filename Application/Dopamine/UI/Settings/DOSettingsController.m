@@ -227,143 +227,23 @@
             }
             
             PSSpecifier *settingsGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-            settingsGroupSpecifier.name = DOLocalizedString(@"Section_Jailbreak_Settings");
+            settingsGroupSpecifier.name = @"Kernel R/W";
             [specifiers addObject:settingsGroupSpecifier];
-            
-            PSSpecifier *tweakInjectionSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_Tweak_Injection") target:self set:@selector(setTweakInjectionEnabled:specifier:) get:@selector(readTweakInjectionEnabled:) detail:nil cell:PSSwitchCell edit:nil];
-            [tweakInjectionSpecifier setProperty:@YES forKey:@"enabled"];
-            [tweakInjectionSpecifier setProperty:@"tweakInjectionEnabled" forKey:@"key"];
-            [tweakInjectionSpecifier setProperty:@YES forKey:@"default"];
-            [specifiers addObject:tweakInjectionSpecifier];
-            
-            if (!envManager.isJailbroken) {
-                PSSpecifier *verboseLogSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_Verbose_Logs") target:self set:defSetter get:defGetter detail:nil cell:PSSwitchCell edit:nil];
-                [verboseLogSpecifier setProperty:@YES forKey:@"enabled"];
-                [verboseLogSpecifier setProperty:@"verboseLogsEnabled" forKey:@"key"];
-                [verboseLogSpecifier setProperty:@NO forKey:@"default"];
-                [specifiers addObject:verboseLogSpecifier];
-            }
-            
+
+            PSSpecifier *verboseLogSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_Verbose_Logs") target:self set:defSetter get:defGetter detail:nil cell:PSSwitchCell edit:nil];
+            [verboseLogSpecifier setProperty:@YES forKey:@"enabled"];
+            [verboseLogSpecifier setProperty:@"verboseLogsEnabled" forKey:@"key"];
+            [verboseLogSpecifier setProperty:@NO forKey:@"default"];
+            [specifiers addObject:verboseLogSpecifier];
+
             PSSpecifier *idownloadSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_iDownload") target:self set:@selector(setIDownloadEnabled:specifier:) get:@selector(readIDownloadEnabled:) detail:nil cell:PSSwitchCell edit:nil];
             [idownloadSpecifier setProperty:@YES forKey:@"enabled"];
             [idownloadSpecifier setProperty:@"idownloadEnabled" forKey:@"key"];
             [idownloadSpecifier setProperty:@NO forKey:@"default"];
             [specifiers addObject:idownloadSpecifier];
-            
-            PSSpecifier *appJitSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_Apps_JIT") target:self set:@selector(setAppJITEnabled:specifier:) get:@selector(readAppJITEnabled:) detail:nil cell:PSSwitchCell edit:nil];
-            [appJitSpecifier setProperty:@YES forKey:@"enabled"];
-            [appJitSpecifier setProperty:@"appJITEnabled" forKey:@"key"];
-            [appJitSpecifier setProperty:@YES forKey:@"default"];
-            [specifiers addObject:appJitSpecifier];
-            
-            
-            /**************************** roothide specfic *********************************/
-            NSString* namedesc = DOLocalizedString(@"Enable dyld patch");
-            if(envManager.isArm64e && NSProcessInfo.processInfo.operatingSystemVersion.majorVersion==15) {
-                namedesc = DOLocalizedString(@"Dyld Patch(Spinlock Fix)");
-            }
-            PSSpecifier *dyldPatchSpecifier = [PSSpecifier preferenceSpecifierNamed:namedesc target:self set:@selector(setDyldPatchEnabled:specifier:) get:@selector(readDyldPatchEnabled:) detail:nil cell:PSSwitchCell edit:nil];
-            [dyldPatchSpecifier setProperty:@YES forKey:@"enabled"];
-            [dyldPatchSpecifier setProperty:@"dyldPatchEnabled" forKey:@"key"];
-            [dyldPatchSpecifier setProperty:@NO forKey:@"default"];
-            [specifiers addObject:dyldPatchSpecifier];
-            /**************************** roothide specfic *********************************/
-            
-            
-            PSSpecifier *jetsamSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_Jetsam_Multiplier") target:self set:@selector(setJetsamMultiplier:specifier:) get:@selector(readJetsamMultiplier:) detail:nil cell:PSLinkListCell edit:nil];
-            [jetsamSpecifier setProperty:@YES forKey:@"enabled"];
-            [jetsamSpecifier setProperty:@"jetsamMultiplier" forKey:@"key"];
-            [jetsamSpecifier setProperty:@6 forKey:@"default"];
-            jetsamSpecifier.detailControllerClass = [DOPSJetsamListItemsController class];
-            [jetsamSpecifier setProperty:@"jetsamOptionNumbers" forKey:@"valuesDataSource"];
-            [jetsamSpecifier setProperty:@"jetsamOptionTitles" forKey:@"titlesDataSource"];
-            [specifiers addObject:jetsamSpecifier];
-            
-            if (!envManager.isJailbroken && !envManager.isInstalledThroughTrollStore) {
-                PSSpecifier *removeJailbreakSwitchSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Button_Remove_Jailbreak") target:self set:@selector(setRemoveJailbreakEnabled:specifier:) get:defGetter detail:nil cell:PSSwitchCell edit:nil];
-                [removeJailbreakSwitchSpecifier setProperty:@YES forKey:@"enabled"];
-                [removeJailbreakSwitchSpecifier setProperty:@"removeJailbreakEnabled" forKey:@"key"];
-                [specifiers addObject:removeJailbreakSwitchSpecifier];
-            }
 
-            if (envManager.isBootstrapped) {
-                PSSpecifier *actionsGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-                actionsGroupSpecifier.name = DOLocalizedString(@"Section_Actions");
-                [specifiers addObject:actionsGroupSpecifier];
-
-                if (envManager.isJailbroken) {
-                    PSSpecifier *refreshAppsSpecifier = [PSSpecifier preferenceSpecifierNamed:@"" target:self set:defSetter get:defGetter detail:nil cell:PSStaticTextCell edit:nil];
-                    [refreshAppsSpecifier setProperty:@"Button_Refresh_Jailbreak_Apps" forKey:@"title"];
-                    [refreshAppsSpecifier setProperty:[DOButtonCell class] forKey:@"cellClass"];
-                    [refreshAppsSpecifier setProperty:buttonHeight forKey:@"height"];
-                    [refreshAppsSpecifier setProperty:@"arrow.triangle.2.circlepath" forKey:@"image"];
-                    [refreshAppsSpecifier setProperty:@"refreshJailbreakAppsPressed" forKey:@"action"];
-                    [specifiers addObject:refreshAppsSpecifier];
-                    
-                    PSSpecifier *changeMobilePasswordSpecifier = [PSSpecifier preferenceSpecifierNamed:@"" target:self set:defSetter get:defGetter detail:nil cell:PSStaticTextCell edit:nil];
-                    [changeMobilePasswordSpecifier setProperty:@"Button_Change_Mobile_Password" forKey:@"title"];
-                    [changeMobilePasswordSpecifier setProperty:[DOButtonCell class] forKey:@"cellClass"];
-                    [changeMobilePasswordSpecifier setProperty:buttonHeight forKey:@"height"];
-                    [changeMobilePasswordSpecifier setProperty:@"key" forKey:@"image"];
-                    [changeMobilePasswordSpecifier setProperty:@"changeMobilePasswordWithAuthenticationPressed" forKey:@"action"];
-                    [specifiers addObject:changeMobilePasswordSpecifier];
-                    
-                    PSSpecifier *reinstallPackageManagersSpecifier = [PSSpecifier preferenceSpecifierNamed:@"" target:self set:defSetter get:defGetter detail:nil cell:PSStaticTextCell edit:nil];
-                    [reinstallPackageManagersSpecifier setProperty:@"Button_Reinstall_Package_Managers" forKey:@"title"];
-                    [reinstallPackageManagersSpecifier setProperty:[DOButtonCell class] forKey:@"cellClass"];
-                    [reinstallPackageManagersSpecifier setProperty:buttonHeight forKey:@"height"];
-                    if (@available(iOS 16.0, *))
-                        [reinstallPackageManagersSpecifier setProperty:@"shippingbox.and.arrow.backward" forKey:@"image"];
-                    else
-                        [reinstallPackageManagersSpecifier setProperty:@"shippingbox" forKey:@"image"];
-                    [reinstallPackageManagersSpecifier setProperty:@"reinstallPackageManagersPressed" forKey:@"action"];
-                    [specifiers addObject:reinstallPackageManagersSpecifier];
-                }
-
-/*
-                BOOL hideJailbreakButtonShown = (envManager.isJailbroken || (envManager.isInstalledThroughTrollStore && !envManager.isJailbreakHidden));
-                if (hideJailbreakButtonShown) {
-                    // The "Hide Jailbreak" button should be shown
-                    // - When jailbroken
-                    // - When Dopamine is installed by TrollStore and the jailbreak is not hidden yet
-                    PSSpecifier *hideUnhideJailbreakSpecifier = [PSSpecifier preferenceSpecifierNamed:@"" target:self set:defSetter get:defGetter detail:nil cell:PSStaticTextCell edit:nil];
-                    [hideUnhideJailbreakSpecifier setProperty:[DOButtonCell class] forKey:@"cellClass"];
-                    [hideUnhideJailbreakSpecifier setProperty:buttonHeight forKey:@"height"];
-                    if (envManager.isJailbreakHidden) {
-                        [hideUnhideJailbreakSpecifier setProperty:@"Button_Unhide_Jailbreak" forKey:@"title"];
-                        [hideUnhideJailbreakSpecifier setProperty:@"eye" forKey:@"image"];
-                    }
-                    else {
-                        [hideUnhideJailbreakSpecifier setProperty:@"Button_Hide_Jailbreak" forKey:@"title"];
-                        [hideUnhideJailbreakSpecifier setProperty:@"eye.slash" forKey:@"image"];
-                    }
-                    [hideUnhideJailbreakSpecifier setProperty:@"hideUnhideJailbreakPressed" forKey:@"action"];
-                    [specifiers addObject:hideUnhideJailbreakSpecifier];
-                }
-*/
-
-                if (!envManager.isJailbroken && envManager.isInstalledThroughTrollStore) {
-                    // The "Remove Jailbreak" button cannot show when being jailbroken since pressing it would kinda be russian roulette
-                    // It might work, it might not and panic your device and leave it in a half uninstalled state
-                    // So this button is only for when you're not jailbroken and have Dopamine installed with TrollStore
-                    // The only supported uninstallation flow without TrollStore is to reboot and "rejailbreak" with "Remove Jailbreak" toggle enabled
-                    PSSpecifier *removeJailbreakSpecifier = [PSSpecifier preferenceSpecifierNamed:@"" target:self set:defSetter get:defGetter detail:nil cell:PSStaticTextCell edit:nil];
-                    [removeJailbreakSpecifier setProperty:@"Button_Remove_Jailbreak" forKey:@"title"];
-                    [removeJailbreakSpecifier setProperty:[DOButtonCell class] forKey:@"cellClass"];
-                    [removeJailbreakSpecifier setProperty:buttonHeight forKey:@"height"];
-                    [removeJailbreakSpecifier setProperty:@"trash" forKey:@"image"];
-                    [removeJailbreakSpecifier setProperty:@"removeJailbreakPressed" forKey:@"action"];
-                    [specifiers addObject:removeJailbreakSpecifier];
-                }
-                
-/*
-                if (hideJailbreakButtonShown) {
-                    [actionsGroupSpecifier setProperty:DOLocalizedString(envManager.isJailbroken ? @"Hint_Hide_Jailbreak_Jailbroken" : @"Hint_Hide_Jailbreak") forKey:@"footerText"];
-                }
-*/
-            }
         }
-        
+
         PSSpecifier *themingGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
         themingGroupSpecifier.name = DOLocalizedString(@"Section_Customization");
         [specifiers addObject:themingGroupSpecifier];
@@ -376,37 +256,6 @@
         [themeSpecifier setProperty:@"themeIdentifiers" forKey:@"valuesDataSource"];
         [themeSpecifier setProperty:@"themeNames" forKey:@"titlesDataSource"];
         [specifiers addObject:themeSpecifier];
-
-        PSSpecifier *bootlogoGropSpecifier = [PSSpecifier emptyGroupSpecifier];
-        bootlogoGropSpecifier.name = DOLocalizedString(@"Section_Boot_Logo");
-        [specifiers addObject:bootlogoGropSpecifier];
-
-        PSSpecifier *bootlogoEnabledSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Enabled") target:self set:@selector(setBootlogoEnabled:specifier:) get:defGetter detail:nil cell:PSSwitchCell edit:nil];
-        [bootlogoEnabledSpecifier setProperty:@YES forKey:@"enabled"];
-        [bootlogoEnabledSpecifier setProperty:@"bootlogoEnabled" forKey:@"key"];
-        [bootlogoEnabledSpecifier setProperty:@YES forKey:@"default"];
-        bootlogoEnabledSpecifier.identifier = @"bootlogoEnabled";
-        [specifiers addObject:bootlogoEnabledSpecifier];
-
-        _customBootlogoEnabledSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Custom_Boot_Logo") target:self set:@selector(setCustomBootlogoEnabled:specifier:) get:defGetter detail:nil cell:PSSwitchCell edit:nil];
-        [_customBootlogoEnabledSpecifier setProperty:@YES forKey:@"enabled"];
-        [_customBootlogoEnabledSpecifier setProperty:@"customBootlogoEnabled" forKey:@"key"];
-        [_customBootlogoEnabledSpecifier setProperty:@NO forKey:@"default"];
-        _customBootlogoEnabledSpecifier.identifier = @"customBootlogoEnabled";
-
-        _customBootlogoSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Select_Image") target:self set:defSetter get:defGetter detail:nil cell:PSButtonCell edit:nil];
-        _customBootlogoSpecifier.buttonAction = @selector(selectCustomBootlogoPressed);
-        [_customBootlogoSpecifier setProperty:@YES forKey:@"enabled"];
-        [_customBootlogoSpecifier setProperty:@"customBootlogo" forKey:@"key"];
-        _customBootlogoSpecifier.identifier = @"customBootlogo";
-
-        if ([[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"bootlogoEnabled" fallback:YES]) {
-            [specifiers addObject:_customBootlogoEnabledSpecifier];
-
-            if ([[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"customBootlogoEnabled" fallback:NO]) {
-                [specifiers addObject:_customBootlogoSpecifier];
-            }
-        }
 
         _specifiers = specifiers;
     }

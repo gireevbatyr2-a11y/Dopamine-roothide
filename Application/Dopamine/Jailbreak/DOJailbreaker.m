@@ -18,6 +18,14 @@
 #import <dlfcn.h>
 #import <unistd.h>
 #import <string.h>
+#import <stdarg.h>
+#import <time.h>
+#import <stdio.h>
+#import <stdlib.h>
+#import <spawn.h>
+#import <signal.h>
+#import <sys/wait.h>
+#import <sys/sysctl.h>
 #import <mach/mach.h>
 #import <mach/vm_region.h>
 #import <mach/ndr.h>
@@ -34,6 +42,13 @@
 #import "clock_alarm.h"
 #import <IOSurface/IOSurfaceRef.h>
 
+extern char **environ;
+extern kern_return_t task_for_pid(mach_port_t target_tport, int pid, mach_port_t *t);
+extern kern_return_t task_info(task_name_t target_task, task_flavor_t flavor, task_info_t task_info_out, mach_msg_type_number_t *task_info_outCnt);
+
+#define DO_TASK_EXTMOD_INFO 19
+#define DO_EXTMOD_OFFSET_CACHE @"/var/mobile/Documents/kernelrw_extmod_offsets.plist"
+
 NSString *const JBErrorDomain = @"JBErrorDomain";
 typedef NS_ENUM(NSInteger, JBErrorCode) {
     JBErrorCodeFailedToFindKernel            = -1,
@@ -43,6 +58,54 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
     JBErrorCodeFailedBuildingPhysRW          = -5,
     JBErrorCodeFailedCleanup                 = -6,
 };
+
+#pragma mark - File logging
+
+static void DOKRWEnsureLogDirectory(void)
+{
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        mkdir("/var/mobile/Documents", 0755);
+    });
+}
+
+static NSString *DOKRWLogFallbackPath(void)
+{
+    static NSString *fallback;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        NSString *dir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+        fallback = [dir stringByAppendingPathComponent:@"DopamineKernelRW.log"];
+    });
+    return fallback;
+}
+
+void DOKRWLog(NSString *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+
+    time_t now = time(NULL);
+    struct tm tmnow;
+    localtime_r(&now, &tmnow);
+    char timestamp[32] = {0};
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", &tmnow);
+
+    NSString *line = [NSString stringWithFormat:@"[%s] %@\n", timestamp, message];
+    NSLog(@"[KernelRW] %@", message);
+
+    DOKRWEnsureLogDirectory();
+    FILE *file = fopen("/var/mobile/Documents/DopamineKernelRW.log", "a");
+    if (!file) {
+        file = fopen(DOKRWLogFallbackPath().fileSystemRepresentation, "a");
+    }
+    if (file) {
+        fputs(line.UTF8String, file);
+        fclose(file);
+    }
+}
 
 @interface DOJailbreaker ()
 - (NSError *)gatherSystemInformation;
@@ -92,27 +155,40 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
     @synchronized (self) {
         if (_kernelRWReady) return nil;
 
+        DOKRWLog(@"obtainKernelRW: start");
         NSError *error = [self gatherSystemInformation];
-        if (error) return error;
+        if (error) {
+            DOKRWLog(@"obtainKernelRW: patchfinding failed: %@", error.localizedDescription);
+            return error;
+        }
+        DOKRWLog(@"obtainKernelRW: patchfinding done");
 
         error = [self doExploitation];
         if (error) {
+            DOKRWLog(@"obtainKernelRW: exploitation failed: %@", error.localizedDescription);
             [self cleanUpExploits];
             return error;
         }
+        DOKRWLog(@"obtainKernelRW: exploitation done (kcall=%@)", [self isKcallAvailable] ? @"yes" : @"no");
 
         error = [self buildPhysRWPrimitive];
         if (error) {
+            DOKRWLog(@"obtainKernelRW: physrw failed: %@", error.localizedDescription);
             [self cleanUpExploits];
             return error;
         }
+        DOKRWLog(@"obtainKernelRW: physrw done");
 
         NSError *cleanupError = [self cleanUpExploits];
         if (cleanupError) {
-            NSLog(@"[KernelRW] exploit cleanup warning: %@", cleanupError);
+            DOKRWLog(@"obtainKernelRW: cleanup warning: %@", cleanupError.localizedDescription);
         }
 
         _kernelRWReady = YES;
+        DOKRWLog(@"obtainKernelRW: ready base=0x%llx slide=0x%llx kcall=%@",
+                 (unsigned long long)gSystemInfo.kernelConstant.base,
+                 (unsigned long long)gSystemInfo.kernelConstant.slide,
+                 [self isKcallAvailable] ? @"yes" : @"no");
         return nil;
     }
 }
@@ -240,6 +316,8 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
         }
     }
 
+    DOKRWLog(@"exploit: kernel=%@ pac=%@ ppl=%@", kernelExploit.name, pacBypass.name ?: @"none", pplBypass.name ?: @"none");
+
     [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:DOLocalizedString(@"Exploiting Kernel (%@)"), kernelExploit.name] debug:NO];
     if ([kernelExploit load] != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLoadingExploit userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to load kernel exploit: %s", dlerror()]}];
     if ([kernelExploit run] != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Failed to exploit kernel"}];
@@ -277,7 +355,9 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
 - (NSError *)buildPhysRWPrimitive
 {
     int r = -1;
-    if (device_supports_physrw_pte()) {
+    BOOL usePTE = device_supports_physrw_pte();
+    DOKRWLog(@"physrw: using %@", usePTE ? @"pte" : @"physmap");
+    if (usePTE) {
         r = libjailbreak_physrw_pte_init(false, 0);
     }
     else {
@@ -292,6 +372,7 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
 - (NSError *)cleanUpExploits
 {
     int r = [[DOExploitManager sharedManager] cleanUpExploits];
+    DOKRWLog(@"cleanup: exploits result=%d", r);
     if (r != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedCleanup userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to cleanup exploits: %d", r]}];
     IOSurface_map_cleanup();
     return nil;
@@ -382,6 +463,249 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
 - (BOOL)zeroExtmodStatisticsForPid:(pid_t)pid offset:(uint32_t)offset
 {
     return [self zeroExtmodStatisticsForTask:[self kernelTaskForPid:pid] offset:offset];
+}
+
+#pragma mark - extmod offset resolution
+
+typedef struct {
+    const char *osversion;
+    uint32_t offset;
+} DOKRWExtmodOffsetEntry;
+
+// Pinned offsets for known kernel builds. Runtime discovery results are cached
+// per build in /var/mobile/Documents/kernelrw_extmod_offsets.plist, so this
+// table only needs entries for builds you want to force without discovery.
+static const DOKRWExtmodOffsetEntry kDOKRWExtmodOffsets[] = {
+    // { "22F76", 0x000 },
+    { NULL, 0 },
+};
+
+static NSString *DOKRWOSVersion(void)
+{
+    char version[64] = {0};
+    size_t size = sizeof(version);
+    if (sysctlbyname("kern.osversion", version, &size, NULL, 0) != 0) {
+        return nil;
+    }
+    return [NSString stringWithUTF8String:version];
+}
+
+- (uint32_t)extmodOffset
+{
+    return _extmodOffset;
+}
+
+- (BOOL)readOwnExtmodStatistics:(int64_t *)stats
+{
+    uint64_t buffer[8] = {0}; // struct task_extmod_info: uuid[16] + 6 x int64
+    mach_msg_type_number_t count = 16;
+    kern_return_t kr = task_info(mach_task_self(), DO_TASK_EXTMOD_INFO, (task_info_t)buffer, &count);
+    if (kr != KERN_SUCCESS || count < 16) return NO;
+    memcpy(stats, ((uint8_t *)buffer) + 16, 48);
+    return YES;
+}
+
+static BOOL DOKRWStatsAreZero(const int64_t *stats)
+{
+    for (int i = 0; i < 6; i++) {
+        if (stats[i] != 0) return NO;
+    }
+    return YES;
+}
+
+// Looks up another task's port. The kernel only bumps extmod counters when the
+// target task differs from the caller, so this is what makes our own
+// extmod_statistics block non-zero and uniquely findable in the task struct.
+- (BOOL)perturbOwnExtmodStatistics
+{
+    BOOL perturbed = NO;
+
+    uint64_t selfProc = proc_find(getpid());
+    if (selfProc) {
+        uint64_t cur = kread64(selfProc + koffsetof(proc, list_next));
+        int guard = 0;
+        while (cur && cur != selfProc && guard++ < 128) {
+            pid_t pid = kread32(cur + koffsetof(proc, pid));
+            if (pid > 0 && pid != getpid()) {
+                mach_port_t port = MACH_PORT_NULL;
+                if (task_for_pid(mach_task_self(), pid, &port) == KERN_SUCCESS) {
+                    mach_port_deallocate(mach_task_self(), port);
+                    perturbed = YES;
+                    DOKRWLog(@"extmod: perturbed via task_for_pid(%d)", pid);
+                    break;
+                }
+            }
+            uint64_t next = kread64(cur + koffsetof(proc, list_next));
+            if (!next) break;
+            cur = next;
+        }
+        proc_rele(selfProc);
+    }
+
+    if (!perturbed) {
+        NSString *exe = [NSBundle mainBundle].executablePath;
+        if (exe) {
+            posix_spawnattr_t attr;
+            posix_spawnattr_init(&attr);
+            posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETPGROUP);
+            pid_t child = 0;
+            char *argv[] = { (char *)exe.fileSystemRepresentation, "krw-perturb-helper", NULL };
+            int rc = posix_spawn(&child, exe.fileSystemRepresentation, NULL, &attr, argv, environ);
+            posix_spawnattr_destroy(&attr);
+            if (rc == 0 && child > 0) {
+                usleep(300000);
+                mach_port_t port = MACH_PORT_NULL;
+                if (task_for_pid(mach_task_self(), child, &port) == KERN_SUCCESS) {
+                    mach_port_deallocate(mach_task_self(), port);
+                    perturbed = YES;
+                    DOKRWLog(@"extmod: perturbed via helper pid %d", child);
+                }
+                kill(child, SIGKILL);
+                waitpid(child, NULL, 0);
+            } else {
+                DOKRWLog(@"extmod: helper spawn failed (%d)", rc);
+            }
+        }
+    }
+
+    return perturbed;
+}
+
+- (BOOL)verifyExtmodOffset:(uint32_t)offset task:(uint64_t)task
+{
+    if (!offset || !task) return NO;
+    int64_t stats[6] = {0};
+    if (![self readOwnExtmodStatistics:stats]) return NO;
+    int64_t disk[6] = {0};
+    if (kreadbuf(task + offset, disk, sizeof(disk)) != 0) return NO;
+    return memcmp(stats, disk, sizeof(stats)) == 0;
+}
+
+- (BOOL)discoverExtmodOffset:(uint32_t *)outOffset task:(uint64_t)task
+{
+    uint8_t *buffer = malloc(0x1000);
+    if (!buffer) return NO;
+
+    NSMutableSet<NSNumber *> *candidates = nil;
+
+    for (int attempt = 0; attempt < 4; attempt++) {
+        if (attempt > 0 && ![self perturbOwnExtmodStatistics]) break;
+
+        int64_t stats[6] = {0};
+        if (![self readOwnExtmodStatistics:stats]) break;
+        if (DOKRWStatsAreZero(stats)) continue;
+
+        size_t got = 0;
+        for (size_t off = 0; off < 0x1000; off += 0x100) {
+            if (kreadbuf(task + off, buffer + off, 0x100) != 0) break;
+            got = off + 0x100;
+        }
+
+        NSMutableSet<NSNumber *> *matches = [NSMutableSet new];
+        for (size_t off = 0; off + 48 <= got; off += 8) {
+            if (memcmp(buffer + off, stats, 48) == 0) {
+                [matches addObject:@(off)];
+            }
+        }
+
+        DOKRWLog(@"extmod: attempt %d stats=[%lld,%lld,%lld,%lld,%lld,%lld] matches=%lu",
+                 attempt, stats[0], stats[1], stats[2], stats[3], stats[4], stats[5],
+                 (unsigned long)matches.count);
+
+        if (matches.count == 0) {
+            candidates = nil;
+            break;
+        }
+        if (!candidates) {
+            candidates = [matches mutableCopy];
+        } else {
+            [candidates intersectSet:matches];
+        }
+        if (candidates.count == 1) break;
+    }
+
+    free(buffer);
+
+    if (candidates.count == 1) {
+        uint32_t offset = (uint32_t)[candidates.anyObject unsignedIntegerValue];
+        if (offset != 0 && offset < 0x1000) {
+            *outOffset = offset;
+            return YES;
+        }
+    }
+    if (candidates.count > 1) {
+        DOKRWLog(@"extmod: ambiguous candidates: %@", candidates);
+    }
+    return NO;
+}
+
+- (BOOL)resolveExtmodOffset
+{
+    @synchronized (self) {
+        if (_extmodOffset) return YES;
+        if (!_kernelRWReady) {
+            DOKRWLog(@"extmod: kernel R/W not ready");
+            return NO;
+        }
+
+        NSString *osversion = DOKRWOSVersion();
+        uint64_t proc = proc_find(getpid());
+        if (!proc) return NO;
+        uint64_t task = proc_task(proc);
+        proc_rele(proc);
+        if (!task) return NO;
+
+        NSDictionary *cachedDict = [NSDictionary dictionaryWithContentsOfFile:DO_EXTMOD_OFFSET_CACHE];
+        if (osversion && cachedDict[osversion]) {
+            uint32_t offset = [cachedDict[osversion] unsignedIntValue];
+            if ([self verifyExtmodOffset:offset task:task]) {
+                _extmodOffset = offset;
+                DOKRWLog(@"extmod: using cached offset 0x%x for %@", offset, osversion);
+                return YES;
+            }
+            DOKRWLog(@"extmod: cached offset 0x%x for %@ failed verification", offset, osversion);
+        }
+
+        for (int i = 0; kDOKRWExtmodOffsets[i].osversion; i++) {
+            NSString *pinnedVersion = [NSString stringWithUTF8String:kDOKRWExtmodOffsets[i].osversion];
+            if (osversion && [osversion isEqualToString:pinnedVersion]) {
+                uint32_t offset = kDOKRWExtmodOffsets[i].offset;
+                if ([self verifyExtmodOffset:offset task:task]) {
+                    _extmodOffset = offset;
+                    DOKRWLog(@"extmod: using pinned offset 0x%x for %@", offset, osversion);
+                    return YES;
+                }
+                DOKRWLog(@"extmod: pinned offset 0x%x for %@ failed verification", offset, osversion);
+            }
+        }
+
+        uint32_t discovered = 0;
+        if ([self discoverExtmodOffset:&discovered task:task]) {
+            _extmodOffset = discovered;
+            if (osversion) {
+                NSMutableDictionary *cache = cachedDict ? [cachedDict mutableCopy] : [NSMutableDictionary new];
+                cache[osversion] = @(discovered);
+                [cache writeToFile:DO_EXTMOD_OFFSET_CACHE atomically:YES];
+            }
+            DOKRWLog(@"extmod: resolved offset 0x%x for %@", discovered, osversion ?: @"?");
+            return YES;
+        }
+
+        DOKRWLog(@"extmod: failed to resolve offset for %@", osversion ?: @"?");
+        return NO;
+    }
+}
+
+- (BOOL)zeroExtmodStatisticsForTask:(uint64_t)task
+{
+    if (!task) return NO;
+    if (!_extmodOffset && ![self resolveExtmodOffset]) return NO;
+    return [self zeroExtmodStatisticsForTask:task offset:_extmodOffset];
+}
+
+- (BOOL)zeroExtmodStatisticsForPid:(pid_t)pid
+{
+    return [self zeroExtmodStatisticsForTask:[self kernelTaskForPid:pid]];
 }
 
 #pragma mark - Contiguous mapping workaround

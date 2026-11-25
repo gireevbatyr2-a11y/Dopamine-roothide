@@ -171,6 +171,7 @@
 {
     DOJailbreaker *kernelRW = [DOJailbreaker sharedInstance];
 
+    DOKRWLog(@"UI: kernel R/W requested");
     [[DOUIManager sharedInstance] startLogCapture];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
@@ -212,11 +213,15 @@
         NSError *error = [kernelRW obtainKernelRW];
         dispatch_async(dispatch_get_main_queue(), ^{
             if (error) {
+                DOKRWLog(@"UI: kernel R/W failed: %@", error.localizedDescription);
                 [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Kernel R/W failed: %@", error] debug:NO];
                 [self.navigationController pushViewController:[[DOLogCrashViewController alloc] initWithTitle:[error localizedDescription]] animated:YES];
             }
             else {
                 [[DOUIManager sharedInstance] completeJailbreak];
+                DOKRWLog(@"UI: kernel R/W ready base=0x%llx slide=0x%llx",
+                         (unsigned long long)kernelRW.kernelBase,
+                         (unsigned long long)kernelRW.kernelSlide);
                 NSString *message = [NSString stringWithFormat:@"Kernel R/W ready\n\nbase:  0x%016llx\nslide: 0x%016llx\nkcall: %@", kernelRW.kernelBase, kernelRW.kernelSlide, kernelRW.isKcallAvailable ? @"available" : @"unavailable"];
                 [[DOUIManager sharedInstance] sendLog:message debug:NO];
                 [self.jailbreakBtn.button setTitle:@"Kernel R/W Ready" forState:UIControlStateNormal];
@@ -266,44 +271,6 @@
         [self.updateButton setTransform:CGAffineTransformIdentity];
         [self.updateButton setAlpha:1];
     } completion:nil];
-}
-
--(void)simulateJailbreak
-{
-    // Let's simulate a "jailbreak" using grand central dispatch
-
-    DOUIManager *uiManager = [DOUIManager sharedInstance];
-
-    static BOOL didFinish = NO; //not thread safe lol
-    
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        [uiManager completeJailbreak];
-        [uiManager sendLog:@"Rebooting Userspace" debug: NO];
-        didFinish = YES;
-        [self fadeToBlack: ^{
-
-        }];
-    });
-
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [NSThread sleepForTimeInterval:0.2];
-        [uiManager sendLog:@"Launching kexploitd" debug: NO];
-        [NSThread sleepForTimeInterval:0.5];
-        [uiManager sendLog:@"Launching oobPCI" debug: NO];
-        [NSThread sleepForTimeInterval:0.15];
-        [uiManager sendLog:@"Gaining r/w" debug: NO];
-        [NSThread sleepForTimeInterval:0.8];
-        [uiManager sendLog:@"Patchfinding" debug: NO];
-        NSArray *types = @[@"AMFI", @"PAC", @"KTRR", @"KPP", @"PPL", @"KPF", @"APRR", @"AMCC", @"PAN", @"PXN", @"ASLR", @"OPA"]; //Ever heard of the legendary opa bypass
-        while (true)
-        {
-            [NSThread sleepForTimeInterval:0.6 * rand() / RAND_MAX];
-            if (didFinish) break;
-            NSString *type = types[arc4random_uniform((uint32_t)types.count)];
-            [uiManager sendLog:[NSString stringWithFormat:@"Bypassing %@", type] debug: NO];
-        }
-    });
 }
 
 - (void)fadeToBlack:(void (^)(void))completion
