@@ -15,7 +15,21 @@
 #import "DOLogCrashViewController.h"
 #import <pthread.h>
 #import <sys/sysctl.h>
+#import <stdio.h>
+#import <string.h>
+#import <mach/mach.h>
 #import <libjailbreak/libjailbreak.h>
+
+extern kern_return_t task_for_pid(mach_port_t target_tport, int pid, mach_port_t *t);
+extern int proc_listpids(uint32_t type, uint32_t typeinfo, void *buffer, int buffersize);
+extern int proc_name(int pid, void *buffer, uint32_t buffersize);
+
+#ifndef PROC_ALL_PIDS
+#define PROC_ALL_PIDS 1
+#endif
+
+@interface DOProcessListViewController : UITableViewController
+@end
 
 @interface DOMainViewController ()
 
@@ -90,6 +104,9 @@
     DOActionMenuView *actionView = [[DOActionMenuView alloc] initWithActions:@[
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Settings_Title") image:[UIImage systemImageNamed:@"gearshape" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"settings" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOSettingsController alloc] init] animated:YES];
+        }],
+        [UIAction actionWithTitle:@"Processes" image:[UIImage systemImageNamed:@"list.bullet" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"processes" handler:^(__kindof UIAction * _Nonnull action) {
+            [self.navigationController pushViewController:[[DOProcessListViewController alloc] init] animated:YES];
         }],
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Credits_Title") image:[UIImage systemImageNamed:@"info.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"credits" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOCreditsViewController alloc] init] animated:YES];
@@ -300,7 +317,7 @@
 
 - (BOOL)actionMenuShowsChevronForAction:(UIAction *)action
 {
-    if ([action.identifier isEqualToString:@"settings"] || [action.identifier isEqualToString:@"credits"]) return YES;
+    if ([action.identifier isEqualToString:@"settings"] || [action.identifier isEqualToString:@"credits"] || [action.identifier isEqualToString:@"processes"]) return YES;
     return NO;
 }
 
@@ -336,6 +353,141 @@
 {
     _hideHomeIndicator = hideHomeIndicator;
     [self setNeedsUpdateOfHomeIndicatorAutoHidden];
+}
+
+@end
+
+#pragma mark - Process list
+
+@interface DOProcessListViewController ()
+@property (nonatomic, strong) NSArray<NSDictionary<NSString *, id> *> *processes;
+@property (nonatomic, assign) mach_port_t connectedTaskPort;
+@property (nonatomic, assign) pid_t connectedPid;
+- (void)reloadProcesses;
+- (void)connectToPid:(pid_t)pid name:(NSString *)name;
+@end
+
+@implementation DOProcessListViewController
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.title = @"Processes";
+    self.tableView.rowHeight = 44.0;
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(reloadProcesses)];
+
+    UIRefreshControl *refresh = [[UIRefreshControl alloc] init];
+    [refresh addTarget:self action:@selector(reloadProcesses) forControlEvents:UIControlEventValueChanged];
+    self.refreshControl = refresh;
+
+    [self reloadProcesses];
+}
+
+- (void)dealloc
+{
+    if (_connectedTaskPort != MACH_PORT_NULL) {
+        mach_port_deallocate(mach_task_self(), _connectedTaskPort);
+    }
+}
+
+- (void)reloadProcesses
+{
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        int size = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0);
+        NSMutableArray<NSDictionary<NSString *, id> *> *list = [NSMutableArray array];
+        if (size > 0) {
+            NSMutableData *data = [NSMutableData dataWithLength:(NSUInteger)size];
+            int used = proc_listpids(PROC_ALL_PIDS, 0, data.mutableBytes, size);
+            int count = used / (int)sizeof(pid_t);
+            pid_t *pids = (pid_t *)data.mutableBytes;
+            for (int i = 0; i < count; i++) {
+                pid_t pid = pids[i];
+                if (pid <= 0) continue;
+                char name[256] = {0};
+                if (proc_name(pid, name, sizeof(name)) <= 0) {
+                    snprintf(name, sizeof(name), "pid %d", pid);
+                }
+                [list addObject:@{@"pid": @(pid), @"name": [NSString stringWithUTF8String:name] ?: @"?"}];
+            }
+        }
+        [list sortUsingComparator:^NSComparisonResult(NSDictionary *a, NSDictionary *b) {
+            return [a[@"pid"] compare:b[@"pid"]];
+        }];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.processes = list;
+            [self.tableView reloadData];
+            [self.refreshControl endRefreshing];
+        });
+    });
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return (NSInteger)self.processes.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *cellID = @"DOProcessCell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellID];
+    }
+    NSDictionary *proc = self.processes[(NSUInteger)indexPath.row];
+    cell.textLabel.text = proc[@"name"];
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"pid %@", proc[@"pid"]];
+    cell.accessoryType = ([proc[@"pid"] intValue] == self.connectedPid) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    NSDictionary *proc = self.processes[(NSUInteger)indexPath.row];
+    [self connectToPid:[proc[@"pid"] intValue] name:proc[@"name"]];
+}
+
+- (void)connectToPid:(pid_t)pid name:(NSString *)name
+{
+    DOJailbreaker *krw = [DOJailbreaker sharedInstance];
+    if (!krw.kernelRWReady) {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Kernel R/W required" message:@"Get kernel R/W first, then connect to a process." preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        [self presentViewController:alert animated:YES completion:nil];
+        return;
+    }
+
+    DOKRWLog(@"process: connecting to %d (%@)", pid, name);
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        mach_port_t port = MACH_PORT_NULL;
+        kern_return_t kr = task_for_pid(mach_task_self(), pid, &port);
+        BOOL zeroed = NO;
+        if (kr == KERN_SUCCESS) {
+            zeroed = [krw zeroExtmodStatisticsForPid:pid];
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (kr != KERN_SUCCESS) {
+                DOKRWLog(@"process: task_for_pid(%d) failed: %d", pid, kr);
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"task_for_pid failed" message:[NSString stringWithFormat:@"pid %d, kr %d", pid, kr] preferredStyle:UIAlertControllerStyleAlert];
+                [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+                [self presentViewController:alert animated:YES completion:nil];
+                return;
+            }
+
+            if (self.connectedTaskPort != MACH_PORT_NULL) {
+                mach_port_deallocate(mach_task_self(), self.connectedTaskPort);
+            }
+            self.connectedTaskPort = port;
+            self.connectedPid = pid;
+            [self.tableView reloadData];
+
+            DOKRWLog(@"process: connected to %d (%@), extmod zeroed=%@", pid, name, zeroed ? @"yes" : @"no");
+            NSString *message = [NSString stringWithFormat:@"Connected to %@ (pid %d).\nextmod counters zeroed: %@", name, pid, zeroed ? @"yes" : @"no"];
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connected" message:message preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+            [self presentViewController:alert animated:YES completion:nil];
+        });
+    });
 }
 
 @end

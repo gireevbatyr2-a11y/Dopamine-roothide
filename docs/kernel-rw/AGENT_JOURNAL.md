@@ -310,6 +310,23 @@ The workflow triggers on push (`.github/workflows/main.yml`) and uploads
 `docs/kernel-rw/patches/` for manual application (the directory is untracked
 on purpose).
 
+## 8b. Process list tab (added 2026-11-25)
+
+`DOMainViewController.m` defines `DOProcessListViewController` as a private
+class (no `.pbxproj` change). It is reachable from the action menu entry
+"Processes".
+
+- Lists pids with `proc_listpids(PROC_ALL_PIDS, ...)` and names with
+  `proc_name()` (declared manually; no `libproc.h` dependency).
+- Pull-to-refresh plus a Refresh bar button.
+- Tapping a row calls `task_for_pid(mach_task_self(), pid, &port)`.
+- On success it keeps one task port at a time and calls
+  `zeroExtmodStatisticsForPid:` so the target's `task_for_pid_count` (and the
+  other five extmod counters) are reset. The alert reports whether zeroing
+  succeeded; the log records the reason when it did not.
+- Requires `kernelRWReady`; otherwise it asks the user to get kernel R/W first.
+- All actions log `process: ...` lines to the same file.
+
 ## 9. Next steps
 
 1. Commit and push `kernel-rw-only`; trigger the Actions build; fix compile
