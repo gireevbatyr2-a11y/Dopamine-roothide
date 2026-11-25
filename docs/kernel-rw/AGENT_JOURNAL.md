@@ -287,16 +287,17 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-25)
 
-Write access became available; the branch was pushed at `6ef26bf`.
+Write access became available; the branch was pushed at `3a20cf7`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45696416257
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45701419608
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
 - Artifacts (not expired):
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `6ef26bf` (process list + jailbreak-remnant cleanup).
+- The run built commit `3a20cf7` (panic fix + logging + dead picker removal).
 
-Previous successful run: `45691924997` (commit `2ff72c3`, process list tab).
+Previous successful runs: `45696416257` (`6ef26bf`, cleanup) and
+`45691924997` (`2ff72c3`, process list).
 
 ## 8b. Process list tab (added 2026-11-25)
 
