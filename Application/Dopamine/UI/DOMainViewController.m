@@ -91,16 +91,6 @@
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Settings_Title") image:[UIImage systemImageNamed:@"gearshape" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"settings" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOSettingsController alloc] init] animated:YES];
         }],
-        [UIAction actionWithTitle:DOLocalizedString(@"Menu_Restart_SpringBoard_Title") image:[UIImage systemImageNamed:@"arrow.clockwise" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"respring" handler:^(__kindof UIAction * _Nonnull action) {
-            [self fadeToBlack:^{
-                [[DOEnvironmentManager sharedManager] respring];
-            }];
-        }],
-        [UIAction actionWithTitle:DOLocalizedString(@"Menu_Reboot_Userspace_Title") image:[UIImage systemImageNamed:@"arrow.clockwise.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"reboot-userspace" handler:^(__kindof UIAction * _Nonnull action) {
-            [self fadeToBlack:^{
-                [[DOEnvironmentManager sharedManager] rebootUserspace];
-            }];
-        }],
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Credits_Title") image:[UIImage systemImageNamed:@"info.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"credits" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOCreditsViewController alloc] init] animated:YES];
         }]
@@ -121,11 +111,11 @@
         [buttonPlaceHolder.heightAnchor constraintEqualToConstant:60]
     ]];
     
-    //Jailbreak Button
-    BOOL isJailbroken = [[DOEnvironmentManager sharedManager] isJailbroken] || [[DOEnvironmentManager sharedManager] isJailbrokenWithOtherJailbreak];
+    //Kernel R/W Button
+    BOOL isReady = [DOJailbreaker sharedInstance].kernelRWReady;
     BOOL isSupported = [[DOEnvironmentManager sharedManager] isSupported];
 
-    NSString *jailbreakButtonTitle = [self jailbreakButtonTitle];
+    NSString *jailbreakButtonTitle = [self kernelRWButtonTitle];
         
     UIImage *jailbreakButtonImage;
     if (isSupported)
@@ -134,19 +124,6 @@
         jailbreakButtonImage = [UIImage systemImageNamed:@"lock.slash" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]];
     
     self.jailbreakBtn = [[DOJailbreakButton alloc] initWithAction: [UIAction actionWithTitle:jailbreakButtonTitle image:jailbreakButtonImage identifier:@"jailbreak" handler:^(__kindof UIAction * _Nonnull action) {
-
-
-/********************************** roothide specific ************************************/
-        if(otherJailbreakActived(false)) {
-            UIAlertController *alertController = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Error") message:DOLocalizedString(@"Your device currently has another jailbreak activated, please reboot device.") preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *rebootAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Close") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                //exit(0);
-            }];
-            [alertController addAction:rebootAction];
-            [self presentViewController:alertController animated:YES completion:nil];
-            return;
-        }
-/********************************** roothide specific ************************************/
 
 
         [actionView hide];
@@ -158,10 +135,10 @@
             self.updateButton.alpha = 0;
         } completion:nil];
         
-        [self startJailbreak];
+        [self startKernelRW];
         
     }]];
-    self.jailbreakBtn.enabled = !isJailbroken && isSupported;
+    self.jailbreakBtn.enabled = !isReady && isSupported;
 
     [self.view addSubview:self.jailbreakBtn];
 
@@ -172,54 +149,33 @@
         [self.jailbreakBtn.centerYAnchor constraintEqualToAnchor:buttonPlaceHolder.centerYAnchor]
     ])];
 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-        if ([[DOUIManager sharedInstance] environmentUpdateAvailable])
-        {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self setupUpdateAvailable:YES];
-            });
-        }
-        else if ([[DOUIManager sharedInstance] isUpdateAvailable])
-        {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self setupUpdateAvailable:NO];
-            });
-        }
-    });
 }
 
-- (NSString *)jailbreakButtonTitle
+- (NSString *)kernelRWButtonTitle
 {
-    BOOL isJailbroken = [[DOEnvironmentManager sharedManager] isJailbroken];
+    BOOL isReady = [DOJailbreaker sharedInstance].kernelRWReady;
     BOOL isSupported = [[DOEnvironmentManager sharedManager] isSupported];
-    BOOL removeJailbreakEnabled = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"removeJailbreakEnabled" fallback:NO];
 
-    NSString *jailbreakButtonTitle = DOLocalizedString(@"Button_Jailbreak_Title");
-    if (!isSupported)
-        jailbreakButtonTitle = DOLocalizedString(@"Unsupported");
-    else if (isJailbroken)
-        jailbreakButtonTitle = DOLocalizedString(@"Status_Title_Jailbroken");
-    else if (removeJailbreakEnabled)
-        jailbreakButtonTitle = DOLocalizedString(@"Button_Remove_Jailbreak");
-    
-    return jailbreakButtonTitle;
+    if (!isSupported) return DOLocalizedString(@"Unsupported");
+    if (isReady) return @"Kernel R/W Ready";
+    return @"Get Kernel R/W";
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    [self.jailbreakBtn.button setTitle:[self jailbreakButtonTitle] forState:UIControlStateNormal];
+    [self.jailbreakBtn.button setTitle:[self kernelRWButtonTitle] forState:UIControlStateNormal];
 }
 
-- (void)startJailbreak
+- (void)startKernelRW
 {
-    DOJailbreaker *jailbreaker = [[DOJailbreaker alloc] init];
+    DOJailbreaker *kernelRW = [DOJailbreaker sharedInstance];
 
     [[DOUIManager sharedInstance] startLogCapture];
-    
+
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-        if ([jailbreaker contiguousMappingWorkaroundNeeded]) {
-            
+        if ([kernelRW contiguousMappingWorkaroundNeeded]) {
+
             cpu_subtype_t cpuFamily = 0;
             size_t cpuFamilySize = sizeof(cpuFamily);
             sysctlbyname("hw.cpufamily", &cpuFamily, &cpuFamilySize, NULL, 0);
@@ -229,15 +185,15 @@
             }
 
             UIAlertController *contiguousMappingWorkaroundAlertController = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Respring_Required") message:workaroundMessage preferredStyle:UIAlertControllerStyleAlert];
-            
+
             UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Respring_Cancel") style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
                 exit(0);
             }];
-            
+
             UIAlertAction *workaroundAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Apply_Workaround") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                [jailbreaker applyContiguousMappingWorkaround];
+                [kernelRW applyContiguousMappingWorkaround];
             }];
-            
+
             [contiguousMappingWorkaroundAlertController addAction:cancelAction];
             [contiguousMappingWorkaroundAlertController addAction:workaroundAction];
             contiguousMappingWorkaroundAlertController.preferredAction = workaroundAction;
@@ -248,44 +204,25 @@
             return;
         }
 
-        //We need to get the preconfig mutex to start the jailbreak (self.jailbreakBtn.canStartJailbreak)
         [self.jailbreakBtn lockMutex];
         dispatch_async(dispatch_get_main_queue(), ^{
             self.hideHomeIndicator = YES;
         });
 
-        NSError *error;
-        BOOL didRemove = NO;
-        BOOL showLogs = YES;
-        [jailbreaker runWithError:&error didRemoveJailbreak:&didRemove showLogs:&showLogs];
+        NSError *error = [kernelRW obtainKernelRW];
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (error && showLogs) {
-                [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Jailbreak failed with error: %@", error] debug:NO];
+            if (error) {
+                [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Kernel R/W failed: %@", error] debug:NO];
                 [self.navigationController pushViewController:[[DOLogCrashViewController alloc] initWithTitle:[error localizedDescription]] animated:YES];
             }
-            else if (error && !showLogs) {
-                // Used when there is an error that is explainable in such detail that additional logs are not needed
-                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Log_Error") message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
-                UIAlertAction *rebootAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Reboot") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    exec_cmd_trusted(JBROOT_PATH("/sbin/reboot"), NULL);
-                }];
-                [alertController addAction:rebootAction];
-                [self presentViewController:alertController animated:YES completion:nil];
-            }
-            else if (didRemove) {
-                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Removed_Jailbreak_Alert_Title") message:DOLocalizedString(@"Removed_Jailbreak_Alert_Message") preferredStyle:UIAlertControllerStyleAlert];
-                UIAlertAction *rebootAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Close") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    exit(0);
-                }];
-                [alertController addAction:rebootAction];
-                [self presentViewController:alertController animated:YES completion:nil];
-            }
             else {
-                // No errors
                 [[DOUIManager sharedInstance] completeJailbreak];
-                [self fadeToBlack: ^{
-                    [jailbreaker finalize];
-                }];
+                NSString *message = [NSString stringWithFormat:@"Kernel R/W ready\n\nbase:  0x%016llx\nslide: 0x%016llx\nkcall: %@", kernelRW.kernelBase, kernelRW.kernelSlide, kernelRW.isKcallAvailable ? @"available" : @"unavailable"];
+                [[DOUIManager sharedInstance] sendLog:message debug:NO];
+                [self.jailbreakBtn.button setTitle:@"Kernel R/W Ready" forState:UIControlStateNormal];
+                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Kernel R/W" message:message preferredStyle:UIAlertControllerStyleAlert];
+                [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+                [self presentViewController:alertController animated:YES completion:nil];
             }
         });
         [self.jailbreakBtn unlockMutex];
@@ -402,9 +339,6 @@
 
 - (BOOL)actionMenuActionIsEnabled:(UIAction *)action
 {
-    if ([action.identifier isEqualToString:@"respring"] || [action.identifier isEqualToString:@"reboot-userspace"]) {
-        return [[DOEnvironmentManager sharedManager] isJailbroken];
-    }
     return YES;
 }
 

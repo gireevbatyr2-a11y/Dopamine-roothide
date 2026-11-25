@@ -1,20 +1,26 @@
 //
-//  Jailbreaker.m
+//  DOJailbreaker.m
 //  Dopamine
 //
 //  Created by Lars Fröder on 10.01.24.
+//
+//  Kernel R/W provider: patchfinding -> kernel exploit (+ PAC/PPL) -> physrw.
+//  This file deliberately contains no jailbreak payload, state, session or boot
+//  management. It stops once a stable kernel R/W primitive is available.
 //
 
 #import "DOJailbreaker.h"
 #import "DOEnvironmentManager.h"
 #import "DOExploitManager.h"
 #import "DOUIManager.h"
-#import "DOPreferenceManager.h"
 #import <sys/stat.h>
-#import <compression.h>
 #import <xpf/xpf.h>
 #import <dlfcn.h>
-#import <libjailbreak/codesign.h>
+#import <unistd.h>
+#import <string.h>
+#import <mach/mach.h>
+#import <mach/vm_region.h>
+#import <mach/ndr.h>
 #import <libjailbreak/primitives.h>
 #import <libjailbreak/primitives_IOSurface.h>
 #import <libjailbreak/physrw_pte.h>
@@ -23,28 +29,10 @@
 #import <libjailbreak/kernel.h>
 #import <libjailbreak/info.h>
 #import <libjailbreak/util.h>
-#import <libjailbreak/trustcache.h>
-#import <libjailbreak/trustcache_fs.h>
-#import <libjailbreak/jbserver_boomerang.h>
-#import <libjailbreak/signatures.h>
-#import <libjailbreak/jbclient_xpc.h>
-#import <libjailbreak/jbclient_mach.h>
 #import <libjailbreak/kcall_arm64.h>
-#import <libjailbreak/basebin_gen.h>
-#import <CoreServices/LSApplicationProxy.h>
 #import <sys/utsname.h>
-#import "spawn.h"
 #import "clock_alarm.h"
 #import <IOSurface/IOSurfaceRef.h>
-int posix_spawnattr_set_registered_ports_np(posix_spawnattr_t * __restrict attr, mach_port_t portarray[], uint32_t count);
-
-#define kCFPreferencesNoContainer CFSTR("kCFPreferencesNoContainer")
-void _CFPreferencesSetValueWithContainer(CFStringRef key, CFPropertyListRef value, CFStringRef applicationID, CFStringRef userName, CFStringRef hostName, CFStringRef containerPath);
-Boolean _CFPreferencesSynchronizeWithContainer(CFStringRef applicationID, CFStringRef userName, CFStringRef hostName, CFStringRef containerPath);
-CFArrayRef _CFPreferencesCopyKeyListWithContainer(CFStringRef applicationID, CFStringRef userName, CFStringRef hostName, CFStringRef containerPath);
-CFDictionaryRef _CFPreferencesCopyMultipleWithContainer(CFArrayRef keysToFetch, CFStringRef applicationID, CFStringRef userName, CFStringRef hostName, CFStringRef containerPath);
-
-//char *_dirhelper(int a, char *dst, size_t size);
 
 NSString *const JBErrorDomain = @"JBErrorDomain";
 typedef NS_ENUM(NSInteger, JBErrorCode) {
@@ -54,22 +42,85 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
     JBErrorCodeFailedExploitation            = -4,
     JBErrorCodeFailedBuildingPhysRW          = -5,
     JBErrorCodeFailedCleanup                 = -6,
-    JBErrorCodeFailedGetRoot                 = -7,
-    JBErrorCodeFailedUnsandbox               = -8,
-    JBErrorCodeFailedPlatformize             = -9,
-    JBErrorCodeFailedBasebinTrustcache       = -10,
-    JBErrorCodeFailedLaunchdInjection        = -11,
-    JBErrorCodeFailedInitProtection          = -12,
-    JBErrorCodeFailedInitFakeLib             = -13,
-    JBErrorCodeFailedDuplicateApps           = -14,
 };
 
+@interface DOJailbreaker ()
+- (NSError *)gatherSystemInformation;
+- (NSError *)doExploitation;
+- (NSError *)buildPhysRWPrimitive;
+- (NSError *)cleanUpExploits;
+@end
+
 @implementation DOJailbreaker
+
++ (instancetype)sharedInstance
+{
+    static DOJailbreaker *shared;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        shared = [[DOJailbreaker alloc] init];
+    });
+    return shared;
+}
+
+#pragma mark - Public state
+
+- (BOOL)kernelRWReady
+{
+    return _kernelRWReady;
+}
+
+- (uint64_t)kernelBase
+{
+    return gSystemInfo.kernelConstant.base;
+}
+
+- (uint64_t)kernelSlide
+{
+    return gSystemInfo.kernelConstant.slide;
+}
+
+- (BOOL)isKcallAvailable
+{
+    return gPrimitives.kcall != NULL;
+}
+
+#pragma mark - Pipeline
+
+- (NSError *)obtainKernelRW
+{
+    @synchronized (self) {
+        if (_kernelRWReady) return nil;
+
+        NSError *error = [self gatherSystemInformation];
+        if (error) return error;
+
+        error = [self doExploitation];
+        if (error) {
+            [self cleanUpExploits];
+            return error;
+        }
+
+        error = [self buildPhysRWPrimitive];
+        if (error) {
+            [self cleanUpExploits];
+            return error;
+        }
+
+        NSError *cleanupError = [self cleanUpExploits];
+        if (cleanupError) {
+            NSLog(@"[KernelRW] exploit cleanup warning: %@", cleanupError);
+        }
+
+        _kernelRWReady = YES;
+        return nil;
+    }
+}
 
 - (NSError *)gatherSystemInformation
 {
     NSString *kernelPath = [[DOEnvironmentManager sharedManager] accessibleKernelPath];
-    if (!kernelPath) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedToFindKernel userInfo:@{NSLocalizedDescriptionKey:@"Failed to find kernelcache. Ensure your device is properly connected to the internet. If it still does not work, try installing Dopamine via TrollStore instead."}];
+    if (!kernelPath) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedToFindKernel userInfo:@{NSLocalizedDescriptionKey:@"Failed to find kernelcache. Ensure your device is properly connected to the internet. If it still does not work, try installing via TrollStore instead."}];
     NSLog(@"Kernel at %@", kernelPath);
 
     NSString *sptmPath = [[DOEnvironmentManager sharedManager] accessibleSPTMPath];
@@ -80,9 +131,9 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
     if (txmPath) {
         NSLog(@"TXM at %@", txmPath);
     }
-    
+
     [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Patchfinding") debug:NO];
-    
+
     int r = xpf_start_with_kernel_path(kernelPath.fileSystemRepresentation, sptmPath ? sptmPath.fileSystemRepresentation : NULL, txmPath ? txmPath.fileSystemRepresentation : NULL);
     if (r == 0) {
         char *sets[] = {
@@ -104,13 +155,13 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
         while(sets[++idx]);
 
         if (xpf_set_is_supported("devmode")) {
-            sets[idx++] = "devmode"; 
+            sets[idx++] = "devmode";
         }
         if (xpf_set_is_supported("badRecovery")) {
-            sets[idx++] = "badRecovery"; 
+            sets[idx++] = "badRecovery";
         }
         if (xpf_set_is_supported("arm64kcall")) {
-            sets[idx++] = "arm64kcall"; 
+            sets[idx++] = "arm64kcall";
         }
         if (xpf_set_is_supported("perfkrw")) {
             sets[idx++] = "perfkrw";
@@ -143,18 +194,16 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
         xpf_stop();
         return error;
     }
-    
+
     jbinfo_initialize_dynamic_offsets(_systemInfoXdict);
     jbinfo_initialize_hardcoded_offsets();
 
-    // Stash app identifier into jailbreakInfo
-    // This will later allow launchdhook to figure out which process is the dopamine app
     if ([NSBundle mainBundle].bundleIdentifier) {
         gSystemInfo.jailbreakInfo.appIdentifier = strdup([NSBundle mainBundle].bundleIdentifier.UTF8String);
     }
 
     _systemInfoXdict = jbinfo_get_serialized();
-    
+
     if (_systemInfoXdict) {
         printf("System Info libjailbreak:\n");
         xpc_dictionary_apply(_systemInfoXdict, ^bool(const char *key, xpc_object_t value) {
@@ -166,7 +215,7 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
             return true;
         });
     }
-    
+
     return nil;
 }
 
@@ -190,20 +239,19 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
             return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"PPL bypass is required but we did not find any"}];
         }
     }
-    
+
     [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:DOLocalizedString(@"Exploiting Kernel (%@)"), kernelExploit.name] debug:NO];
     if ([kernelExploit load] != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLoadingExploit userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to load kernel exploit: %s", dlerror()]}];
     if ([kernelExploit run] != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Failed to exploit kernel"}];
-    
+
     jbinfo_initialize_boot_constants();
     libjailbreak_translation_init();
     libjailbreak_IOSurface_primitives_init();
-    
+
     if (pacBypass) {
         [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:DOLocalizedString(@"Bypassing PAC (%@)"), pacBypass.name] debug:NO];
         if ([pacBypass load] != 0) {[kernelExploit cleanup]; return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLoadingExploit userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to load PAC bypass: %s", dlerror()]}];};
         if ([pacBypass run] != 0) {[kernelExploit cleanup]; return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Failed to bypass PAC"}];}
-        // At this point we presume the PAC bypass has given us stable kcall primitives
         gSystemInfo.jailbreakInfo.usesPACBypass = true;
     }
 
@@ -217,9 +265,8 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
 
         if ([pplBypass load] != 0) {[pacBypass cleanup]; [kernelExploit cleanup]; return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLoadingExploit userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to load PPL bypass: %s", dlerror()]}];};
         if ([pplBypass run] != 0) {[pacBypass cleanup]; [kernelExploit cleanup]; return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Failed to bypass PPL"}];}
-        // At this point we presume the PPL bypass gave us unrestricted phys write primitives
     }
-    
+
     if (![DOEnvironmentManager sharedManager].isArm64e) {
         arm64_kcall_init();
     }
@@ -250,557 +297,94 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
     return nil;
 }
 
-- (NSError *)elevatePrivileges
+#pragma mark - Kernel primitives
+
+- (uint64_t)kread64:(uint64_t)addr
 {
-    uint64_t proc = proc_self();
-    uint64_t ucred = proc_ucred(proc);
-    
-    // Get uid 0
-    kwrite32(proc + koffsetof(proc, svuid), 0);
-    kwrite32(ucred + koffsetof(ucred, svuid), 0);
-    kwrite32(ucred + koffsetof(ucred, ruid), 0);
-    kwrite32(ucred + koffsetof(ucred, uid), 0);
-    
-    // Get gid 0
-    kwrite32(proc + koffsetof(proc, svgid), 0);
-    kwrite32(ucred + koffsetof(ucred, rgid), 0);
-    kwrite32(ucred + koffsetof(ucred, svgid), 0);
-    kwrite32(ucred + koffsetof(ucred, groups), 0);
-    
-    // Add P_SUGID
-    uint32_t flag = kread32(proc + koffsetof(proc, flag));
-    if ((flag & P_SUGID) != 0) {
-        flag &= P_SUGID;
-        kwrite32(proc + koffsetof(proc, flag), flag);
-    }
-    
-    if (getuid() != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedGetRoot userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to get root, uid still %d", getuid()]}];
-    if (getgid() != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedGetRoot userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to get root, gid still %d", getgid()]}];
-    
-    // Unsandbox
-    uint64_t label = kread_ptr(ucred + koffsetof(ucred, label));
-    mac_label_set(label, 1, -1);
-    NSError *error = nil;
-    [[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/var" error:&error];
-    if (error) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedUnsandbox userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to unsandbox, /var does not seem accessible (%s)", error.description.UTF8String]}];
-    setenv("HOME", "/var/root", true);
-    setenv("CFFIXED_USER_HOME", "/var/root", true);
-    setenv("TMPDIR", "/var/tmp", true);
-    
-    // FUCKING dirhelper caches the temporary path
-    // So we have to do userland patchfinding to find the fucking string and overwrite it
-    /*char **pain = NULL;
-    uint32_t *dirhelperData = (uint32_t *)_dirhelper;
-    for (int i = 0; i < 100; i++) {
-        arm64_register destinationReg;
-        uint64_t imm = 0;
-        if (arm64_dec_ldr_imm(dirhelperData[i], &destinationReg, NULL, &imm, NULL, NULL) == 0) {
-            if (ARM64_REG_GET_NUM(destinationReg) == 1) {
-                uint32_t *adrpAddr = &dirhelperData[i - 1];
-                uint64_t adrpTarget = 0;
-                uint32_t adrpInst = *adrpAddr;
-                if (arm64_dec_adr_p(adrpInst, (uint64_t)adrpAddr, &adrpTarget, NULL, NULL) == 0) {
-                    pain = (char **)(uint64_t)(adrpTarget + imm);
-                    break;
-                }
-            }
-        }
-    }
-    *pain = strdup("/var/tmp");*/
-    
-    // Get CS_PLATFORM_BINARY
-    proc_csflags_set(proc, CS_PLATFORM_BINARY);
-    uint32_t csflags;
-    csops(getpid(), CS_OPS_STATUS, &csflags, sizeof(csflags));
-    if (!(csflags & CS_PLATFORM_BINARY)) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedPlatformize userInfo:@{NSLocalizedDescriptionKey:@"Failed to get CS_PLATFORM_BINARY"}];
-    
-/**************************** roothide specific ********************/
-    proc_csflags_set(proc, CS_INSTALLER);
-
-    if(otherJailbreakActived(true)) {
-        return [NSError errorWithDomain:@"RootHide" code:1 userInfo:@{NSLocalizedDescriptionKey:@"Your device currently has another jailbreak activated, please reboot device."}];
-    }
-/***********************************************************************/
-    
-    return nil;
+    return kread64(addr);
 }
 
-- (NSError *)showNonDefaultSystemApps
+- (uint32_t)kread32:(uint64_t)addr
 {
-    _CFPreferencesSetValueWithContainer(CFSTR("SBShowNonDefaultSystemApps"), kCFBooleanTrue, CFSTR("com.apple.springboard"), CFSTR("mobile"), kCFPreferencesAnyHost, kCFPreferencesNoContainer);
-    _CFPreferencesSynchronizeWithContainer(CFSTR("com.apple.springboard"), CFSTR("mobile"), kCFPreferencesAnyHost, kCFPreferencesNoContainer);
-    return nil;
+    return kread32(addr);
 }
 
-- (NSError *)ensureDevModeEnabled
+- (int)kreadbuf:(uint64_t)addr to:(void *)out size:(size_t)size
 {
-    if (@available(iOS 16.0, *)) {
-        uint64_t developer_mode_storage = 0;
-        if (ksymbol(developer_mode_enabled)) {
-            developer_mode_storage = kread64(ksymbol(developer_mode_enabled));
-        }
-        else if (ksymbol_txm(txm_developer_mode_storage)) {
-            developer_mode_storage = ksymbol_txm(txm_developer_mode_storage);
-        }
-
-        if (developer_mode_storage) {
-            kwrite8(developer_mode_storage, 1);
-        }
-    }
-    return nil;
+    return kreadbuf(addr, out, size);
 }
 
-/*
-- (NSError *)loadBasebinTrustcache
+- (int)kwrite64:(uint64_t)addr value:(uint64_t)value
 {
-    trustcache_file_v1 *basebinTcFile = NULL;
-    if (trustcache_file_build_from_path(JBROOT_PATH("/basebin/basebin.tc"), &basebinTcFile) == 0) {
-        int r = trustcache_file_upload_with_uuid(basebinTcFile, BASEBIN_TRUSTCACHE_UUID);
-        free(basebinTcFile);
-        if (r != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedBasebinTrustcache userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Failed to upload BaseBin trustcache: %d", r]}];
-        return nil;
-    }
-    return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedBasebinTrustcache userInfo:@{NSLocalizedDescriptionKey : @"Failed to load BaseBin trustcache"}];
+    return kwrite64(addr, value);
 }
-*/
-/************************ roothide specific ******************/
-- (NSError *)loadBasebinTrustcache
+
+- (int)kwrite32:(uint64_t)addr value:(uint32_t)value
 {
-    int ret = randomizeAndLoadBasebinTrustcache(JBROOT_PATH("/basebin/"));
-    if (ret != 0) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedBasebinTrustcache 
-            userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Failed to load BaseBin trustcache: %d", ret]}];
-    }
-    return nil;
+    return kwrite32(addr, value);
 }
-/************************ roothide specific ******************/
 
-
-struct boomerang_info {
-    mach_port_t serverPort;
-    dispatch_semaphore_t boomerangDone;
-};
-
-void *boomerang_server(struct boomerang_info *info)
+- (int)kwritebuf:(uint64_t)addr from:(const void *)in size:(size_t)size
 {
-    while (true) {
-        xpc_object_t xdict = nil;
-        if (!xpc_pipe_receive(info->serverPort, &xdict)) {
-            if (jbserver_received_boomerang_xpc_message(&gBoomerangServer, xdict) == JBS_BOOMERANG_DONE) {
-                dispatch_semaphore_signal(info->boomerangDone);
-                break;
-            }
-        }
-    }
-    return NULL;
+    return kwritebuf(addr, in, size);
 }
 
-- (NSError *)injectLaunchdHook
+- (uint64_t)kcall:(uint64_t)func argc:(int)argc argv:(const uint64_t *)argv
 {
-    // Host a boomerang server that will be used by launchdhook to get the jailbreak primitives from this app
-    mach_port_t serverPort = MACH_PORT_NULL;
-    mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &serverPort);
-    mach_port_insert_right(mach_task_self(), serverPort, serverPort, MACH_MSG_TYPE_MAKE_SEND);
-    
-    struct boomerang_info info;
-    info.serverPort = serverPort;
-    info.boomerangDone = dispatch_semaphore_create(0);
-    
-    pthread_t boomerangThread;
-    pthread_create(&boomerangThread, NULL, (void *(*)(void *))boomerang_server, &info);
-    pthread_detach(boomerangThread);
-
-    // Stash port to server in launchd's initPorts[2]
-    // Since we don't have the neccessary entitlements, we need to do it over jbctl
-    posix_spawnattr_t attr;
-    posix_spawnattr_init(&attr);
-    posix_spawnattr_set_registered_ports_np(&attr, (mach_port_t[]){MACH_PORT_NULL, MACH_PORT_NULL, serverPort}, 3);
-    pid_t spawnedPid = 0;
-    const char *jbctlPath = JBROOT_PATH("/basebin/jbctl");
-    int spawnError = posix_spawn(&spawnedPid, jbctlPath, NULL, &attr, (char *const *)(const char *[]){ jbctlPath, "internal", "launchd_stash_port", NULL }, NULL);
-    if (spawnError != 0) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLaunchdInjection userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Spawning jbctl failed with error code %d", spawnError]}];
-    }
-    posix_spawnattr_destroy(&attr);
-    int status = 0;
-    do {
-        if (waitpid(spawnedPid, &status, 0) == -1) {
-            return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLaunchdInjection userInfo:@{NSLocalizedDescriptionKey : @"Waiting for jbctl failed"}];
-        }
-    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-
-    // Inject launchdhook.dylib into launchd via opainject
-    int r = exec_cmd(JBROOT_PATH("/basebin/opainject"), "1", JBROOT_PATH("/basebin/launchdhook.dylib"), NULL);
-    if (r != 0) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLaunchdInjection userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"opainject failed with error code %d", r]}];
-    }
-
-    // Wait for everything to finish
-    dispatch_semaphore_wait(info.boomerangDone, DISPATCH_TIME_FOREVER);
-    mach_port_deallocate(mach_task_self(), serverPort);
-
-    return nil;
+    uint64_t result = 0;
+    if (kcall(&result, func, argc, argv) != 0) return 0;
+    return result;
 }
 
-/*
-- (NSError *)applyProtection
+- (int)kalloc:(uint64_t *)addr size:(uint64_t)size
 {
-    int r = [[DOEnvironmentManager sharedManager] setPrivatePrebootProtected:YES];
-    if (r != 0) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedInitProtection userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Failed initializing protection with error: %d", r]}];
-    }
-    return nil;
+    return kalloc(addr, size);
 }
 
-- (NSError *)createFakeLib
+- (int)kfree:(uint64_t)addr size:(uint64_t)size
 {
-    int r = basebin_generate(false);
-    if (r != 0) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedInitFakeLib userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Creating fakelib failed with error: %d", r]}];
-    }
-
-    cdhash_t *cdhashes = NULL;
-    uint32_t cdhashesCount = 0;
-    file_collect_untrusted_cdhashes_by_path(JBROOT_PATH("/basebin/.fakelib/dyld"), &cdhashes, &cdhashesCount);
-    if (cdhashesCount != 1) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedInitFakeLib userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Got unexpected number of cdhashes for dyld???: %d", cdhashesCount]}];
-    
-    trustcache_file_v1 *dyldTCFile = NULL;
-    r = trustcache_file_build_from_cdhashes(cdhashes, cdhashesCount, &dyldTCFile);
-    free(cdhashes);
-    if (r == 0) {
-        int r = trustcache_file_upload_with_uuid(dyldTCFile, DYLD_TRUSTCACHE_UUID);
-        if (r != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedInitFakeLib userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Failed to upload dyld trustcache: %d", r]}];
-        free(dyldTCFile);
-    }
-    else {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedInitFakeLib userInfo:@{NSLocalizedDescriptionKey : @"Failed to build dyld trustcache"}];
-    }
-    
-    r = [[DOEnvironmentManager sharedManager] setFakelibMounted:YES];
-    if (r != 0) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedInitFakeLib userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Mounting fakelib failed with error: %d", r]}];
-    }
-    
-    // Now that fakelib is up, we want to make systemhook inject into any binary we spawn
-    setenv("DYLD_INSERT_LIBRARIES", "/usr/lib/systemhook.dylib", 1);
-    return nil;
+    return kfree(addr, size);
 }
-*/
 
-- (NSError *)ensureNoDuplicateApps
+- (int)kmap:(uint64_t)pa size:(uint64_t)size out:(void **)uaddr
 {
-    NSMutableSet *dopamineInstalledAppIds = [NSMutableSet new];
-    NSMutableSet *userInstalledAppIds = [NSMutableSet new];
-    
-    NSString *dopamineAppsPath = JBROOT_PATH(@"/Applications");
-    NSString *userAppsPath = @"/var/containers/Bundle/Application";
-    
-    for (NSString *dopamineAppName in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:dopamineAppsPath error:nil]) {
-        NSString *infoPlistPath = [[dopamineAppsPath stringByAppendingPathComponent:dopamineAppName] stringByAppendingPathComponent:@"Info.plist"];
-        NSDictionary *infoDictionary = [NSDictionary dictionaryWithContentsOfFile:infoPlistPath];
-        NSString *appId = infoDictionary[@"CFBundleIdentifier"];
-        if (appId) {
-            if (![dopamineInstalledAppIds containsObject:appId]) {
-                [dopamineInstalledAppIds addObject:appId];
-            }
-            else {
-                return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedDuplicateApps userInfo:@{ NSLocalizedDescriptionKey : [NSString stringWithFormat:DOLocalizedString(@"Duplicate_Apps_Error_Dopamine_App"), appId, dopamineAppsPath]}];
-            }
-        }
-    }
-    
-    for (NSString *appUUID in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:userAppsPath error:nil]) {
-        NSString *UUIDPath = [userAppsPath stringByAppendingPathComponent:appUUID];
-        for (NSString *appCandidate in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:UUIDPath error:nil]) {
-            if ([appCandidate.pathExtension isEqualToString:@"app"]) {
-                NSString *appPath = [UUIDPath stringByAppendingPathComponent:appCandidate];
-                NSString *infoPlistPath = [appPath stringByAppendingPathComponent:@"Info.plist"];
-                NSDictionary *infoDictionary = [NSDictionary dictionaryWithContentsOfFile:infoPlistPath];
-                NSString *appId = infoDictionary[@"CFBundleIdentifier"];
-                if (appId) {
-                    [userInstalledAppIds addObject:appId];
-                }
-            }
-        }
-    }
-    
-    NSMutableSet *duplicateApps = dopamineInstalledAppIds.mutableCopy;
-    [duplicateApps intersectSet:userInstalledAppIds];
-    if (duplicateApps.count) {
-        NSMutableString *duplicateAppsString = [NSMutableString new];
-        [duplicateAppsString appendString:@"["];
-        BOOL isFirst = YES;
-        for (NSString *duplicateApp in duplicateApps) {
-            if (isFirst) isFirst = NO;
-            else [duplicateAppsString appendString:@", "];
-            [duplicateAppsString appendString:duplicateApp];
-        }
-        [duplicateAppsString appendString:@"]"];
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedDuplicateApps userInfo:@{ NSLocalizedDescriptionKey : [NSString stringWithFormat:DOLocalizedString(@"Duplicate_Apps_Error_User_App"), duplicateAppsString, dopamineAppsPath]}];
-    }
-    
-    for (NSString *dopamineAppId in dopamineInstalledAppIds) {
-        LSApplicationProxy *appProxy = [LSApplicationProxy applicationProxyForIdentifier:dopamineAppId];
-        if (appProxy.installed) {
-            NSString *appProxyPath = [[appProxy.bundleURL.path stringByResolvingSymlinksInPath] stringByStandardizingPath];
-            if (![appProxyPath hasPrefix:dopamineAppsPath]) {
-                return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedDuplicateApps userInfo:@{ NSLocalizedDescriptionKey : [NSString stringWithFormat:DOLocalizedString(@"Duplicate_Apps_Error_Icon_Cache"), dopamineAppId, dopamineAppsPath, appProxy.bundleURL.path]}];
-            }
-        }
-    }
-    
-    return nil;
+    return kmap(pa, size, uaddr);
 }
 
-- (NSError *)removeJailbreak
+- (int)physreadbuf:(uint64_t)pa to:(void *)out size:(size_t)size
 {
-    if (@available(iOS 18.0, *)) {
-        // On iOS 18+, jailbreak apps persist on the home screen even after a reboot into unjailbroken state
-        // So we need to remove them from icon cache before deleting the bootstrap
-        [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Rebuilding Icon Cache") debug:NO];
-        [[DOEnvironmentManager sharedManager] rebuildIconCache];
-    }
-
-    NSError *err;
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Removing Jailbreak") debug:NO];
-    err = [[DOEnvironmentManager sharedManager] deleteBootstrap];
-    if (err) return err;
-
-    return nil;
+    return physreadbuf(pa, out, size);
 }
 
-- (NSError *)finalizeBootstrapIfNeeded
+- (int)physwritebuf:(uint64_t)pa from:(const void *)in size:(size_t)size
 {
-    return [[DOEnvironmentManager sharedManager] finalizeBootstrap];
+    return physwritebuf(pa, in, size);
 }
 
-- (NSError *)cleanUpPostExploitation
+#pragma mark - Task / extmod helpers
+
+- (uint64_t)kernelTaskForPid:(pid_t)pid
 {
-    if (@available(iOS 17.0, *)) {
-        uint64_t proc = proc_self();
-        uint64_t ucred = proc_ucred(proc);
-
-        // Get uid 0
-        kwrite32(ucred + koffsetof(ucred, svuid), 501);
-        kwrite32(ucred + koffsetof(ucred, ruid), 501);
-        kwrite32(ucred + koffsetof(ucred, uid), 501);
-        
-        // Get gid 0
-        kwrite32(ucred + koffsetof(ucred, rgid), 501);
-        kwrite32(ucred + koffsetof(ucred, svgid), 501);
-        kwrite32(ucred + koffsetof(ucred, groups), 501);
-    }
-
-    return nil;
+    uint64_t proc = proc_find(pid);
+    if (!proc) return 0;
+    uint64_t task = proc_task(proc);
+    proc_rele(proc);
+    return task;
 }
 
-- (void)runWithError:(NSError **)errOut didRemoveJailbreak:(BOOL*)didRemove showLogs:(BOOL *)showLogs
+- (BOOL)zeroExtmodStatisticsForTask:(uint64_t)task offset:(uint32_t)offset
 {
-
-/****************** roothide specific ****************/
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [[UIApplication sharedApplication] setIdleTimerDisabled:YES]; //doesn't work with low power mode
-    });
-	
-    exec_set_patch(false);
-/****************** roothide specific ****************/
-
-
-    BOOL removeJailbreakEnabled = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"removeJailbreakEnabled" fallback:NO];
-    BOOL tweaksEnabled = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"tweakInjectionEnabled" fallback:YES];
-    BOOL idownloadEnabled = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"idownloadEnabled" fallback:NO];
-    BOOL appJITEnabled = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"appJITEnabled" fallback:YES];
-    NSNumber *jetsamMultiplierOption = [[DOPreferenceManager sharedManager] preferenceValueForKey:@"jetsamMultiplier"];
-    
-    struct utsname systemInfo;
-    uname(&systemInfo);
-    NSString *startLog = [NSString stringWithFormat:@"Starting Jailbreak (Model: %s, %@, Configuration: {removeJailbreak=%d, tweakInjection=%d, idownload=%d, appJIT=%d})", systemInfo.machine, NSProcessInfo.processInfo.operatingSystemVersionString, removeJailbreakEnabled, tweaksEnabled, idownloadEnabled, appJITEnabled];
-    [[DOUIManager sharedInstance] sendLog:startLog debug:YES];
-    
-    *errOut = [self gatherSystemInformation];
-    if (*errOut) return;
-    *errOut = [self doExploitation];
-    if (*errOut) {
-        // We don't care about the return value of cleanup at this point, we just need to prevent a panic on exit
-        [self cleanUpExploits];
-        return;
-    }
-    
-    gSystemInfo.jailbreakSettings.markAppsAsDebugged = appJITEnabled;
-    gSystemInfo.jailbreakSettings.jetsamMultiplier = jetsamMultiplierOption ? (jetsamMultiplierOption.doubleValue / 2) : 0;
-    
-    
-/****************** roothide specific ****************/
-    //initialize it before injecting launchdhook
-    gSystemInfo.jailbreakInfo.dyld_patch_enabled = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"dyldPatchEnabled" fallback:NO];
-/****************** roothide specific ****************/
-    
-    
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Building Phys R/W Primitive") debug:NO];
-    *errOut = [self buildPhysRWPrimitive];
-    if (*errOut) {
-        [self cleanUpExploits];
-        return;
-    }
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Cleaning Up Exploits") debug:NO];
-    *errOut = [self cleanUpExploits];
-    if (*errOut) return;
-    
-    // We will not be able to reset this after elevating privileges, so do it now
-    if (removeJailbreakEnabled) [[DOPreferenceManager sharedManager] setPreferenceValue:@NO forKey:@"removeJailbreakEnabled"];
-
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Elevating Privileges") debug:NO];
-    *errOut = [self elevatePrivileges];
-
-    if (*errOut) return;
-    *errOut = [self showNonDefaultSystemApps];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-    *errOut = [self ensureDevModeEnabled];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-
-    // Now that we are unsandboxed, populate the jailbreak root path
-    *errOut = [[DOEnvironmentManager sharedManager] ensureJailbreakRootExists];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-    
-    *errOut = [[DOEnvironmentManager sharedManager] prepareBootstrap];
-    if (*errOut) return;
-    setenv("PATH", "/sbin:/bin:/usr/sbin:/usr/bin:/rootfs/sbin:/rootfs/bin:/rootfs/usr/sbin:/rootfs/usr/bin", 1);
-    setenv("TERM", "xterm-256color", 1);
-
-    *errOut = [[DOEnvironmentManager sharedManager] updateBootLogo];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-    
-    if (!tweaksEnabled) {
-        printf("Creating safe mode marker file since tweaks were disabled in settings\n");
-        [[NSData data] writeToFile:JBROOT_PATH(@"/basebin/.safe_mode") atomically:YES];
-    }
-/*************************** roothide specific *******************/
-    setBasebinDependency(tweaksEnabled);
-/*************************** roothide specific *******************/
-    
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Loading BaseBin TrustCache") debug:NO];
-    *errOut = [self loadBasebinTrustcache];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-
-    if (removeJailbreakEnabled) {
-        *errOut = [self removeJailbreak];
-        [self cleanUpPostExploitation];
-        if (!*errOut) *didRemove = YES;
-        return;
-    }
-
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Initializing Environment") debug:NO];
-    *errOut = [self injectLaunchdHook];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-    
-    // After the launchd hook is initialized, we need to make the app believe the device is jailbroken
-    [[DOEnvironmentManager sharedManager] setJailbroken:YES withVersion:[NSString stringWithContentsOfFile:JBROOT_PATH(@"/basebin/.version") encoding:NSUTF8StringEncoding error:nil]];
-    
-/*
-    // Now that we can, protect important system files by bind mounting on top of them
-    // This will be always be done during the userspace reboot
-    // We also do it now though in case there is a failure between the now step and the userspace reboot
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Initializing Protection") debug:NO];
-    *errOut = [self applyProtection];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-    
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Applying Bind Mount") debug:NO];
-    *errOut = [self createFakeLib];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-*/
-
-/*************************** roothide specific *******************/
-[[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Hiding Jailbreak") debug:NO];
-
-int ret = basebin_generate(false);
-if (ret != 0) {
-    *errOut = [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedInitFakeLib userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Creating fakelib failed with error: %d", ret]}];
-    return;
+    if (!task || offset == 0) return NO;
+    uint64_t zeros[6] = {0};
+    return kwritebuf(task + offset, zeros, sizeof(zeros)) == 0;
 }
 
-ret = ensure_dyld_trustcache(JBROOT_PATH("/basebin/.fakelib/dyld"));
-if (ret != 0) {
-    *errOut = [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedInitFakeLib userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Failed to upload dyld trustcache: %d", ret]}];
-    return;
-}
-
-exec_set_patch(true); /* launchdhook injected and dyld patched, 
-now we can enable dyld patching for new process */
-
-// don't use dyld-in-cache due to dyldhooks
-setenv("DYLD_IN_CACHE", "0", 1);
-setenv("DYLD_SHARED_REGION", "use", 1); //ios18.4+
-// don't load tweak during jailbreaking
-setenv("DISABLE_TWEAKS", "1", 1);
-// using the stock path during jailbreaking
-setenv("DYLD_INSERT_LIBRARIES", JBROOT_PATH("/basebin/systemhook.dylib"), 1);
-
-/******************************** roothide specific *************************/
-
-    
-    // Unsandbox iconservicesagent so that app icons can work
-    exec_cmd_trusted(JBROOT_PATH("/usr/bin/killall"), "-9", "iconservicesagent", NULL);
-    
-    *errOut = [self finalizeBootstrapIfNeeded];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        return;
-    }
-    
-    [[DOEnvironmentManager sharedManager] setIDownloadEnabled:idownloadEnabled needsUnsandbox:NO];
-    
-/*
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Checking For Duplicate Apps") debug:NO];
-    *errOut = [self ensureNoDuplicateApps];
-    if (*errOut) {
-        [self cleanUpPostExploitation];
-        *showLogs = NO;
-        return;
-    }
-*/
-
-    *errOut = [self cleanUpPostExploitation];
-
-
-    //printf("Starting launch daemons...\n");
-    //exec_cmd_trusted(JBROOT_PATH("/usr/bin/uicache"), "-a", NULL);
-    //exec_cmd_trusted(JBROOT_PATH("/usr/bin/launchctl"), "bootstrap", "system", JBROOT_PATH("/Library/LaunchDaemons"), NULL);
-    //exec_cmd_trusted(JBROOT_PATH("/usr/bin/launchctl"), "bootstrap", "system", JBROOT_PATH("/basebin/LaunchDaemons"), NULL);
-    // Note: This causes the app to freeze in some instances due to launchd only having physrw_pte, we might want to only do it when neccessary
-    // It's only neccessary when we don't immediately userspace reboot
-    
-    printf("Done!\n");
-}
-
-- (void)finalize
+- (BOOL)zeroExtmodStatisticsForPid:(pid_t)pid offset:(uint32_t)offset
 {
-    [[DOUIManager sharedInstance] sendLog:DOLocalizedString(@"Rebooting Userspace") debug:NO];
-    [[DOEnvironmentManager sharedManager] rebootUserspace];
+    return [self zeroExtmodStatisticsForTask:[self kernelTaskForPid:pid] offset:offset];
 }
+
+#pragma mark - Contiguous mapping workaround
 
 - (IOSurfaceRef)allocatePurpleGfxMemWithSize:(size_t)size
 {
@@ -818,7 +402,7 @@ setenv("DYLD_INSERT_LIBRARIES", JBROOT_PATH("/basebin/systemhook.dylib"), 1);
     vm_region_submap_short_info_data_64_t info = {0};
     uint32_t count = VM_REGION_SUBMAP_SHORT_INFO_COUNT_64;
     natural_t depth = 9999999;
-    
+
     kern_return_t kr = vm_region_recurse_64(mach_task_self(), &mem_addr, &mem_size, &depth, (vm_region_recurse_info_t)&info, &count);
     return (kr == 0 && info.share_mode == SM_EMPTY && info.object_id != 0);
 }
@@ -827,7 +411,7 @@ setenv("DYLD_INSERT_LIBRARIES", JBROOT_PATH("/basebin/systemhook.dylib"), 1);
 {
     IOSurfaceRef surface = [self allocatePurpleGfxMemWithSize:0x8000];
     if (surface == NULL) return false;
-    
+
     BOOL contiguous = [self surfaceIsContiguous:surface];
     CFRelease(surface);
     return contiguous;
@@ -853,9 +437,9 @@ setenv("DYLD_INSERT_LIBRARIES", JBROOT_PATH("/basebin/systemhook.dylib"), 1);
         mach_msg_type_number_t archiveLength;
     } Request;
 #pragma pack(pop)
-    
+
     kern_return_t bootstrap_look_up(mach_port_t, const char *, mach_port_t *);
-    
+
     NSData *archive =
         [NSKeyedArchiver archivedDataWithRootObject:@[ @[] ]
                               requiringSecureCoding:YES
@@ -890,7 +474,7 @@ setenv("DYLD_INSERT_LIBRARIES", JBROOT_PATH("/basebin/systemhook.dylib"), 1);
                    MACH_PORT_NULL,
                    1000,
                    MACH_PORT_NULL);
-    
+
     mach_port_deallocate(mach_task_self(), service);
     return 0;
 }
@@ -927,7 +511,7 @@ setenv("DYLD_INSERT_LIBRARIES", JBROOT_PATH("/basebin/systemhook.dylib"), 1);
         [self crashBackboardd_15];
     }
     // After backboardd has crashed, we have about 200ms until the new backboardd kills our app
-    // In this timeframe we need to steal it's contiguous PurpleGfxMem allocation
+    // In this timeframe we need to steal its contiguous PurpleGfxMem allocation
     IOSurfaceRef surface = NULL;
     do {
         if (surface) {
@@ -938,17 +522,17 @@ setenv("DYLD_INSERT_LIBRARIES", JBROOT_PATH("/basebin/systemhook.dylib"), 1);
         surface = [self allocatePurpleGfxMemWithSize:0x8000];
     }
     while (![self surfaceIsContiguous:surface]);
-    
+
     printf("Got contiguous mapping surface %p\n", surface);
-    
+
     // We keep the surface alive for another 20 seconds
     // This persists our process being killed
-    // Once it is freed, the next Dopamine can regain the contiguous mapping
+    // Once it is freed, the next run can regain the contiguous mapping
     mach_port_t surfacePort = IOSurfaceCreateMachPort(surface);
     kern_return_t kr = clock_alarm_preserve_port(surfacePort, 20);
     mach_port_mod_refs(mach_task_self(), surfacePort, MACH_PORT_RIGHT_SEND, -1);
     CFRelease(surface);
-    
+
     printf("preserved port? %d\n", kr);
 }
 
