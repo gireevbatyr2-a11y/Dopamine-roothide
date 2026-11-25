@@ -28,7 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isDebug;
 - (void)sendLog:(NSString*)log debug:(BOOL)debug update:(BOOL)update;
 - (void)sendLog:(NSString*)log debug:(BOOL)debug;
-- (void)completeJailbreak;
+- (void)completeKernelRW;
 - (void)startLogCapture;
 - (void)shareLogRecordFromView:(UIView *)sourceView;
 - (BOOL)isUpdateAvailable;

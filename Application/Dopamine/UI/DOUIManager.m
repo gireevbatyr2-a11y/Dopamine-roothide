@@ -253,7 +253,7 @@
     [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:activityViewController animated:YES completion:nil];
 }
 
-- (void)completeJailbreak
+- (void)completeKernelRW
 {
     if (!self.logView)
         return;

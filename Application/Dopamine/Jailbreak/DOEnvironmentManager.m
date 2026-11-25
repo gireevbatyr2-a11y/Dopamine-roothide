@@ -291,13 +291,8 @@ extern char **environ;
 
 - (BOOL)isJailbroken
 {
-/************** roothide specific ***********/
-    if(!jbclient_roothide_jailbroken())
-        return NO;
-/************** roothide specific ********/
-
-    [self updateJailbreakState];
-    return _isJailbroken;
+    // Kernel-R/W-only build: never report or enter a jailbreak state.
+    return NO;
 }
 
 - (void)setJailbroken:(BOOL)jailbroken withVersion:(NSString *)version

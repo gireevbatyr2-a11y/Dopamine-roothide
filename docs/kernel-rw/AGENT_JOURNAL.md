@@ -316,6 +316,29 @@ class (no `.pbxproj` change). It is reachable from the action menu entry
 - Requires `kernelRWReady`; otherwise it asks the user to get kernel R/W first.
 - All actions log `process: ...` lines to the same file.
 
+## 8c. Kernel R/W button audit (2026-11-25)
+
+The button no longer touches any jailbreak state:
+
+- `DOEnvironmentManager.isJailbroken` returns `NO` unconditionally; the app
+  never reports or enters a jailbreak state, even if the device has roothide.
+- `DOJailbreakButton` no longer shows the Sileo/Zebra package manager picker;
+  `expandButton:` unlocks immediately and the title is "Kernel R/W".
+- Settings no longer contains "Verbose Logs" or "iDownload"; the "Kernel R/W"
+  group and its helpers were deleted.
+- The contiguous-mapping workaround was removed from the UI and from
+  `DOJailbreaker` (`crashBackboardd` / `crashBackboardd_15` /
+  `applyContiguousMappingWorkaround`). The button can no longer crash
+  backboardd or exit the app.
+- `completeJailbreak` was renamed to `completeKernelRW` (it only calls
+  `[logView didComplete]`).
+- `startKernelRW` goes straight to `lockMutex` -> `obtainKernelRW`; the
+  pipeline stops after physrw. No `elevatePrivileges`, `injectLaunchdHook`,
+  `prepareBootstrap`, `finalize`, `removeJailbreak`, respring or reboot.
+
+The remaining `UI/PkgManagers/*` classes are unreachable dead code; they are
+still compiled but nothing presents them.
+
 ## 9. Next steps
 
 1. Commit and push `kernel-rw-only`; trigger the Actions build; fix compile

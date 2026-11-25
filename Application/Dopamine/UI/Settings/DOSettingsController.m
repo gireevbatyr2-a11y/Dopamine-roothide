@@ -10,7 +10,6 @@
 #import <Photos/Photos.h>
 #import <libjailbreak/util.h>
 #import "DOUIManager.h"
-#import "DOPkgManagerPickerViewController.h"
 #import "DOHeaderCell.h"
 #import "DOEnvironmentManager.h"
 #import "DOExploitManager.h"
@@ -156,7 +155,6 @@
         DOEnvironmentManager *envManager = [DOEnvironmentManager sharedManager];
         DOExploitManager *exploitManager = [DOExploitManager sharedManager];
 
-        NSNumber *buttonHeight = @(44);
         
         SEL defGetter = @selector(readPreferenceValue:);
         SEL defSetter = @selector(setPreferenceValue:specifier:);
@@ -226,22 +224,6 @@
                 }
             }
             
-            PSSpecifier *settingsGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-            settingsGroupSpecifier.name = @"Kernel R/W";
-            [specifiers addObject:settingsGroupSpecifier];
-
-            PSSpecifier *verboseLogSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_Verbose_Logs") target:self set:defSetter get:defGetter detail:nil cell:PSSwitchCell edit:nil];
-            [verboseLogSpecifier setProperty:@YES forKey:@"enabled"];
-            [verboseLogSpecifier setProperty:@"verboseLogsEnabled" forKey:@"key"];
-            [verboseLogSpecifier setProperty:@NO forKey:@"default"];
-            [specifiers addObject:verboseLogSpecifier];
-
-            PSSpecifier *idownloadSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Settings_iDownload") target:self set:@selector(setIDownloadEnabled:specifier:) get:@selector(readIDownloadEnabled:) detail:nil cell:PSSwitchCell edit:nil];
-            [idownloadSpecifier setProperty:@YES forKey:@"enabled"];
-            [idownloadSpecifier setProperty:@"idownloadEnabled" forKey:@"key"];
-            [idownloadSpecifier setProperty:@NO forKey:@"default"];
-            [specifiers addObject:idownloadSpecifier];
-
         }
 
         PSSpecifier *themingGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
@@ -304,24 +286,6 @@
     }
 
     return value;
-}
-
-- (id)readIDownloadEnabled:(PSSpecifier *)specifier
-{
-    DOEnvironmentManager *envManager = [DOEnvironmentManager sharedManager];
-    if (envManager.isJailbroken) {
-        return @([DOEnvironmentManager sharedManager].isIDownloadEnabled);
-    }
-    return [self readPreferenceValue:specifier];
-}
-
-- (void)setIDownloadEnabled:(id)value specifier:(PSSpecifier *)specifier
-{
-    [self setPreferenceValue:value specifier:specifier];
-    DOEnvironmentManager *envManager = [DOEnvironmentManager sharedManager];
-    if (envManager.isJailbroken) {
-        [[DOEnvironmentManager sharedManager] setIDownloadLoaded:((NSNumber *)value).boolValue needsUnsandbox:YES];
-    }
 }
 
 - (id)readTweakInjectionEnabled:(PSSpecifier *)specifier
@@ -513,11 +477,6 @@
 - (void)refreshJailbreakAppsPressed
 {
     [[DOEnvironmentManager sharedManager] refreshJailbreakApps];
-}
-
-- (void)reinstallPackageManagersPressed
-{
-    [self.navigationController pushViewController:[[DOPkgManagerPickerViewController alloc] init] animated:YES];
 }
 
 - (void)changeMobilePasswordWithAuthenticationPressed

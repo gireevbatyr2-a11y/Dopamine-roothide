@@ -53,7 +53,6 @@
     topPadding += 35;
     
     [self setupLog: topPadding];
-    [self setupPackageManagerPicker: topPadding];
     
     [NSLayoutConstraint deactivateConstraints:constraints];
 
@@ -76,11 +75,8 @@
         [self setupTitle];
     });
 
-    if ([[DOUIManager sharedInstance] enabledPackageManagerKeys].count > 0)
-    {
-        //we can start, unlock the mutex
-        [self unlockMutex];
-    }
+    // Kernel-R/W-only: no package manager picker, start immediately.
+    [self unlockMutex];
 
 }
 
@@ -108,45 +104,13 @@
     [window layoutIfNeeded];
 }
 
-- (void)setupPackageManagerPicker: (float)topPadding
-{
-    UIWindow *window = [[UIApplication sharedApplication] keyWindow];
-
-    if ([[DOUIManager sharedInstance] enabledPackageManagerKeys].count > 0)
-        return;
-
-    self.pkgManagerPickerView = [[DOPkgManagerPickerView alloc] initWithCallback:^(BOOL success) {
-        [self.pkgManagerPickerView removeFromSuperview];
-        self.logView.hidden = NO;
-        [self unlockMutex];
-    }];
-
-    self.pkgManagerPickerView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.pkgManagerPickerView.alpha = 0.0;
-
-    [self addSubview:self.pkgManagerPickerView];
-
-    [NSLayoutConstraint activateConstraints:@[
-       [self.pkgManagerPickerView.leadingAnchor constraintEqualToAnchor:window.leadingAnchor],
-       [self.pkgManagerPickerView.trailingAnchor constraintEqualToAnchor:window.trailingAnchor],
-       [self.pkgManagerPickerView.topAnchor constraintEqualToAnchor:window.topAnchor constant:topPadding],
-       [self.pkgManagerPickerView.bottomAnchor constraintEqualToAnchor:window.bottomAnchor constant:0]
-    ]];
-    
-    [UIView animateWithDuration:0.25 delay:0.25 options: UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.pkgManagerPickerView.alpha = 1.0;
-    } completion:nil];
-
-    [window layoutIfNeeded];
-}
-
 - (void)setupTitle
 {
     UIWindow *window = [[UIApplication sharedApplication] keyWindow];
 
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    titleLabel.text = DOLocalizedString(@"Status_Title_Jailbreaking");
+    titleLabel.text = @"Kernel R/W";
     titleLabel.textColor = [UIColor whiteColor];
     titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightRegular];
     titleLabel.textAlignment = NSTextAlignmentCenter;

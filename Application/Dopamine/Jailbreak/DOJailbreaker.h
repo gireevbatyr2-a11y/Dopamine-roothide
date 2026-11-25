@@ -42,10 +42,6 @@ void DOKRWLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
 // holds kernel R/W for the remainder of the current boot.
 - (nullable NSError *)obtainKernelRW;
 
-// Contiguous mapping workaround (required on some devices before exploitation).
-- (BOOL)contiguousMappingWorkaroundNeeded;
-- (void)applyContiguousMappingWorkaround;
-
 #pragma mark - Kernel primitives
 
 - (uint64_t)kread64:(uint64_t)addr;

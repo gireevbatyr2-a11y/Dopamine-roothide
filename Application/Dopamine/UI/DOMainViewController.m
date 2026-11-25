@@ -192,36 +192,6 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
     [[DOUIManager sharedInstance] startLogCapture];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-        if ([kernelRW contiguousMappingWorkaroundNeeded]) {
-
-            cpu_subtype_t cpuFamily = 0;
-            size_t cpuFamilySize = sizeof(cpuFamily);
-            sysctlbyname("hw.cpufamily", &cpuFamily, &cpuFamilySize, NULL, 0);
-            NSString *workaroundMessage = DOLocalizedString(@"Respring_Required_Message");
-            if (cpuFamily == CPUFAMILY_ARM_TYPHOON) {
-                workaroundMessage = [workaroundMessage stringByAppendingString:[NSString stringWithFormat:@"\n\n%@", DOLocalizedString(@"Respring_Required_Notice_A8")]];
-            }
-
-            UIAlertController *contiguousMappingWorkaroundAlertController = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Respring_Required") message:workaroundMessage preferredStyle:UIAlertControllerStyleAlert];
-
-            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Respring_Cancel") style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                exit(0);
-            }];
-
-            UIAlertAction *workaroundAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Apply_Workaround") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                [kernelRW applyContiguousMappingWorkaround];
-            }];
-
-            [contiguousMappingWorkaroundAlertController addAction:cancelAction];
-            [contiguousMappingWorkaroundAlertController addAction:workaroundAction];
-            contiguousMappingWorkaroundAlertController.preferredAction = workaroundAction;
-
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self presentViewController:contiguousMappingWorkaroundAlertController animated:YES completion:nil];
-            });
-            return;
-        }
-
         [self.jailbreakBtn lockMutex];
         dispatch_async(dispatch_get_main_queue(), ^{
             self.hideHomeIndicator = YES;
@@ -235,7 +205,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
                 [self.navigationController pushViewController:[[DOLogCrashViewController alloc] initWithTitle:[error localizedDescription]] animated:YES];
             }
             else {
-                [[DOUIManager sharedInstance] completeJailbreak];
+                [[DOUIManager sharedInstance] completeKernelRW];
                 DOKRWLog(@"UI: kernel R/W ready base=0x%llx slide=0x%llx",
                          (unsigned long long)kernelRW.kernelBase,
                          (unsigned long long)kernelRW.kernelSlide);
