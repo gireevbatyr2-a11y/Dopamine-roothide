@@ -402,6 +402,49 @@ persists while the app stays alive. If the app is killed, the primitives are
 lost; reboot before trying again. A persistent helper/daemon (Serotonin-style)
 would be needed to survive app termination.
 
+## 8f. kfd landa instability and UI visibility (2026-11-26)
+
+Log from the device:
+
+- 01:11:45 kfd landa starts, then the app hangs; Jetsam kills Dopamine
+  with 10240 open fds (kfd `kread_sem_open` opens `maxfilesperproc - 100`).
+- 01:14:55 kfd landa succeeds; 01:15:35/37 extra presses only return
+  "kernel R/W ready" (no re-run); 01:16:12 panic
+  `shared_region_pager_data_return @vm_shared_region_pager.c:444` in
+  kernel_task. That is delayed kfd landa/PTE physrw corruption, not the
+  button press. ClearSword and DarkSword are stable.
+
+Fixes:
+
+- `finishKernelRWUI:` hides the jailbreak button on success, so the main
+  stack (header, Settings/Processes/Credits) is visible; it logs the
+  button frame and stack state. On failure the button stays visible.
+- `collapseButton` logs frame and constraint counts.
+- Boot guard logs `kern.bootsessionuuid`, last UUID, `DOKRWExploitRan` and
+  the Preferences path, and writes `DopamineKernelRW.state` next to the
+  log.
+- `DOExploitManager` performs a one-time migration that clears a saved
+  kfd kernel-exploit preference, so ClearSword becomes the default. kfd
+  remains selectable manually.
+
+Recommendation: use ClearSword or DarkSword on 16.6. kfd landa can
+exhaust fds and panic the shared-region pager.
+
+## 8g. Persistence across app termination (planned)
+
+Kernel R/W lives in the app process (`gPrimitives`, physrw). If iOS kills
+the app, the primitives are gone. Serotonin-style persistence needs a
+separate helper that owns the primitives and serves requests. Two options:
+
+1. `posix_spawn` helper from the app: the helper runs the exploit once and
+   serves kread/kwrite/zero-extmod over a Unix socket; the app becomes a
+   client. The helper can `setsid` to survive app termination, but iOS may
+   still kill it.
+2. `LaunchDaemon` plist installed via kernel R/W: survives app termination
+   and starts at boot; this modifies `/Library/LaunchDaemons` (jailbreak-like).
+
+Not implemented yet; needs a decision on the approach.
+
 ## 9. Next steps
 
 1. Commit and push `kernel-rw-only`; trigger the Actions build; fix compile

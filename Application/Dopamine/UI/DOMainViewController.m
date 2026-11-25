@@ -40,6 +40,8 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 @property(nonatomic) BOOL hideStatusBar;
 @property(nonatomic) BOOL hideHomeIndicator;
 
+- (void)finishKernelRWUI:(BOOL)success;
+
 @end
 
 @implementation DOMainViewController
@@ -204,12 +206,12 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
             if (error) {
                 DOKRWLog(@"UI: kernel R/W failed: %@", error.localizedDescription);
                 [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Kernel R/W failed: %@", error] debug:NO];
-                [self finishKernelRWUI];
+                [self finishKernelRWUI:NO];
                 [self.navigationController pushViewController:[[DOLogCrashViewController alloc] initWithTitle:[error localizedDescription]] animated:YES];
             }
             else {
                 [[DOUIManager sharedInstance] completeKernelRW];
-                [self finishKernelRWUI];
+                [self finishKernelRWUI:YES];
                 DOKRWLog(@"UI: kernel R/W ready base=0x%llx slide=0x%llx",
                          (unsigned long long)kernelRW.kernelBase,
                          (unsigned long long)kernelRW.kernelSlide);
@@ -225,15 +227,19 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
     });
 }
 
-- (void)finishKernelRWUI
+- (void)finishKernelRWUI:(BOOL)success
 {
     [self.jailbreakBtn collapseButton];
+    self.jailbreakBtn.hidden = success;
     self.updateButton.userInteractionEnabled = YES;
     [UIView animateWithDuration:0.3 animations:^{
         self.updateButton.alpha = 1.0;
         [self.headerView setTransform:CGAffineTransformIdentity];
     }];
     self.hideHomeIndicator = NO;
+    DOKRWLog(@"UI: finish success=%d jailbreakHidden=%d jailbreakFrame=%@ stackHidden=%d stackAlpha=%.2f",
+             success, self.jailbreakBtn.hidden, NSStringFromCGRect(self.jailbreakBtn.frame),
+             self.headerView.superview.hidden, self.headerView.superview.alpha);
 }
 
 -(void)setupUpdateAvailable:(BOOL)environmentUpdate

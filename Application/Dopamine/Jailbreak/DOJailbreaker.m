@@ -79,6 +79,20 @@ static NSString *DOKRWLogFallbackPath(void)
     return fallback;
 }
 
+static void DOKRWWriteState(NSString *uuid, BOOL ran)
+{
+    NSString *content = [NSString stringWithFormat:@"boot=%@\nran=%d\n", uuid ?: @"?", ran];
+    NSArray<NSString *> *paths = @[
+        @"/var/mobile/Documents/DopamineKernelRW.state",
+        @"/var/mobile/Library/Logs/DopamineKernelRW.state",
+        [DOKRWLogFallbackPath().stringByDeletingLastPathComponent stringByAppendingPathComponent:@"DopamineKernelRW.state"],
+    ];
+    for (NSString *path in paths) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:[path stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+        if ([content writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil]) break;
+    }
+}
+
 void DOKRWLog(NSString *format, ...)
 {
     va_list args;
@@ -182,7 +196,12 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
         NSString *currentBoot = DOKRWCurrentBootSessionUUID();
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         NSString *lastBoot = [defaults stringForKey:@"DOKRWBootSessionUUID"];
-        if (currentBoot && lastBoot && [currentBoot isEqualToString:lastBoot] && [defaults boolForKey:@"DOKRWExploitRan"]) {
+        BOOL ranThisBoot = [defaults boolForKey:@"DOKRWExploitRan"];
+        DOKRWLog(@"boot: uuid=%@ last=%@ ran=%d prefs=%@",
+                 currentBoot ?: @"?", lastBoot ?: @"?", ranThisBoot,
+                 [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Preferences"]);
+        DOKRWWriteState(currentBoot, ranThisBoot);
+        if (currentBoot && lastBoot && [currentBoot isEqualToString:lastBoot] && ranThisBoot) {
             DOKRWLog(@"obtainKernelRW: exploit already ran in this boot; reboot required");
             return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already acquired in this boot. Reboot the device before running the exploit again."}];
         }
@@ -226,6 +245,7 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
             [defaults setBool:YES forKey:@"DOKRWExploitRan"];
             [defaults setObject:currentBoot forKey:@"DOKRWBootSessionUUID"];
             [defaults synchronize];
+            DOKRWWriteState(currentBoot, YES);
         }
         DOKRWLog(@"obtainKernelRW: ready base=0x%llx slide=0x%llx kcall=%@",
                  (unsigned long long)gSystemInfo.kernelConstant.base,

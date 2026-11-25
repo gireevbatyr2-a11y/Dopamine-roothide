@@ -10,6 +10,7 @@
 #import "DOUIManager.h"
 #import "DOGlobalAppearance.h"
 #import "DOThemeManager.h"
+#import "DOJailbreaker.h"
 
 @interface DOJailbreakButton ()
 @property NSArray<NSLayoutConstraint *> *expandedConstraints;
@@ -161,11 +162,17 @@
     [self.indicator removeFromSuperview];
     self.indicator = nil;
 
+    NSUInteger expandedCount = self.expandedConstraints.count;
     [NSLayoutConstraint deactivateConstraints:self.expandedConstraints];
     self.expandedConstraints = nil;
     if (self.originalConstraints) {
         [NSLayoutConstraint activateConstraints:self.originalConstraints];
     }
+
+    DOKRWLog(@"UI: collapse frame=%@ expanded=%lu original=%lu",
+             NSStringFromCGRect(self.frame),
+             (unsigned long)expandedCount,
+             (unsigned long)self.originalConstraints.count);
 
     [self.button setAlpha:1.0];
     [self.button setUserInteractionEnabled:YES];
