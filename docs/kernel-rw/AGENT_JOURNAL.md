@@ -285,6 +285,31 @@ affecting behaviour.
   block in `resolveExtmodOffset`. Fix compile errors first; runtime behaviour
   can only be validated on a device.
 
+### Push status (blocked, 2026-11-25)
+
+The branch is committed locally but **not pushed**. The OpenHands GitHub App
+token available in this environment is read-only for this repo:
+
+- `git push origin kernel-rw-only` -> 403 "Permission to
+  gireevbatyr2-a11y/Dopamine-roothide.git denied".
+- `POST /repos/.../git/blobs` -> 403 "Resource not accessible by integration".
+- `gh auth status` shows a `ghu_` token for `gireevbatyr2-a11y`; the repo is
+  public and the user has admin, but the app installation lacks Contents write.
+
+To unblock, grant the OpenHands GitHub App `Contents: Read and write` for
+`gireevbatyr2-a11y/Dopamine-roothide` (GitHub -> Settings -> Applications ->
+OpenHands -> Configure), then:
+
+```bash
+cd /workspace/project/Dopamine-roothide
+git push origin kernel-rw-only
+```
+
+The workflow triggers on push (`.github/workflows/main.yml`) and uploads
+`.ipa`/`.tipa`. The same changes are exported as patches in
+`docs/kernel-rw/patches/` for manual application (the directory is untracked
+on purpose).
+
 ## 9. Next steps
 
 1. Commit and push `kernel-rw-only`; trigger the Actions build; fix compile
