@@ -50,8 +50,8 @@ offset'ами (или дать resolver'у выучить их на каждом
 - `kernel-rw-only` — local branch, based on `main`.
 - Previous commit (from the earlier session):
   `8fe24ef` — "kernel-rw: repurpose DOJailbreaker into a kernel R/W provider".
-- The changes described below are **uncommitted** at the time of writing.
-  Commit them together with this journal.
+- The changes described below are committed on `kernel-rw-only`; the current
+  head is `2ff72c3` (process list tab included).
 
 ### Files that matter
 
@@ -285,30 +285,19 @@ affecting behaviour.
   block in `resolveExtmodOffset`. Fix compile errors first; runtime behaviour
   can only be validated on a device.
 
-### Push status (blocked, 2026-11-25)
+### Push and build status (success, 2026-11-25)
 
-The branch is committed locally but **not pushed**. The OpenHands GitHub App
-token available in this environment is read-only for this repo:
+Write access became available; the branch was pushed at `2ff72c3`.
 
-- `git push origin kernel-rw-only` -> 403 "Permission to
-  gireevbatyr2-a11y/Dopamine-roothide.git denied".
-- `POST /repos/.../git/blobs` -> 403 "Resource not accessible by integration".
-- `gh auth status` shows a `ghu_` token for `gireevbatyr2-a11y`; the repo is
-  public and the user has admin, but the app installation lacks Contents write.
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45691924997
+- Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
+- Artifacts (not expired):
+  - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
+  - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
+- The run built commit `2ff72c3` (process list tab included).
 
-To unblock, grant the OpenHands GitHub App `Contents: Read and write` for
-`gireevbatyr2-a11y/Dopamine-roothide` (GitHub -> Settings -> Applications ->
-OpenHands -> Configure), then:
-
-```bash
-cd /workspace/project/Dopamine-roothide
-git push origin kernel-rw-only
-```
-
-The workflow triggers on push (`.github/workflows/main.yml`) and uploads
-`.ipa`/`.tipa`. The same changes are exported as patches in
-`docs/kernel-rw/patches/` for manual application (the directory is untracked
-on purpose).
+This confirms the new code compiles with the upstream workflow (macOS, Theos,
+iPhoneOS16.5 SDK). Runtime behaviour still needs a device run.
 
 ## 8b. Process list tab (added 2026-11-25)
 
