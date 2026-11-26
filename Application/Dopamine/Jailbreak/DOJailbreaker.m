@@ -739,18 +739,8 @@ int DOKRWHelperMain(const char *socketPath)
         DOKRWLog(@"obtainKernelRW: roothide jailbreak present");
         return nil;
     }
-    if (DOKRWHelperStartIfNeeded()) {
-        _kernelRWReady = YES;
-        DOKRWLog(@"obtainKernelRW: helper ready base=0x%llx slide=0x%llx",
-                 (unsigned long long)gDOKRWHelperBase, (unsigned long long)gDOKRWHelperSlide);
-        return nil;
-    }
-
-    if (DOKRWHelperProcessAlive(gDOKRWHelperPid)) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W helper is still starting. Wait for the steps to finish, then try again."}];
-    }
     if (_kernelRWReady) {
-        DOKRWLog(@"obtainKernelRW: helper fork failed; in-process only");
+        DOKRWLog(@"obtainKernelRW: already ready");
         return nil;
     }
     BOOL ranThisBoot = [self exploitRanThisBoot];
@@ -760,12 +750,18 @@ int DOKRWHelperMain(const char *socketPath)
     }
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
-    if (DOKRWHelperStartIfNeeded()) {
-        DOKRWLog(@"obtainKernelRW: helper ready base=0x%llx slide=0x%llx",
-                 (unsigned long long)gDOKRWHelperBase, (unsigned long long)gDOKRWHelperSlide);
-    } else {
-        DOKRWLog(@"obtainKernelRW: helper fork failed; in-process only");
-    }
+    _kernelRWReady = YES;
+    DOKRWLog(@"obtainKernelRW: ready base=0x%llx slide=0x%llx",
+             (unsigned long long)gSystemInfo.kernelConstant.base,
+             (unsigned long long)gSystemInfo.kernelConstant.slide);
+    return nil;
+}
+
+- (NSError *)removeRoothideLeftovers
+{
+    NSError *error = [[DOEnvironmentManager sharedManager] deleteBootstrap];
+    if (error) return error;
+    [[DOEnvironmentManager sharedManager] rebuildIconCache];
     return nil;
 }
 
