@@ -188,11 +188,20 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
     [super viewWillAppear:animated];
     [self.jailbreakBtn.button setTitle:[self kernelRWButtonTitle] forState:UIControlStateNormal];
     BOOL restored = [[DOJailbreaker sharedInstance] restoreKernelRWFromHelper];
-    if (restored) {
-        DOKRWLog(@"UI: helper restored");
+    if (restored || [DOJailbreaker sharedInstance].kernelRWReady) {
+        DOKRWLog(@"UI: kernel R/W present");
         self.jailbreakBtn.hidden = YES;
     } else {
-        self.jailbreakBtn.hidden = [[DOJailbreaker sharedInstance] exploitStartedThisBoot];
+        BOOL ran = [[DOJailbreaker sharedInstance] exploitRanThisBoot];
+        BOOL started = [[DOJailbreaker sharedInstance] exploitStartedThisBoot];
+        if (ran) {
+            DOKRWLog(@"UI: re-acquire available");
+            self.jailbreakBtn.hidden = NO;
+            [self.jailbreakBtn.button setTitle:@"Re-acquire Kernel R/W" forState:UIControlStateNormal];
+            [self startKernelRW];
+        } else {
+            self.jailbreakBtn.hidden = started;
+        }
     }
 }
 

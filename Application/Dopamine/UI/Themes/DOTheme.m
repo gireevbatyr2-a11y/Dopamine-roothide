@@ -6,6 +6,7 @@
 //
 
 #import "DOTheme.h"
+#import "DOHeaderView.h"
 #import "UIImage+Blur.h"
 
 @interface DOTheme ()
@@ -50,9 +51,11 @@
     UIImage *backgroundImage = [self image];
     CGSize canvasSize = backgroundImage.size;
 
-    UIImage *overlayImage = [UIImage imageNamed:@"DopamineLogo"];
+    UIImage *overlayImage = [DOHeaderView ffkrwLogo];
 
-    CGSize overlaySize = CGSizeMake(350, 350);
+    CGFloat overlayWidth = 350;
+    CGFloat overlayHeight = overlayWidth * overlayImage.size.height / overlayImage.size.width;
+    CGSize overlaySize = CGSizeMake(overlayWidth, overlayHeight);
     CGPoint overlayOrigin = CGPointMake((canvasSize.width - overlaySize.width) / 2.0,
                                         (canvasSize.height - overlaySize.height) / 2.0);
 
@@ -60,7 +63,7 @@
 
     [backgroundImage drawInRect:CGRectMake(0, 0, canvasSize.width, canvasSize.height)];
 
-    // Render overlay (Dopamine Logo) in center of background for boot logo
+    // Render FFKRW wordmark in center of background for boot logo
     [overlayImage drawInRect:CGRectMake(overlayOrigin.x, overlayOrigin.y, overlaySize.width, overlaySize.height)];
 
     UIImage *finalImage = UIGraphicsGetImageFromCurrentImageContext();

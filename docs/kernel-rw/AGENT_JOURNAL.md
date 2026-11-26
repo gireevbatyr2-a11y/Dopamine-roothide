@@ -527,6 +527,21 @@ and then forks:
 The main header logo is rendered at runtime as a white heavy rounded "FFKRW"
 wordmark via `+[DOHeaderView ffkrwLogo]`, replacing the `Dopamine` image.
 
+Device result: the first fork attempt logged `helper fork failed; in-process
+only`; the fork child was not created. The app now clears the boot guard after
+a completed exploit and auto re-acquires on relaunch (`Re-acquire Kernel
+R/W`). This restores kernel R/W in a new app process but is not persistence; a
+force-quit still loses the primitives and a failed re-acquire requires reboot.
+
+## 8l. Logo cleanup (2026-11-26)
+
+- `DOTheme` boot logo now uses `[DOHeaderView ffkrwLogo]` instead of
+  `DopamineLogo`; the `roothide` text in the Dopamine theme boot logo is gone.
+- Main header already uses `ffkrwLogo`.
+- `DopamineLogo`/`Dopamine` image assets are no longer referenced.
+- App icon assets still contain the old artwork; if the home screen icon is
+  meant, a separate FFKRW icon has to be generated.
+
 ## 8k. Research: unkillable process without jailbreak (2026-11-26)
 
 Public projects and docs agree that a true persistent daemon needs a

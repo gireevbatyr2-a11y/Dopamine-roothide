@@ -324,26 +324,39 @@ static void DOKRWHelperServeForked(int listenFD)
 static int DOKRWHelperFork(void)
 {
     DOJailbreaker *jb = [DOJailbreaker sharedInstance];
-    if (!jb.kernelRWReady) return -1;
+    if (!jb.kernelRWReady) {
+        DOKRWLog(@"helper: fork skipped (kernel R/W not ready)");
+        return -1;
+    }
     [jb resolveExtmodOffset];
     gDOKRWExtmodOffset = jb.extmodOffset;
+    if (!gDOKRWExtmodOffset) DOKRWLog(@"helper: extmod offset unresolved");
 
     NSString *sock = DOKRWHelperSocketPath();
     unlink(sock.fileSystemRepresentation);
     int listenFD = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (listenFD < 0) return -1;
+    if (listenFD < 0) {
+        DOKRWLog(@"helper: socket failed errno=%d %s", errno, strerror(errno));
+        return -1;
+    }
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, sock.fileSystemRepresentation, sizeof(addr.sun_path) - 1);
     if (bind(listenFD, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+        DOKRWLog(@"helper: bind failed errno=%d %s path=%@", errno, strerror(errno), sock);
         close(listenFD);
         return -1;
     }
-    listen(listenFD, 4);
+    if (listen(listenFD, 4) != 0) {
+        DOKRWLog(@"helper: listen failed errno=%d %s", errno, strerror(errno));
+        close(listenFD);
+        return -1;
+    }
 
     pid_t pid = fork();
     if (pid < 0) {
+        DOKRWLog(@"helper: fork failed errno=%d %s", errno, strerror(errno));
         close(listenFD);
         return -1;
     }
@@ -615,8 +628,17 @@ int DOKRWHelperMain(const char *socketPath)
         DOKRWLog(@"obtainKernelRW: helper fork failed; in-process only");
         return nil;
     }
-    if ([self exploitStartedThisBoot] || [self exploitRanThisBoot]) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already started/acquired in this boot. Reboot the device before running the exploit again."}];
+    BOOL ranThisBoot = [self exploitRanThisBoot];
+    BOOL startedThisBoot = [self exploitStartedThisBoot];
+    if (startedThisBoot && !ranThisBoot) {
+        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"The previous exploit did not complete. Reboot the device before trying again."}];
+    }
+    if (ranThisBoot) {
+        DOKRWLog(@"obtainKernelRW: re-acquiring after app relaunch");
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        [defaults setBool:NO forKey:@"DOKRWExploitRan"];
+        [defaults setBool:NO forKey:@"DOKRWExploitStarted"];
+        [defaults synchronize];
     }
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
