@@ -287,18 +287,19 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-25)
 
-Write access became available; the branch was pushed at `e81874b`.
+Write access became available; the branch was pushed at `6de2c57`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45714171508
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45766775974
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
 - Artifacts (not expired):
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `e81874b` (button hide, boot logs, kfd migration).
+- The run built commit `6de2c57` (action menu restore + per-boot button).
 
-Previous successful runs: `45707510584` (`2fc2cc2`, overlay collapse/boot guard),
-`45701419608` (`3a20cf7`, panic fix/logging), `45696416257` (`6ef26bf`, cleanup)
-and `45691924997` (`2ff72c3`, process list).
+Previous successful runs: `45714171508` (`e81874b`, button hide/boot logs/kfd
+migration), `45707510584` (`2fc2cc2`, overlay collapse/boot guard),
+`45701419608` (`3a20cf7`, panic fix/logging), `45696416257` (`6ef26bf`,
+cleanup) and `45691924997` (`2ff72c3`, process list).
 
 ## 8b. Process list tab (added 2026-11-25)
 
