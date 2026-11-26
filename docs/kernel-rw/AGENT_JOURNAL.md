@@ -446,6 +446,26 @@ separate helper that owns the primitives and serves requests. Two options:
 
 Not implemented yet; needs a decision on the approach.
 
+## 8h. Empty screen after success and per-boot button (2026-11-26)
+
+The log showed `jailbreakHidden=1`, `stackHidden=0`, `stackAlpha=1.00`, yet
+the screen was empty. Cause: the button handler calls `[actionView hide]`
+before expanding, and `DOActionMenuView` had only `hide`, no `show`. The
+Settings/Processes/Credits menu stayed at alpha 0 with a 0.6 scale, so the
+main screen looked empty.
+
+Fixes:
+
+- Added `-show` to `DOActionMenuView` (alpha 1, identity transform,
+  interaction enabled) and call it from `finishKernelRWUI:`, so the menu
+  returns after success and after failure.
+- `exploitRanThisBoot` on `DOJailbreaker` checks the boot UUID and
+  `DOKRWExploitRan`. `viewWillAppear` hides the Get Kernel R/W button when
+  it is true, so after one successful run the button stays gone for the
+  rest of the boot. A reboot changes the UUID, the flag clears and the
+  button appears again.
+- The success alert still shows base/slide/log path.
+
 ## 9. Next steps
 
 1. Commit and push `kernel-rw-only`; trigger the Actions build; fix compile

@@ -36,6 +36,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 @property DOJailbreakButton *jailbreakBtn;
 @property NSArray<NSLayoutConstraint *> *jailbreakButtonConstraints;
 @property DOActionMenuButton *updateButton;
+@property DOActionMenuView *actionView;
 @property DOHeaderView *headerView;
 @property(nonatomic) BOOL hideStatusBar;
 @property(nonatomic) BOOL hideHomeIndicator;
@@ -117,6 +118,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         }]
     ] delegate:self];
     
+    self.actionView = actionView;
     [stackView addArrangedSubview: actionView];
 
     [NSLayoutConstraint activateConstraints:@[
@@ -186,6 +188,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 {
     [super viewWillAppear:animated];
     [self.jailbreakBtn.button setTitle:[self kernelRWButtonTitle] forState:UIControlStateNormal];
+    self.jailbreakBtn.hidden = [[DOJailbreaker sharedInstance] exploitRanThisBoot];
 }
 
 - (void)startKernelRW
@@ -231,15 +234,16 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 {
     [self.jailbreakBtn collapseButton];
     self.jailbreakBtn.hidden = success;
+    [self.actionView show];
     self.updateButton.userInteractionEnabled = YES;
     [UIView animateWithDuration:0.3 animations:^{
         self.updateButton.alpha = 1.0;
         [self.headerView setTransform:CGAffineTransformIdentity];
     }];
     self.hideHomeIndicator = NO;
-    DOKRWLog(@"UI: finish success=%d jailbreakHidden=%d jailbreakFrame=%@ stackHidden=%d stackAlpha=%.2f",
+    DOKRWLog(@"UI: finish success=%d jailbreakHidden=%d jailbreakFrame=%@ stackHidden=%d stackAlpha=%.2f menuAlpha=%.2f",
              success, self.jailbreakBtn.hidden, NSStringFromCGRect(self.jailbreakBtn.frame),
-             self.headerView.superview.hidden, self.headerView.superview.alpha);
+             self.headerView.superview.hidden, self.headerView.superview.alpha, self.actionView.alpha);
 }
 
 -(void)setupUpdateAvailable:(BOOL)environmentUpdate

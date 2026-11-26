@@ -80,4 +80,13 @@
     } completion:nil];
 }
 
+- (void)show
+{
+    [self setUserInteractionEnabled:YES];
+    [UIView animateWithDuration:0.3 delay:0.0 usingSpringWithDamping:0.9 initialSpringVelocity:2.0  options: UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self setAlpha:1.0];
+        [self setTransform:CGAffineTransformIdentity];
+    } completion:nil];
+}
+
 @end

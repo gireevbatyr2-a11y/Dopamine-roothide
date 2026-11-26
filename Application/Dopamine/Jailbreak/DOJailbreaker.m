@@ -171,6 +171,15 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
     return _kernelRWReady;
 }
 
+- (BOOL)exploitRanThisBoot
+{
+    NSString *currentBoot = DOKRWCurrentBootSessionUUID();
+    if (!currentBoot) return NO;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *lastBoot = [defaults stringForKey:@"DOKRWBootSessionUUID"];
+    return lastBoot && [currentBoot isEqualToString:lastBoot] && [defaults boolForKey:@"DOKRWExploitRan"];
+}
+
 - (uint64_t)kernelBase
 {
     return gSystemInfo.kernelConstant.base;

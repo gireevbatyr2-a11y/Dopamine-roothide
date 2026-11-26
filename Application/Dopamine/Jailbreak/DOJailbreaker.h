@@ -35,6 +35,8 @@ NSString *DOKRWLogPath(void);
 @property (nonatomic, readonly) uint64_t kernelBase;
 @property (nonatomic, readonly) uint64_t kernelSlide;
 @property (nonatomic, readonly, getter=isKcallAvailable) BOOL kcallAvailable;
+
+- (BOOL)exploitRanThisBoot;
 // Resolved offset of task->extmod_statistics (0 if not resolved).
 @property (nonatomic, readonly) uint32_t extmodOffset;
 
