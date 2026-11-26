@@ -17,7 +17,7 @@
 ## Применённые env-пины (run 2, только workflow — tree-файлы не тронуты)
 1. zstd: SPM Package.resolved pinned к `49bf1d14c8ffc6a25c32667ce878c4148f43ac4f`
    (dev HEAD, разрешённый CI upstream 2026-11-06, найдено в оригинальном логе).
-2. Credits.plist BUILDER: name=roothider, link=roothide/Dopamine-roothide (вместо github.actor/repository).
+2. Credits.plist Builder: name=Slinger, link=https://t.me/abcdfdkjd; roothider in Developers; workflow injection removed.
 3. COMMIT_HASH: `9617d75f476423fdfd33477299c8a1349eb6f375` передан в gmake.
 4. VERSION артефакта: hardcoded `9617d75-2026.11.06-UTC-02.17.10`.
 

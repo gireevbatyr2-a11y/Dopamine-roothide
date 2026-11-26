@@ -547,6 +547,7 @@ typedef struct {
 // per build in /var/mobile/Documents/kernelrw_extmod_offsets.plist, so this
 // table only needs entries for builds you want to force without discovery.
 static const DOKRWExtmodOffsetEntry kDOKRWExtmodOffsets[] = {
+    { "20G75", 0x438 },
     // { "22F76", 0x000 },
     { NULL, 0 },
 };

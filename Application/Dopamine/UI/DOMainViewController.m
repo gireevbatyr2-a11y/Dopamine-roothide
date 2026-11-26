@@ -20,7 +20,6 @@
 #import <mach/mach.h>
 #import <libjailbreak/libjailbreak.h>
 
-extern kern_return_t task_for_pid(mach_port_t target_tport, int pid, mach_port_t *t);
 extern int proc_listpids(uint32_t type, uint32_t typeinfo, void *buffer, int buffersize);
 extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 
@@ -356,7 +355,6 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 
 @interface DOProcessListViewController ()
 @property (nonatomic, strong) NSArray<NSDictionary<NSString *, id> *> *processes;
-@property (nonatomic, assign) mach_port_t connectedTaskPort;
 @property (nonatomic, assign) pid_t connectedPid;
 - (void)reloadProcesses;
 - (void)connectToPid:(pid_t)pid name:(NSString *)name;
@@ -376,13 +374,6 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
     self.refreshControl = refresh;
 
     [self reloadProcesses];
-}
-
-- (void)dealloc
-{
-    if (_connectedTaskPort != MACH_PORT_NULL) {
-        mach_port_deallocate(mach_task_self(), _connectedTaskPort);
-    }
 }
 
 - (void)reloadProcesses
@@ -452,36 +443,23 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         return;
     }
 
-    DOKRWLog(@"process: connecting to %d (%@)", pid, name);
+    DOKRWLog(@"process: connecting to %d (%@) via kernel task", pid, name);
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        mach_port_t port = MACH_PORT_NULL;
-        kern_return_t kr = task_for_pid(mach_task_self(), pid, &port);
         BOOL zeroed = [krw zeroExtmodStatisticsForPid:pid];
         dispatch_async(dispatch_get_main_queue(), ^{
             if (!zeroed) {
-                if (kr == KERN_SUCCESS) {
-                    mach_port_deallocate(mach_task_self(), port);
-                }
-                DOKRWLog(@"process: extmod zero failed for %d (%@), task_for_pid=%d", pid, name, kr);
-                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connection failed" message:[NSString stringWithFormat:@"Could not zero extmod for pid %d (%@).\ntask_for_pid: %d", pid, name, kr] preferredStyle:UIAlertControllerStyleAlert];
+                DOKRWLog(@"process: extmod zero failed for %d (%@)", pid, name);
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connection failed" message:[NSString stringWithFormat:@"Could not zero extmod for pid %d (%@).", pid, name] preferredStyle:UIAlertControllerStyleAlert];
                 [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
                 [self presentViewController:alert animated:YES completion:nil];
                 return;
             }
 
-            if (kr != KERN_SUCCESS) {
-                DOKRWLog(@"process: task_for_pid(%d) unavailable (%d); extmod zeroed via kernel task", pid, kr);
-            }
-
-            if (self.connectedTaskPort != MACH_PORT_NULL) {
-                mach_port_deallocate(mach_task_self(), self.connectedTaskPort);
-            }
-            self.connectedTaskPort = (kr == KERN_SUCCESS) ? port : MACH_PORT_NULL;
             self.connectedPid = pid;
             [self.tableView reloadData];
 
-            DOKRWLog(@"process: connected to %d (%@), extmod zeroed=yes task_port=%@", pid, name, kr == KERN_SUCCESS ? @"yes" : @"no");
-            NSString *message = [NSString stringWithFormat:@"Connected to %@ (pid %d).\nextmod counters zeroed: yes\ntask port: %@", name, pid, kr == KERN_SUCCESS ? @"available" : @"unavailable (kernel fallback)"];
+            DOKRWLog(@"process: connected to %d (%@), extmod zeroed=yes (kernel task)", pid, name);
+            NSString *message = [NSString stringWithFormat:@"Connected to %@ (pid %d).\nextmod counters zeroed: yes", name, pid];
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connected" message:message preferredStyle:UIAlertControllerStyleAlert];
             [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
             [self presentViewController:alert animated:YES completion:nil];

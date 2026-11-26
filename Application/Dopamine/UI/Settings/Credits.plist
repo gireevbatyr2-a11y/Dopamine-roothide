@@ -130,9 +130,9 @@
 				</dict>
 				<dict>
 					<key>name</key>
-					<string>roothideDev</string>
+					<string>roothider</string>
 					<key>link</key>
-					<string>https://twitter.com/roothideDev</string>
+					<string>https://github.com/roothide/Dopamine-roothide</string>
 				</dict>
 			</array>
 		</dict>

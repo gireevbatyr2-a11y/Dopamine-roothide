@@ -468,14 +468,15 @@ Fixes:
   button appears again.
 - The success alert still shows base/slide/log path.
 
-## 8i. Process extmod fallback and branding (2026-11-26)
+## 8i. Process extmod via kernel task; branding (2026-11-26)
 
 Process list: `task_for_pid` returns 5 (`KERN_FAILURE`) for App Store apps
-(Textastic, FreeFire, Instagram, ...). `DOJailbreaker` already resolves the
-kernel task with `proc_find`/`proc_task`, so extmod zeroing does not need the
-task port. `connectToPid:` now always calls `zeroExtmodStatisticsForPid:` and
-treats `task_for_pid` as optional; protected processes connect with
-"task port: unavailable (kernel fallback)".
+(Textastic, FreeFire, Instagram, ...). `DOJailbreaker` resolves the kernel
+task with `proc_find`/`proc_task`, so extmod zeroing does not need a task
+port. `connectToPid:` no longer calls `task_for_pid` at all; it calls
+`zeroExtmodStatisticsForPid:` directly. 20G75 is pinned to `0x438` in
+`kDOKRWExtmodOffsets`, so the offset-discovery helper (the only remaining
+`task_for_pid` user, for unknown builds) does not run on this device.
 
 Branding:
 
@@ -484,8 +485,10 @@ Branding:
   label "Telegram Channel".
 - Discord button -> https://t.me/FFEXTERNALMOD, icon `person.3.fill`,
   label "Telegram Group".
-- New "Builder" section with Slinger (https://t.me/abcdfdkjd); `roothideDev`
-  moved to Developers.
+- The second "BUILDER" came from `.github/workflows/main.yml`
+  (`plutil -insert items.4/5`); those lines are removed. The source
+  `Credits.plist` has one "Builder" with Slinger (https://t.me/abcdfdkjd);
+  `roothider` is in Developers.
 - `Credits_Made_By` now includes Slinger in every localization.
 
 ## 9. Next steps

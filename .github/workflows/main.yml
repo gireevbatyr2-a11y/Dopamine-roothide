@@ -107,8 +107,6 @@ jobs:
           export BASEDIR="$(pwd)"
           export THEOS="${BASEDIR}/theos"
           export COMMIT_HASH_OVERRIDE="9617d75f476423fdfd33477299c8a1349eb6f375"
-          plutil -insert items.4 -xml "<dict><key>cell</key><string>PSGroupCell</string><key>label</key><string>BUILDER</string></dict>" ./Application/Dopamine/UI/Settings/Credits.plist
-          plutil -insert items.5 -xml "<dict><key>cell</key><string>PSGroupCell</string><key>headerCellClass</key><string>DOCreditsCell</string><key>names</key><array><dict><key>name</key><string>roothider</string><key>link</key><string>https://github.com/roothide/Dopamine-roothide</string></dict></array></dict>" ./Application/Dopamine/UI/Settings/Credits.plist
           gmake -j$(sysctl -n hw.logicalcpu) NIGHTLY=1 COMMIT_HASH="${COMMIT_HASH_OVERRIDE}"
           APP_VERSION="$(cat ./BaseBin/_external/basebin/.version)-$(cat ./BaseBin/_external/basebin/.version-roothide)"
           VERSION="(${APP_VERSION}-9617d75)-2026.11.06-UTC-02.17.10"
