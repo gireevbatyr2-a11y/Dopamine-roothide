@@ -287,15 +287,16 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-26)
 
-The FFKRW helper argv fix is built at `08123b3`.
+The app-process PPL + roothide cleanup button is built at `f388db8`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45860706131
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45868655502
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
-- Artifacts (not expired, 47,984,175 bytes):
+- Artifacts (not expired, 47,983,649 bytes):
   - `roothide-FFKRW-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-FFKRW-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `08123b3` (spawn `krw-helper`, accept legacy
-  `DOKRWHelper`; startup logs; dead-pid detection; 60 s wait; FFKRW rename).
+- The run built commit `f388db8` (no spawned-helper PPL; app-process
+  `obtainKernelRWInProcess`; `Remove roothide leftovers` menu action backed by
+  `DOEnvironmentManager deleteBootstrap` + icon cache rebuild).
 - Process/display/bundle are `FFKRW` / `FFKRW` / `com.ffkrw.FFKRW`;
   runtime log/socket/state are `FFKRW.log` / `FFKRW.sock` / `FFKRW.state`.
 
@@ -305,10 +306,11 @@ did not persist: after the userspace reboot the app returned to
 process"; the bootstrap asked to set a password. The launchdhook/jailbreakd
 did not come up, so the helper path is now the default.
 
-Previous runs: `45860706131` success (`08123b3`, helper argv fixed).
-`45856197340` (`c5f2014`, helper startup logs) success, but the helper still
-fell through to `UIApplicationMain` because `main.m` expected `krw-helper`
-while spawn passed `DOKRWHelper`. `45854272241` (`dd1edc0`) failed on private
+Previous runs: `45868655502` success (`f388db8`). `45860706131` (`08123b3`,
+helper argv `krw-helper`) success, but that helper ran Titan PPL and panicked
+in `IOSurface` (`panic-full-...202700`: Kernel data abort, IOSurface kext).
+`45856197340` (`c5f2014`, helper startup logs) success, but helper fell through
+to `UIApplicationMain`. `45854272241` (`dd1edc0`) failed on private
 `proc_bsdinfo`; fixed. `45850140545` (`ad53d5a`) success (60 s wait/no second
 in-process/release dummy UI/FFKRW). `45842992120` (`b926ce1`, first helper
 with dummy UI) success. `45832341640` initially failed before compiling
@@ -811,6 +813,37 @@ Roothide leftovers from the `1fe4353` device test (code inspected):
 If the helper still fails after `08123b3`, the lara launchd stash remains the
 fallback; `cyanide` has no stash, and Background Modes do not survive
 force-quit.
+
+## 8t. Helper PPL panic; in-process PPL and cleanup button (2026-11-26)
+
+`panic-full-2026-11-26-202700` is a `Kernel data abort` in `IOSurface`
+(`com.apple.iokit.IOSurface` in the backtrace). The spawned helper ran its own
+Titan PPL with the dummy UIWindow and panicked. The app-process PPL worked
+earlier (18:22), so `f388db8` removes the helper from `obtainKernelRW` and
+returns to `obtainKernelRWInProcess`. The helper code remains unused.
+
+Also added a `Remove roothide leftovers` action to the main menu:
+
+- calls `DOEnvironmentManager deleteBootstrap`;
+- if not jailbroken and uid != 0, that uses the TrollStore
+  `delete-bootstrap` action; otherwise it runs as root/unsandboxed;
+- `DOBootstrapper deleteBootstrap` makes `/private/preboot` writable and
+  removes the jbroot parent plus `/var/jb` (bootstrap, basebin,
+  launchdhook/jailbreakd, `prep_bootstrap.sh`, root password inside);
+- then `rebuildIconCache` and `rebootUserspace`.
+
+Caveat: if the app is not installed through TrollStore and has no root, the
+TrollStore action is the only path; if that fails, `/var/jb`/bootstrap cannot
+be removed from the app sandbox. The old roothide app Settings -> Remove
+Jailbreak, or a root shell, remains a fallback.
+
+Build `45868655502` (`f388db8`) success, artifacts 47,983,649 bytes.
+
+The persistence path remains lara's launchd stash: the app-process PPL gives
+`g_ctx.control_socket`/`rw_socket`; `transfer_krw_to_launchd_ios16` +
+`fileport_makeport` + `bootstrap_register` + sandbox tokens, and
+`recover_krw_primitives` on relaunch. `cyanide` has no stash; Background
+Modes do not survive force-quit.
 
 ## 8k. Research: unkillable process without jailbreak (2026-11-26)
 
