@@ -287,19 +287,23 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-26)
 
-Write access became available; the branch was pushed at `a5c4946`.
+Write access became available; the branch was pushed at `efeaa21`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45792538497
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45801834098
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
 - Artifacts (not expired):
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `a5c4946` (auto re-acquire + FFKRW boot logo).
+- The run built commit `efeaa21` (no same-boot re-exploit, short helper
+  socket, FFKRW icons, Sileo/Zebra removed).
 
-Previous successful runs: `45788389040` (`0e5eaeb`, in-process ClearSword +
-Titan, fork helper), `45781966540` (`771b5aa`, posix_spawn helper + FFKRW
-header), `45776362820` (`3f44da3`, single Builder, kernel-only process
-connect), `45770706349` (`e5f9898`, extmod fallback/branding),
+Previous successful runs: `45799983758` failed (removed `.deb` still
+referenced by the Xcode project), `45792538497` (`a5c4946`, auto re-acquire +
+FFKRW boot logo; auto re-acquire caused the GFX panic),
+`45788389040` (`0e5eaeb`, in-process ClearSword + Titan, fork helper),
+`45781966540` (`771b5aa`, posix_spawn helper + FFKRW header),
+`45776362820` (`3f44da3`, single Builder, kernel-only process connect),
+`45770706349` (`e5f9898`, extmod fallback/branding),
 `45766775974` (`6de2c57`, action menu restore),
 `45714171508` (`e81874b`, button hide/boot logs/kfd migration),
 `45707510584` (`2fc2cc2`, overlay collapse/boot guard),
@@ -541,6 +545,33 @@ force-quit still loses the primitives and a failed re-acquire requires reboot.
 - `DopamineLogo`/`Dopamine` image assets are no longer referenced.
 - App icon assets still contain the old artwork; if the home screen icon is
   meant, a separate FFKRW icon has to be generated.
+
+## 8m. Same-boot panic and cleanup (2026-11-26)
+
+`panic-full-2026-11-26-125725.000.ips` shows
+`GFX NMI: GFXEndpoint2 ... error=0xe00002db`. The app had auto re-acquired
+after the user force-quit it, so Titan/IOGPU ran a second time in the same
+boot. Re-running the exploit in one boot is unsafe.
+
+- Auto re-acquire is removed. After a force-quit the button stays hidden and
+  the log says `UI: kernel R/W already acquired this boot; reboot required`.
+  No second exploit, no GFX panic.
+- `helper: bind failed errno=48 Address already in use` was caused by the long
+  socket path being truncated in `sockaddr_un.sun_path`. The helper socket is
+  now `/tmp/DopamineKernelRW.sock`.
+- The previous `posix_spawn` helper (pid 374) survived app termination and held
+  the old socket, which is why `bind` failed. A successful fork child should
+  survive the same way; this build tests that.
+- Home screen icons: all `AppIcon*` sets now contain generated FFKRW artwork.
+- Sileo/Zebra/roothideapp `.deb` files, assets, licenses and bootstrap installs
+  are removed; `PkgManagers.plist` is empty; Xcode resource references are
+  removed. App artifact size dropped from ~55 MB to ~44.5 MB.
+- True roothide persistence (if the fork child still dies) means restoring the
+  original `DOJailbreaker` launchd pipeline: `prepareBootstrap` ->
+  `injectLaunchdHook` -> `finalizeBootstrap`, then a userspace reboot. The
+  repo still contains `BaseBin/launchdhook`, `jailbreakd` and
+  `DOBootstrapper`, but the original `DOJailbreaker` injection methods would
+  have to be ported back. That enters roothide jailbreak state.
 
 ## 8k. Research: unkillable process without jailbreak (2026-11-26)
 
