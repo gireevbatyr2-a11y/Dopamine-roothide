@@ -287,16 +287,18 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-26)
 
-Write access became available; the branch was pushed at `e5f9898`.
+Write access became available; the branch was pushed at `3f44da3`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45770706349
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45776362820
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
 - Artifacts (not expired):
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `e5f9898` (extmod fallback + FFKRW branding).
+- The run built commit `3f44da3` (single Builder, roothider in Developers,
+  kernel-only process connect).
 
-Previous successful runs: `45766775974` (`6de2c57`, action menu restore),
+Previous successful runs: `45770706349` (`e5f9898`, extmod fallback/branding),
+`45766775974` (`6de2c57`, action menu restore),
 `45714171508` (`e81874b`, button hide/boot logs/kfd migration),
 `45707510584` (`2fc2cc2`, overlay collapse/boot guard),
 `45701419608` (`3a20cf7`, panic fix/logging), `45696416257` (`6ef26bf`,
