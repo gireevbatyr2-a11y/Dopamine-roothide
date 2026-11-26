@@ -37,3 +37,4 @@ uint64_t ds_get_rw_socket_pcb(void){ return g_ctx.rw_socket_pcb; }
 uint64_t ds_get_our_proc(void){ return proc_self(); }
 uint64_t ds_get_our_task(void){ return proc_task(proc_self()); }
 bool ds_isvalid(uint64_t a){ return a > 0xffff000000000000ULL; }
+bool ds_is_ready(void){ return kernel_base != 0; }

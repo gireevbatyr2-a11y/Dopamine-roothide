@@ -583,6 +583,10 @@ uint64_t procbyname(const char *name) {
     return 0;
 }
 
+uint64_t proc_find_by_name(const char *name) {
+    return procbyname(name);
+}
+
 proc_entry_t* proclist(const char *search, int *out_count) {
     if (!ds_is_ready()) {
         *out_count = 0;

@@ -896,6 +896,42 @@ launchd/Jetsam `SIGKILL`. RunningBoard/`BKProcessAssertion` and
 could patch launchd/AMFI to load a daemon, but that is a jailbreak-like
 modification and normally needs a reboot. Therefore the fork helper is the
 best-effort maximum without jailbreak state.
+## 8v. Lara stash compile fixes: macro collision and missing definitions (2026-11-26)
+
+Eight consecutive CI failures traced the lara port (`LaraPersistence.m` unity
+compile) through missing headers to a macro collision: `TaskRop/vm.m` defines
+`VM_PAGE_PACKED_PTR_SHIFT` etc., and `darksword_shim.m` then includes
+`libjailbreak/info.h`, whose `kernelConstant` struct has members with the same
+names -> `expected member name or ';' after declaration specifiers` at
+`info.h:36`. CI never got past `darksword_shim.m` since commit `ce463e7`, so
+`utils.m`/`persistence.m` had never compiled; clang logs (run 45899209020)
+show they parse clean once the collision is removed.
+
+Fixes pushed in one batch:
+
+- `LaraPersistence.m`: `#undef` the four `vm.m` macros between the `vm.m` and
+  `darksword_shim.m` includes.
+- `offsets_shim.m`: define every `off_*`/`sizeof_ipc_entry`/`smr_base`/
+  `t1sz_boot`/`VM_MIN_KERNEL_ADDRESS`/`VM_MAX_KERNEL_ADDRESS`/`pac_mask`
+  declared in `offsets.h`. Upstream lara's `offsets.m` (xpf/kernelcache
+  driven) is not ported, so without these the unity TU links against
+  undefined symbols. `lara_offsets_init()` fills the used subset from
+  `gSystemInfo` via `koffsetof`; the rest stay 0 and lara's fallbacks apply.
+- `offsets_shim.m`: real `is_pac_supported()` (hw.cpusubtype ==
+  `CPU_SUBTYPE_ARM64E`), previously only in the unported `offsets.m`.
+- `darksword_shim.m`: `ds_is_ready()` (`kernel_base != 0`), used by
+  `procbyname`/`proclist` but never defined.
+- `utils.m`: `proc_find_by_name()` as in upstream lara (`procbyname(name)`),
+  used by `RemoteCall.m`.
+- `DOJailbreaker.m`: on relaunch the recovery path now runs
+  `gatherSystemInformation()` before `lara_offsets_init()`/
+  `recover_krw_primitives()`, because libjailbreak `proc_self()`
+  (`proc_find` -> `koffsetof(proc, ...)`) needs a populated `gSystemInfo`;
+  on a fresh launch it was all zeros and recovery could never work.
+
+Remaining known limitation: `kernel_base` is only non-zero after the stash,
+so `ds_is_ready()` reflects the stashed primitives; `lara.log`/`FFKRW.log`
+still record every step.
 
 ## 9. Next steps
 

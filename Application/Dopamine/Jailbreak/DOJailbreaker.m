@@ -742,6 +742,13 @@ int DOKRWHelperMain(const char *socketPath)
         return nil;
     }
     if (!_kernelRWReady) {
+        // Recovery on a fresh launch needs gSystemInfo populated (koffsetof)
+        // before proc_self/RemoteCall can walk kernel structures.
+        NSError *gatherError = [self gatherSystemInformation];
+        if (gatherError) {
+            DOKRWLog(@"obtainKernelRW: recovery patchfinding failed: %@", gatherError.localizedDescription);
+            return gatherError;
+        }
         lara_offsets_init();
         gPrimitives.kreadbuf = clearsword_kreadbuf;
         gPrimitives.kwritebuf = clearsword_kwritebuf;
