@@ -131,10 +131,6 @@ uint64_t t1sz_boot = 0;
 uint64_t VM_MIN_KERNEL_ADDRESS = 0;
 uint64_t VM_MAX_KERNEL_ADDRESS = 0;
 uint64_t pac_mask = 0;
-uint64_t VM_MIN_KERNEL_ADDRESS = 0;
-uint64_t VM_MAX_KERNEL_ADDRESS = 0;
-uint64_t smr_base = 0;
-uint64_t t1sz_boot = 0;
 
 bool is_pac_supported(void) {
     cpu_subtype_t cpusubtype = 0;
