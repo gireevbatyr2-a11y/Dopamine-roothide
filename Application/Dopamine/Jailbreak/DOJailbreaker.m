@@ -453,10 +453,6 @@ static BOOL DOKRWHelperProcessAlive(pid_t pid)
 {
     if (pid <= 0) return NO;
     if (kill(pid, 0) != 0) return NO;
-    struct proc_bsdinfo bsd;
-    if (proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &bsd, sizeof(bsd)) > 0) {
-        if (bsd.pbi_status == SZOMB) return NO;
-    }
     char name[64] = {0};
     if (proc_name(pid, name, sizeof(name)) > 0) {
         return strcmp(name, "FFKRW") == 0;
