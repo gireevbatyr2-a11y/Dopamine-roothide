@@ -114,9 +114,6 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         }],
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Credits_Title") image:[UIImage systemImageNamed:@"info.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"credits" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOCreditsViewController alloc] init] animated:YES];
-        }],
-        [UIAction actionWithTitle:@"Remove roothide leftovers" image:[UIImage systemImageNamed:@"trash" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"roothide-cleanup" handler:^(__kindof UIAction * _Nonnull action) {
-            [self startRoothideCleanup];
         }]
     ] delegate:self];
     
@@ -250,26 +247,6 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
     });
 }
 
-- (void)startRoothideCleanup
-{
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Remove roothide leftovers" message:@"This removes /var/jb, the bootstrap, basebin, launchdhook/jailbreakd and the root password left by the roothide test. The device will respring/reboot afterwards." preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Remove" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-            NSError *error = [[DOJailbreaker sharedInstance] removeRoothideLeftovers];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                if (error) {
-                    UIAlertController *failed = [UIAlertController alertControllerWithTitle:@"Cleanup failed" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-                    [failed addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-                    [self presentViewController:failed animated:YES completion:nil];
-                } else {
-                    [[DOEnvironmentManager sharedManager] rebootUserspace];
-                }
-            });
-        });
-    }]];
-    [self presentViewController:alert animated:YES completion:nil];
-}
 
 - (void)finishKernelRWUI:(BOOL)success
 {

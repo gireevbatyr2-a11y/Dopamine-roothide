@@ -48,7 +48,6 @@ int DOKRWHelperMain(const char *socketPath);
 // builds the physrw primitive. Returns nil on success. On success this process
 // holds kernel R/W for the remainder of the current boot.
 - (nullable NSError *)obtainKernelRW;
-- (nullable NSError *)removeRoothideLeftovers;
 
 #pragma mark - Kernel primitives
 

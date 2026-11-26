@@ -757,13 +757,6 @@ int DOKRWHelperMain(const char *socketPath)
     return nil;
 }
 
-- (NSError *)removeRoothideLeftovers
-{
-    NSError *error = [[DOEnvironmentManager sharedManager] deleteBootstrap];
-    if (error) return error;
-    [[DOEnvironmentManager sharedManager] rebuildIconCache];
-    return nil;
-}
 
 - (NSError *)obtainKernelRWInProcess
 {
