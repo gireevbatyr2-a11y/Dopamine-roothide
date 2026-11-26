@@ -132,6 +132,13 @@ uint64_t VM_MIN_KERNEL_ADDRESS = 0;
 uint64_t VM_MAX_KERNEL_ADDRESS = 0;
 uint64_t pac_mask = 0;
 
+cpu_subtype_t get_hw_cpufamily(void) {
+    cpu_subtype_t cpuFamily = 0;
+    size_t cpuFamilySize = sizeof(cpuFamily);
+    sysctlbyname("hw.cpufamily", &cpuFamily, &cpuFamilySize, NULL, 0);
+    return cpuFamily;
+}
+
 bool is_pac_supported(void) {
     cpu_subtype_t cpusubtype = 0;
     size_t sz = sizeof(cpusubtype);
