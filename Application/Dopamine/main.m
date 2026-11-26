@@ -22,7 +22,7 @@ extern kern_return_t task_for_pid(mach_port_t target_tport, int pid, mach_port_t
 int main(int argc, char * argv[]) {
     DOKRWLog(@"main: launch pid=%d argc=%d", getpid(), argc);
 
-    if (argc >= 3 && !strcmp(argv[1], "krw-helper")) {
+    if (argc >= 3 && (!strcmp(argv[1], "krw-helper") || !strcmp(argv[1], "DOKRWHelper"))) {
         return DOKRWHelperMain(argv[2]);
     }
 

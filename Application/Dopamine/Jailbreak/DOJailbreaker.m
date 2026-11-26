@@ -425,7 +425,7 @@ static int DOKRWHelperSpawn(void)
 
     char *argv[] = {
         (char *)exe.fileSystemRepresentation,
-        "DOKRWHelper",
+        "krw-helper",
         (char *)sock.fileSystemRepresentation,
         NULL
     };
