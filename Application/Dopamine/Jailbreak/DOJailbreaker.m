@@ -412,6 +412,42 @@ static int DOKRWHelperFork(void)
     return 0;
 }
 
+static int DOKRWHelperSpawn(void)
+{
+    NSString *exe = [[NSBundle mainBundle] executablePath];
+    NSString *sock = DOKRWHelperSocketPath();
+    if (!exe || !sock) return -1;
+
+    posix_spawnattr_t attr;
+    posix_spawnattr_init(&attr);
+    posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSID);
+
+    char *argv[] = {
+        (char *)exe.fileSystemRepresentation,
+        "DOKRWHelper",
+        (char *)sock.fileSystemRepresentation,
+        NULL
+    };
+
+    pid_t pid = 0;
+    int rc = posix_spawn(&pid, exe.fileSystemRepresentation, NULL, &attr, argv, environ);
+    posix_spawnattr_destroy(&attr);
+    if (rc != 0) {
+        DOKRWLog(@"helper: spawn failed %d", rc);
+        return -1;
+    }
+
+    gDOKRWHelperPid = pid;
+    gDOKRWHelperReady = 0;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setInteger:pid forKey:@"DOKRWHelperPid"];
+    NSString *boot = DOKRWCurrentBootSessionUUID();
+    if (boot) [defaults setObject:boot forKey:@"DOKRWHelperBoot"];
+    [defaults synchronize];
+    DOKRWLog(@"helper: spawned pid=%d socket=%@", pid, sock);
+    return 0;
+}
+
 static int DOKRWHelperWaitReady(int timeoutMs)
 {
     int attempts = timeoutMs / 100;
@@ -487,12 +523,8 @@ static BOOL DOKRWHelperStartIfNeeded(void)
         return DOKRWHelperWaitReady(15000) == 0;
     }
 
-    if ([[DOJailbreaker sharedInstance] kernelRWReady]) {
-        if (DOKRWHelperFork() != 0) return NO;
-        return DOKRWHelperWaitReady(15000) == 0;
-    }
-
-    return NO;
+    if (DOKRWHelperSpawn() != 0) return NO;
+    return DOKRWHelperWaitReady(20000) == 0;
 }
 
 static void DOKRWHelperServe(int listenFD)
