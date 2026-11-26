@@ -195,12 +195,12 @@ typedef struct {
 static int gDOKRWHelperSocket = -1;
 static pid_t gDOKRWHelperPid = 0;
 static BOOL gDOKRWHelperActive = NO;
-static BOOL gDOKRWHelperSpawned = NO;
 static volatile int gDOKRWHelperReady = 0;
 static uint64_t gDOKRWHelperBase = 0;
 static uint64_t gDOKRWHelperSlide = 0;
 static BOOL gDOKRWHelperKcall = NO;
 static uint32_t gDOKRWHelperExtmod = 0;
+static uint32_t gDOKRWExtmodOffset = 0;
 static pthread_mutex_t gDOKRWHelperLock = PTHREAD_MUTEX_INITIALIZER;
 
 static NSString *DOKRWHelperSocketPath(void)
@@ -257,40 +257,113 @@ static int DOKRWHelperSend(DOKRWHelperRequest *request, DOKRWHelperResponse *res
     return response->status;
 }
 
-static int DOKRWHelperStart(void)
+static int DOKRWChildZeroExtmod(pid_t pid)
 {
-    NSString *exe = [NSBundle mainBundle].executablePath;
-    if (!exe) return -1;
+    if (!gDOKRWExtmodOffset) return -1;
+    uint64_t proc = proc_find(pid);
+    if (!proc) return -1;
+    uint64_t task = proc_task(proc);
+    proc_rele(proc);
+    if (!task) return -1;
+    uint64_t zeros[6] = {0};
+    return gPrimitives.kwritebuf(task + gDOKRWExtmodOffset, zeros, sizeof(zeros));
+}
 
-    posix_spawnattr_t attr;
-    posix_spawnattr_init(&attr);
-#ifdef POSIX_SPAWN_SETSID
-    posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSID);
-#endif
-    posix_spawn_file_actions_t actions;
-    posix_spawn_file_actions_init(&actions);
-    posix_spawn_file_actions_addopen(&actions, STDIN_FILENO, "/dev/null", O_RDWR, 0);
-    posix_spawn_file_actions_addopen(&actions, STDOUT_FILENO, "/dev/null", O_RDWR, 0);
-    posix_spawn_file_actions_addopen(&actions, STDERR_FILENO, "/dev/null", O_RDWR, 0);
+static void DOKRWHelperServeForked(int listenFD)
+{
+    while (1) {
+        int fd = accept(listenFD, NULL, NULL);
+        if (fd < 0) continue;
+        DOKRWHelperRequest req;
+        while (read(fd, &req, sizeof(req)) == (ssize_t)sizeof(req)) {
+            DOKRWHelperResponse resp;
+            memset(&resp, 0, sizeof(resp));
+            resp.magic = DOKRW_HELPER_MAGIC;
+            resp.ready = 1;
+            resp.base = gSystemInfo.kernelConstant.base;
+            resp.slide = gSystemInfo.kernelConstant.slide;
+            resp.kcall = gPrimitives.kcall != NULL;
+            resp.extmod = gDOKRWExtmodOffset;
+            switch (req.op) {
+                case DOKRWHelperOpStatus:
+                    resp.status = 0;
+                    break;
+                case DOKRWHelperOpZeroExtmod:
+                    resp.status = DOKRWChildZeroExtmod(req.pid);
+                    break;
+                case DOKRWHelperOpKread:
+                    if (req.size <= sizeof(resp.data)) {
+                        resp.size = req.size;
+                        resp.status = gPrimitives.kreadbuf ? gPrimitives.kreadbuf(req.addr, resp.data, req.size) : -1;
+                    } else {
+                        resp.status = -1;
+                    }
+                    break;
+                case DOKRWHelperOpKwrite:
+                    if (req.size <= sizeof(req.data)) {
+                        resp.status = gPrimitives.kwritebuf ? gPrimitives.kwritebuf(req.addr, req.data, req.size) : -1;
+                    } else {
+                        resp.status = -1;
+                    }
+                    break;
+                default:
+                    resp.status = -1;
+                    break;
+            }
+            write(fd, &resp, sizeof(resp));
+        }
+        close(fd);
+    }
+}
+
+// The exploit (including Titan's PPL bypass) needs the app's UIApplication and
+// must run in the app process. After it succeeds, fork a child that inherits
+// the ready primitives and serves them over the socket. The child only uses
+// ClearSword's socket-based kread/kwrite and proc_find/proc_task, so it does
+// not touch ObjC or libdispatch after fork.
+static int DOKRWHelperFork(void)
+{
+    DOJailbreaker *jb = [DOJailbreaker sharedInstance];
+    if (!jb.kernelRWReady) return -1;
+    [jb resolveExtmodOffset];
+    gDOKRWExtmodOffset = jb.extmodOffset;
 
     NSString *sock = DOKRWHelperSocketPath();
-    char *argv[] = { (char *)exe.fileSystemRepresentation, "krw-helper", (char *)sock.fileSystemRepresentation, NULL };
-    pid_t pid = 0;
-    int rc = posix_spawn(&pid, exe.fileSystemRepresentation, &actions, &attr, argv, environ);
-    posix_spawn_file_actions_destroy(&actions);
-    posix_spawnattr_destroy(&attr);
-    if (rc != 0) {
-        DOKRWLog(@"helper: spawn failed (%d)", rc);
+    unlink(sock.fileSystemRepresentation);
+    int listenFD = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (listenFD < 0) return -1;
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, sock.fileSystemRepresentation, sizeof(addr.sun_path) - 1);
+    if (bind(listenFD, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+        close(listenFD);
         return -1;
     }
+    listen(listenFD, 4);
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        close(listenFD);
+        return -1;
+    }
+    if (pid == 0) {
+        setsid();
+        signal(SIGHUP, SIG_IGN);
+        signal(SIGPIPE, SIG_IGN);
+        gDOKRWHelperReady = 1;
+        DOKRWHelperServeForked(listenFD);
+        _exit(0);
+    }
+
+    close(listenFD);
     gDOKRWHelperPid = pid;
-    gDOKRWHelperSpawned = YES;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setInteger:pid forKey:@"DOKRWHelperPid"];
     NSString *boot = DOKRWCurrentBootSessionUUID();
     if (boot) [defaults setObject:boot forKey:@"DOKRWHelperBoot"];
     [defaults synchronize];
-    DOKRWLog(@"helper: spawned pid=%d socket=%@", pid, sock);
+    DOKRWLog(@"helper: forked pid=%d socket=%@", pid, sock);
     return 0;
 }
 
@@ -361,12 +434,12 @@ static BOOL DOKRWHelperStartIfNeeded(void)
         return DOKRWHelperWaitReady(120000) == 0;
     }
 
-    if ([[DOJailbreaker sharedInstance] exploitStartedThisBoot]) {
-        return NO;
+    if ([[DOJailbreaker sharedInstance] kernelRWReady]) {
+        if (DOKRWHelperFork() != 0) return NO;
+        return DOKRWHelperWaitReady(120000) == 0;
     }
 
-    if (DOKRWHelperStart() != 0) return NO;
-    return DOKRWHelperWaitReady(120000) == 0;
+    return NO;
 }
 
 static void DOKRWHelperServe(int listenFD)
@@ -538,14 +611,22 @@ int DOKRWHelperMain(const char *socketPath)
                  (unsigned long long)gDOKRWHelperBase, (unsigned long long)gDOKRWHelperSlide);
         return nil;
     }
-    if (gDOKRWHelperSpawned) {
-        DOKRWLog(@"obtainKernelRW: helper failed");
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"The kernel R/W helper failed. Reboot the device before trying again."}];
+    if (_kernelRWReady) {
+        DOKRWLog(@"obtainKernelRW: helper fork failed; in-process only");
+        return nil;
     }
-    if ([self exploitStartedThisBoot]) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already started in this boot. Reboot the device before running the exploit again."}];
+    if ([self exploitStartedThisBoot] || [self exploitRanThisBoot]) {
+        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already started/acquired in this boot. Reboot the device before running the exploit again."}];
     }
-    return [self obtainKernelRWInProcess];
+    NSError *error = [self obtainKernelRWInProcess];
+    if (error) return error;
+    if (DOKRWHelperStartIfNeeded()) {
+        DOKRWLog(@"obtainKernelRW: helper ready base=0x%llx slide=0x%llx",
+                 (unsigned long long)gDOKRWHelperBase, (unsigned long long)gDOKRWHelperSlide);
+    } else {
+        DOKRWLog(@"obtainKernelRW: helper fork failed; in-process only");
+    }
+    return nil;
 }
 
 - (NSError *)obtainKernelRWInProcess

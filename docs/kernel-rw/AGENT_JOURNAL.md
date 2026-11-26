@@ -495,25 +495,59 @@ Branding:
 
 ## 8j. Persistent helper and FFKRW header (2026-11-26)
 
-The kernel R/W provider now runs in a detached `posix_spawn` helper, not in
-the app process:
+The first helper design ran `obtainKernelRWInProcess` in a `posix_spawn`
+child. On 20G75 it failed at Titan: `exploitation failed: Failed to bypass
+PPL`. Titan's `gfx_reset` needs `[UIApplication sharedApplication]`, and a
+plain `posix_spawn` child has no UIApplication.
 
-- `main.m` accepts `krw-helper <socket>` before `UIApplicationMain`.
-- The helper binds a Unix socket in `NSTemporaryDirectory()`, runs
-  `obtainKernelRWInProcess`, then serves `STATUS`, `ZERO_EXTMOD`, `KREAD` and
-  `KWRITE` requests.
-- The app spawns the helper with `posix_spawn` (setsid), stores pid/boot in
-  defaults, and proxies `zeroExtmodStatisticsForPid:`/`kread`/`kwrite` to it.
-- `viewWillAppear` calls `restoreKernelRWFromHelper`; a relaunched app
-  reconnects to the still-running helper and keeps kernel R/W.
-- The boot guard now records `DOKRWExploitStarted` before the exploit. If the
-  helper dies after starting, the app requires a reboot instead of running a
-  second exploit in the same boot.
-- No jbroot, no launchd hook, no jailbreak state, no reboot. The helper is a
-  detached child; iOS can still kill it, and then a reboot is required.
+The current design runs the exploit in the app process (where UIKit exists)
+and then forks:
+
+- `obtainKernelRW` first reconnects to an existing helper. If none exists it
+  runs `obtainKernelRWInProcess` in the app (ClearSword + Titan PPL works),
+  then `DOKRWHelperFork` creates the helper.
+- `DOKRWHelperFork` binds a Unix socket in `NSTemporaryDirectory()`, calls
+  `fork()`, and the child inherits the ready `gPrimitives`, `gSystemInfo`,
+  `g_ctx` sockets and the resolved extmod offset.
+- The child (`DOKRWHelperServeForked`) only uses `accept`/`read`/`write`,
+  ClearSword's socket-based `kreadbuf`/`kwritebuf`, and
+  `proc_find`/`proc_task`/`proc_rele`. It does not touch ObjC, libdispatch,
+  malloc or stdio after fork.
+- The app proxies `zeroExtmodStatisticsForPid:`/`kread`/`kwrite` to the
+  child and reconnects in `viewWillAppear` after a relaunch.
+- The boot guard records `DOKRWExploitStarted` before the exploit. If the
+  child dies, the app requires a reboot instead of running a second exploit
+  in the same boot.
+- No jbroot, no launchd hook, no jailbreak state, no reboot. The fork child
+  is detached and survives app termination, but iOS can still kill it; then a
+  reboot is required.
 
 The main header logo is rendered at runtime as a white heavy rounded "FFKRW"
 wordmark via `+[DOHeaderView ffkrwLogo]`, replacing the `Dopamine` image.
+
+## 8k. Research: unkillable process without jailbreak (2026-11-26)
+
+Public projects and docs agree that a true persistent daemon needs a
+jailbreak/launchd hook:
+
+- TrollStore README: "Spawning a launch daemon (Would need
+  `CS_PLATFORMIZED`)" is listed under "Things that are not possible using
+  TrollStore" (https://github.com/opa334/TrollStore).
+- Serotonin README: it replaces launchd and requires a userspace reboot
+  (https://github.com/SerotoninApp/Serotonin).
+- roothide Bootstrap/Dopamine: bootstrap + launchd hook
+  (https://github.com/roothide/Bootstrap,
+  https://github.com/roothide/Dopamine-roothide).
+- LiveContainer runs apps inside a host app; killing the host stops them
+  (https://github.com/LiveContainer/LiveContainer).
+
+A detached `posix_spawn`/`fork` child, `setsid`, ignoring `SIGHUP`, or
+`beginBackgroundTask`/background modes do not make a process immune to
+launchd/Jetsam `SIGKILL`. RunningBoard/`BKProcessAssertion` and
+`os_transaction` are private/entitled and still not a guarantee. Kernel R/W
+could patch launchd/AMFI to load a daemon, but that is a jailbreak-like
+modification and normally needs a reboot. Therefore the fork helper is the
+best-effort maximum without jailbreak state.
 
 ## 9. Next steps
 
