@@ -287,15 +287,15 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-26)
 
-The FFKRW helper diagnostics path is built at `c5f2014`.
+The FFKRW helper argv fix is built at `08123b3`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45856197340
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45860706131
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
-- Artifacts (not expired, 47,984,017 bytes):
+- Artifacts (not expired, 47,984,175 bytes):
   - `roothide-FFKRW-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-FFKRW-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `c5f2014` (helper startup logs, dead-pid detection,
-  no private `proc_bsdinfo`; existing 60 s wait/FFKRW rename).
+- The run built commit `08123b3` (spawn `krw-helper`, accept legacy
+  `DOKRWHelper`; startup logs; dead-pid detection; 60 s wait; FFKRW rename).
 - Process/display/bundle are `FFKRW` / `FFKRW` / `com.ffkrw.FFKRW`;
   runtime log/socket/state are `FFKRW.log` / `FFKRW.sock` / `FFKRW.state`.
 
@@ -305,23 +305,25 @@ did not persist: after the userspace reboot the app returned to
 process"; the bootstrap asked to set a password. The launchdhook/jailbreakd
 did not come up, so the helper path is now the default.
 
-Previous runs: `45856197340` success. `45854272241` (`dd1edc0`) failed on the
-private `proc_bsdinfo`/`PROC_PIDTBSDINFO` declarations; fixed in `c5f2014`.
-`45850140545` (`ad53d5a`) success (60 s wait/no second in-process/release dummy
-UI/FFKRW); helper still exited before serving on device.
-`45842992120` (`b926ce1`, first helper with dummy UI) success. `45832341640`
-initially failed before compiling because the runner could not resolve
-`raw.githubusercontent.com` while installing THEOS; rerun succeeded.
-`45830025017` failed because `injectLaunchdHook` was missing its closing
-brace (fixed in `1fe4353`). `45806453556` (`cb1a0fa`, fork-child SIGBUS
-workaround, waitpid, theme icons), `45801834098` (`efeaa21`, no same-boot
-re-exploit, short helper socket, FFKRW icons, Sileo/Zebra removed),
-`45799983758` failed (removed `.deb` still referenced by the Xcode project),
-`45792538497` (`a5c4946`, auto re-acquire + FFKRW boot logo; the auto
-re-acquire caused the GFX panic), `45788389040` (`0e5eaeb`, in-process
-ClearSword + Titan, fork helper), `45781966540` (`771b5aa`, posix_spawn helper
-+ FFKRW header), `45776362820` (`3f44da3`, single Builder, kernel-only process
-connect), `45770706349` (`e5f9898`, extmod fallback/branding),
+Previous runs: `45860706131` success (`08123b3`, helper argv fixed).
+`45856197340` (`c5f2014`, helper startup logs) success, but the helper still
+fell through to `UIApplicationMain` because `main.m` expected `krw-helper`
+while spawn passed `DOKRWHelper`. `45854272241` (`dd1edc0`) failed on private
+`proc_bsdinfo`; fixed. `45850140545` (`ad53d5a`) success (60 s wait/no second
+in-process/release dummy UI/FFKRW). `45842992120` (`b926ce1`, first helper
+with dummy UI) success. `45832341640` initially failed before compiling
+because the runner could not resolve `raw.githubusercontent.com` while
+installing THEOS; rerun succeeded. `45830025017` failed because
+`injectLaunchdHook` was missing its closing brace (fixed in `1fe4353`).
+`45806453556` (`cb1a0fa`, fork-child SIGBUS workaround, waitpid, theme icons),
+`45801834098` (`efeaa21`, no same-boot re-exploit, short helper socket, FFKRW
+icons, Sileo/Zebra removed), `45799983758` failed (removed `.deb` still
+referenced by the Xcode project), `45792538497` (`a5c4946`, auto re-acquire +
+FFKRW boot logo; the auto re-acquire caused the GFX panic),
+`45788389040` (`0e5eaeb`, in-process ClearSword + Titan, fork helper),
+`45781966540` (`771b5aa`, posix_spawn helper + FFKRW header),
+`45776362820` (`3f44da3`, single Builder, kernel-only process connect),
+`45770706349` (`e5f9898`, extmod fallback/branding),
 `45766775974` (`6de2c57`, action menu restore),
 `45714171508` (`e81874b`, button hide/boot logs/kfd migration),
 `45707510584` (`2fc2cc2`, overlay collapse/boot guard),
@@ -759,6 +761,56 @@ The next device log will show whether `DOKRWHelperMain` is reached and whether
 `setsid`/`socket`/`bind`/`listen` fails. If the helper is still killed by the
 OS at startup, the launchd stash (lara `transfer_krw_to_launchd_ios16`) is the
 fallback, now with the ClearSword `g_ctx.control_socket`/`rw_socket` sockets.
+
+## 8s. Helper argv mismatch; roothide leftovers (2026-11-26)
+
+`FFKRW.log` at 19:32 showed again only `main: launch pid=349 argc=3` for the
+helper. `JetsamEvent-...193419.ips` lists `PROC 349 FFKRW rpages 200
+states ['daemon']` — the helper was alive as a **second app instance**.
+
+Cause: `DOKRWHelperSpawn` passed argv[1] `"DOKRWHelper"`, but `main.m` only
+recognized `"krw-helper"`:
+
+```objc
+if (argc >= 3 && !strcmp(argv[1], "krw-helper")) {
+    return DOKRWHelperMain(argv[2]);
+}
+```
+
+So the helper fell through to `UIApplicationMain`, never opened
+`/tmp/FFKRW.sock`, and the app waited 60 s.
+
+Fixed in `08123b3`:
+
+- `DOKRWHelperSpawn` sends `"krw-helper"`;
+- `main.m` accepts both `krw-helper` and legacy `DOKRWHelper`;
+- build `45860706131` success, artifacts 47,984,175 bytes.
+
+Roothide leftovers from the `1fe4353` device test (code inspected):
+
+- `DOBootstrapper prepareBootstrap` extracts the bundled bootstrap to `/`,
+  creates the `/var/jb` symlink to `JBROOT_PATH`, extracts `basebin.tar` into
+  `JBROOT_PATH/basebin`, then `finalizeBootstrap` runs
+  `prep_bootstrap.sh` (the password prompt), installs `launchctl`, `libroot`,
+  `libkrw`, `basebin-link.deb`.
+- `runWithError:` also loads the basebin trustcache, injects
+  `launchdhook.dylib`, starts/uses `jailbreakd`, applies dyld/exec patches,
+  sets jailbroken and userspace-reboots.
+- `removeJailbreakEnabled` defaults to NO, so no `removeJailbreak`/
+  `deleteBootstrap` ran.
+- A simple reboot clears in-memory launchdhook/dyld/exec/trustcache, but the
+  `/var/jb` symlink, preboot jbroot, bootstrap, `basebin` (launchdhook,
+  jailbreakd, basebin.tc), `prep_bootstrap.sh` and the root password remain.
+- Cleanup: old app Settings -> Remove Jailbreak (`removeJailbreakEnabled`),
+  or `DOBootstrapper deleteBootstrap` (line ~607), which removes the
+  bootstrap/basebin/`/var/jb`; then `uicache`/respring and remove old
+  Sileo/Zebra leftovers. The roothide userspace reboot did not persist, so
+  the launchdhook/jailbreakd are not active after a full reboot; the files
+  and root password are what remain.
+
+If the helper still fails after `08123b3`, the lara launchd stash remains the
+fallback; `cyanide` has no stash, and Background Modes do not survive
+force-quit.
 
 ## 8k. Research: unkillable process without jailbreak (2026-11-26)
 
