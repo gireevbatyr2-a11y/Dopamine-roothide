@@ -287,29 +287,37 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-26)
 
-The roothide launchd pipeline is built at `1fe4353`.
+The helper persistence path is built at `b926ce1`; the roothide pipeline is
+also in the tree (`1fe4353` build) but is not used by the UI.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45832341640
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45842992120
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
-- Artifacts (not expired):
+- Artifacts (not expired, 47,984,153 bytes):
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `1fe4353` (roothide `runWithError:` pipeline,
-  `injectLaunchdHook`, userspace reboot; helper no longer used by the UI).
+- The run built commit `b926ce1` (posix_spawn helper with
+  POSIX_SPAWN_SETSID, dummy UIWindow for Titan PPL, UI uses obtainKernelRW).
 
-Previous runs: `45832341640` initially failed before compiling because the
-runner could not resolve `raw.githubusercontent.com` while installing THEOS;
-the rerun succeeded. `45830025017` failed because `injectLaunchdHook` was
-missing its closing brace (fixed in `1fe4353`). `45806453556` (`cb1a0fa`,
-fork-child SIGBUS workaround, waitpid, theme icons),
-`45801834098` (`efeaa21`, no same-boot re-exploit, short helper socket,
-FFKRW icons, Sileo/Zebra removed), `45799983758` failed (removed `.deb` still
-referenced by the Xcode project), `45792538497` (`a5c4946`, auto re-acquire +
-FFKRW boot logo; the auto re-acquire caused the GFX panic),
-`45788389040` (`0e5eaeb`, in-process ClearSword + Titan, fork helper),
-`45781966540` (`771b5aa`, posix_spawn helper + FFKRW header),
-`45776362820` (`3f44da3`, single Builder, kernel-only process connect),
-`45770706349` (`e5f9898`, extmod fallback/branding),
+Roothide build `45832341640` (`1fe4353`) is also success, but on-device it
+did not persist: after the userspace reboot the app returned to
+"Get Kernel R/W" and process connect said "get kernel r/w, then connect to a
+process"; the bootstrap asked to set a password. The launchdhook/jailbreakd
+did not come up, so the helper path is now the default.
+
+Previous runs: `45842992120` first failed on `xcodebuild: Could not resolve
+package dependencies` (SwiftPM network); rerun succeeded. `45832341640`
+initially failed before compiling because the runner could not resolve
+`raw.githubusercontent.com` while installing THEOS; rerun succeeded.
+`45830025017` failed because `injectLaunchdHook` was missing its closing
+brace (fixed in `1fe4353`). `45806453556` (`cb1a0fa`, fork-child SIGBUS
+workaround, waitpid, theme icons), `45801834098` (`efeaa21`, no same-boot
+re-exploit, short helper socket, FFKRW icons, Sileo/Zebra removed),
+`45799983758` failed (removed `.deb` still referenced by the Xcode project),
+`45792538497` (`a5c4946`, auto re-acquire + FFKRW boot logo; the auto
+re-acquire caused the GFX panic), `45788389040` (`0e5eaeb`, in-process
+ClearSword + Titan, fork helper), `45781966540` (`771b5aa`, posix_spawn helper
++ FFKRW header), `45776362820` (`3f44da3`, single Builder, kernel-only process
+connect), `45770706349` (`e5f9898`, extmod fallback/branding),
 `45766775974` (`6de2c57`, action menu restore),
 `45714171508` (`e81874b`, button hide/boot logs/kfd migration),
 `45707510584` (`2fc2cc2`, overlay collapse/boot guard),
@@ -639,6 +647,43 @@ icon uses `AppIcon`/snapshot. Changing the theme only changes the home screen.
 After the roothide jailbreak, `uicache`/a respring should refresh the primary
 icon cache. The primary `AppIcon` is currently generated from
 `Background_Green.jpg`.
+
+## 8p. Helper persistence restored + roothide device result (2026-11-26)
+
+Roothide build `45832341640` (`1fe4353`) installed, but on-device behaviour:
+
+- the roothide steps ran and the userspace reboot happened;
+- the bootstrap asked to set a password (`prep_bootstrap.sh`);
+- after reboot the app went back to "Get Kernel R/W" and process connect said
+  "get kernel r/w, then connect to a process";
+- `isJailbroken` was false, so `launchdhook`/`jailbreakd` did not come up.
+
+Restored the `posix_spawn` helper path (the old separate process survived app
+termination; only the fork child crashed):
+
+- `DOKRWHelperSpawn` uses `posix_spawn` with `POSIX_SPAWN_SETSID`, the app
+  binary, argument `DOKRWHelper` and `/tmp/DopamineKernelRW.sock`.
+- `DOKRWHelperStartIfNeeded` spawns the helper before the in-process fallback;
+  no `fork` child is used.
+- UI `startKernelRW` uses `obtainKernelRW` again.
+- `gfx_reset` falls back to a dummy `UIWindow`/`DONavigationController` when
+  there is no connected scene, so Titan PPL can run in the helper.
+
+Build `45842992120` success (`b926ce1`), artifacts 47,984,153 bytes.
+
+Research:
+
+- `lara` (`rooootdev/lara`) has `lara/kexploit/persistence.m` with
+  `transfer_krw_to_launchd_ios16`: it bootstrap-registers the exploit's
+  control/rw socket fileports into launchd and stores sandbox extension
+  tokens in `NSUserDefaults`; `recover_krw_primitives` restores them after an
+  app restart. This is a lighter launchd stash than roothide. lara officially
+  targets iOS 17.0-18.7.1; iOS 16.7.2 is tested; iOS 16.6 is not listed, but
+  the iOS 16 persistence path exists.
+- `cyanide` (`0xjohnnydev/cyanide`) is a DarkSword tweak runner; it has no
+  launchd stash/persistence.
+- Background Modes do not survive force-quit; the helper or launchd stash is
+  the only practical no-jailbreak persistence.
 
 ## 8k. Research: unkillable process without jailbreak (2026-11-26)
 
