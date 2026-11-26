@@ -186,6 +186,11 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    if ([[DOJailbreaker sharedInstance] isJailbroken]) {
+        DOKRWLog(@"UI: roothide jailbreak present");
+        self.jailbreakBtn.hidden = YES;
+        return;
+    }
     [self.jailbreakBtn.button setTitle:[self kernelRWButtonTitle] forState:UIControlStateNormal];
     BOOL restored = [[DOJailbreaker sharedInstance] restoreKernelRWFromHelper];
     if (restored || [DOJailbreaker sharedInstance].kernelRWReady) {
@@ -206,36 +211,29 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 - (void)startKernelRW
 {
     DOJailbreaker *kernelRW = [DOJailbreaker sharedInstance];
-
-    DOKRWLog(@"UI: kernel R/W requested");
+    DOKRWLog(@"UI: roothide jailbreak requested");
     [[DOUIManager sharedInstance] startLogCapture];
-
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         [self.jailbreakBtn lockMutex];
         dispatch_async(dispatch_get_main_queue(), ^{
             self.hideHomeIndicator = YES;
         });
-
-        NSError *error = [kernelRW obtainKernelRW];
+        NSError *error = nil;
+        BOOL didRemove = NO;
+        BOOL showLogs = NO;
+        [kernelRW runWithError:&error didRemoveJailbreak:&didRemove showLogs:&showLogs];
         dispatch_async(dispatch_get_main_queue(), ^{
             if (error) {
-                DOKRWLog(@"UI: kernel R/W failed: %@", error.localizedDescription);
-                [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Kernel R/W failed: %@", error] debug:NO];
+                DOKRWLog(@"UI: roothide jailbreak failed: %@", error.localizedDescription);
+                [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"roothide jailbreak failed: %@", error] debug:NO];
                 [self finishKernelRWUI:NO];
                 [self.navigationController pushViewController:[[DOLogCrashViewController alloc] initWithTitle:[error localizedDescription]] animated:YES];
             }
             else {
                 [[DOUIManager sharedInstance] completeKernelRW];
                 [self finishKernelRWUI:YES];
-                DOKRWLog(@"UI: kernel R/W ready base=0x%llx slide=0x%llx",
-                         (unsigned long long)kernelRW.kernelBase,
-                         (unsigned long long)kernelRW.kernelSlide);
-                NSString *message = [NSString stringWithFormat:@"Kernel R/W ready\n\nbase:  0x%016llx\nslide: 0x%016llx\nkcall: %@\nlog: %@", kernelRW.kernelBase, kernelRW.kernelSlide, kernelRW.isKcallAvailable ? @"available" : @"unavailable", DOKRWLogPath()];
-                [[DOUIManager sharedInstance] sendLog:message debug:NO];
-                [self.jailbreakBtn.button setTitle:@"Kernel R/W Ready" forState:UIControlStateNormal];
-                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Kernel R/W" message:message preferredStyle:UIAlertControllerStyleAlert];
-                [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-                [self presentViewController:alertController animated:YES completion:nil];
+                DOKRWLog(@"UI: roothide jailbreak done; rebooting userspace");
+                [kernelRW finalize];
             }
         });
         [self.jailbreakBtn unlockMutex];

@@ -87,6 +87,12 @@ int DOKRWHelperMain(const char *socketPath);
 - (BOOL)zeroExtmodStatisticsForTask:(uint64_t)task;
 - (BOOL)zeroExtmodStatisticsForPid:(pid_t)pid;
 
+#pragma mark - roothide persistence
+
+- (BOOL)isJailbroken;
+- (void)runWithError:(NSError **)errOut didRemoveJailbreak:(BOOL *)didRemove showLogs:(BOOL *)showLogs;
+- (void)finalize;
+
 @end
 
 NS_ASSUME_NONNULL_END
