@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 #include "offsets.h"
-#include <libjailbreak/offsetof.h>
+#include <libjailbreak/info.h>
 #include <libjailbreak/info.h>
 
 void lara_offsets_init(void) {
