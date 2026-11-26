@@ -287,22 +287,27 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-26)
 
-Write access became available; the branch was pushed at `cb1a0fa`.
+The roothide launchd pipeline is built at `1fe4353`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45806453556
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45832341640
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
 - Artifacts (not expired):
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `cb1a0fa` (fork-child SIGBUS workaround, waitpid,
-  theme-matched FFKRW icons).
+- The run built commit `1fe4353` (roothide `runWithError:` pipeline,
+  `injectLaunchdHook`, userspace reboot; helper no longer used by the UI).
 
-Previous successful runs: `45801834098` (`efeaa21`, no same-boot re-exploit,
-short helper socket, FFKRW icons, Sileo/Zebra removed), `45799983758` failed
-(removed `.deb` still referenced by the Xcode project), `45792538497`
-(`a5c4946`, auto re-acquire + FFKRW boot logo; the auto re-acquire caused the
-GFX panic), `45788389040` (`0e5eaeb`, in-process ClearSword + Titan, fork
-helper), `45781966540` (`771b5aa`, posix_spawn helper + FFKRW header),
+Previous runs: `45832341640` initially failed before compiling because the
+runner could not resolve `raw.githubusercontent.com` while installing THEOS;
+the rerun succeeded. `45830025017` failed because `injectLaunchdHook` was
+missing its closing brace (fixed in `1fe4353`). `45806453556` (`cb1a0fa`,
+fork-child SIGBUS workaround, waitpid, theme icons),
+`45801834098` (`efeaa21`, no same-boot re-exploit, short helper socket,
+FFKRW icons, Sileo/Zebra removed), `45799983758` failed (removed `.deb` still
+referenced by the Xcode project), `45792538497` (`a5c4946`, auto re-acquire +
+FFKRW boot logo; the auto re-acquire caused the GFX panic),
+`45788389040` (`0e5eaeb`, in-process ClearSword + Titan, fork helper),
+`45781966540` (`771b5aa`, posix_spawn helper + FFKRW header),
 `45776362820` (`3f44da3`, single Builder, kernel-only process connect),
 `45770706349` (`e5f9898`, extmod fallback/branding),
 `45766775974` (`6de2c57`, action menu restore),
@@ -596,6 +601,44 @@ never-ending PPL step.
 - `External-iOS-App` was inspected: it only has `SpawnRoot` (`posix_spawn` as
   root) and `UIBackgroundModes`; no launchd/daemon persistence. It does not
   provide an unkillable process.
+
+## 8o. Roothide launchd persistence (2026-11-26)
+
+The fork child still died with `SIGBUS` (`helper: exited status=0xa`) even
+after the pre-fork `gDOKRWHelperReady` change. The in-process kernel R/W kept
+working (`process: connected ... extmod zeroed=yes`) but no helper survived the
+app. The helper path is abandoned.
+
+The original roothide pipeline was ported from
+`9617d75.../Application/Dopamine/Jailbreak/DOJailbreaker.m`:
+
+- `runWithError:didRemoveJailbreak:showLogs:`
+- `injectLaunchdHook` (boomerang + `jbctl` + `opainject`)
+- `elevatePrivileges`, `showNonDefaultSystemApps`, `ensureDevModeEnabled`
+- `loadBasebinTrustcache`, `removeJailbreak`, `finalizeBootstrapIfNeeded`
+- `cleanUpPostExploitation`, `finalize` (userspace reboot)
+- missing `JBErrorCode` cases, imports and C declarations
+
+`DOJailbreaker` now treats an existing roothide jailbreak as
+`kernelRWReady`, and the UI `startKernelRW` calls `runWithError:` and then
+`finalize` instead of `obtainKernelRW`. The duplicate
+`@implementation DOMainViewController` that shadowed the new code was removed.
+`viewWillAppear` hides the button when `isJailbroken`.
+
+Build notes:
+
+- `BaseBin` `install_name_tool -delete_rpath` errors are non-fatal (`|| true`);
+  the app target still builds.
+- `45830025017` failed on the missing closing brace of `injectLaunchdHook`.
+- `45832341640` first failed on runner DNS (`raw.githubusercontent.com`),
+  rerun succeeded.
+- Final: `45832341640` success, commit `1fe4353`.
+
+App icon note: the home screen uses alternate icons; the app switcher/primary
+icon uses `AppIcon`/snapshot. Changing the theme only changes the home screen.
+After the roothide jailbreak, `uicache`/a respring should refresh the primary
+icon cache. The primary `AppIcon` is currently generated from
+`Background_Green.jpg`.
 
 ## 8k. Research: unkillable process without jailbreak (2026-11-26)
 
