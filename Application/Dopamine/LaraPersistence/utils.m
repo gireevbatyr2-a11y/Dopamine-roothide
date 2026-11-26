@@ -8,7 +8,6 @@
 #import "utils.h"
 #import "darksword.h"
 #import "offsets.h"
-#import "xpaci.h"
 
 #import <Foundation/Foundation.h>
 #import <mach/mach.h>
@@ -23,6 +22,14 @@
 #include <sys/sysctl.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+static inline uint64_t lara_xpaci(uint64_t v) { return v & 0x0000FFFFFFFFFFFFULL; }
+static uint64_t lara_pac_mask = 0xFFFFFF8000000000ULL;
+int xpf_start_with_kernel_path(const char *path) { (void)path; return 0; }
+const char *xpf_get_error(void) { return ""; }
+uint64_t xpf_gett1szboot(void) { return 0; }
+#define xpaci(v) lara_xpaci(v)
+#define pac_mask lara_pac_mask
 
 #define TASK_EXC_GUARD_MP_DELIVER   0x10
 #define TASK_EXC_GUARD_MP_CORPSE    0x40
