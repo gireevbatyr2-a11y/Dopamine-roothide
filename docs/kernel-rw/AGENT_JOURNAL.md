@@ -287,16 +287,15 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-26)
 
-The app-process PPL + roothide cleanup button is built at `f388db8`.
+The cleanup-removed build is at `1e6dc9f`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45868655502
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45876593727
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
-- Artifacts (not expired, 47,983,649 bytes):
+- Artifacts (not expired, 47,982,752 bytes):
   - `roothide-FFKRW-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-FFKRW-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `f388db8` (no spawned-helper PPL; app-process
-  `obtainKernelRWInProcess`; `Remove roothide leftovers` menu action backed by
-  `DOEnvironmentManager deleteBootstrap` + icon cache rebuild).
+- The run built commit `1e6dc9f` (cleanup button removed; app-process
+  `obtainKernelRWInProcess`; no helper PPL; FFKRW rename).
 - Process/display/bundle are `FFKRW` / `FFKRW` / `com.ffkrw.FFKRW`;
   runtime log/socket/state are `FFKRW.log` / `FFKRW.sock` / `FFKRW.state`.
 
@@ -306,26 +305,26 @@ did not persist: after the userspace reboot the app returned to
 process"; the bootstrap asked to set a password. The launchdhook/jailbreakd
 did not come up, so the helper path is now the default.
 
-Previous runs: `45868655502` success (`f388db8`). `45860706131` (`08123b3`,
-helper argv `krw-helper`) success, but that helper ran Titan PPL and panicked
-in `IOSurface` (`panic-full-...202700`: Kernel data abort, IOSurface kext).
-`45856197340` (`c5f2014`, helper startup logs) success, but helper fell through
-to `UIApplicationMain`. `45854272241` (`dd1edc0`) failed on private
-`proc_bsdinfo`; fixed. `45850140545` (`ad53d5a`) success (60 s wait/no second
-in-process/release dummy UI/FFKRW). `45842992120` (`b926ce1`, first helper
-with dummy UI) success. `45832341640` initially failed before compiling
-because the runner could not resolve `raw.githubusercontent.com` while
-installing THEOS; rerun succeeded. `45830025017` failed because
-`injectLaunchdHook` was missing its closing brace (fixed in `1fe4353`).
-`45806453556` (`cb1a0fa`, fork-child SIGBUS workaround, waitpid, theme icons),
-`45801834098` (`efeaa21`, no same-boot re-exploit, short helper socket, FFKRW
-icons, Sileo/Zebra removed), `45799983758` failed (removed `.deb` still
-referenced by the Xcode project), `45792538497` (`a5c4946`, auto re-acquire +
-FFKRW boot logo; the auto re-acquire caused the GFX panic),
-`45788389040` (`0e5eaeb`, in-process ClearSword + Titan, fork helper),
-`45781966540` (`771b5aa`, posix_spawn helper + FFKRW header),
-`45776362820` (`3f44da3`, single Builder, kernel-only process connect),
-`45770706349` (`e5f9898`, extmod fallback/branding),
+Previous runs: `45876593727` success (`1e6dc9f`). `45876224961` failed before
+any step (GitHub runner/queue, log not found); `45868655502` (`f388db8`)
+success (in-process PPL + cleanup button). `45860706131` (`08123b3`) helper
+argv `krw-helper` success, but the helper ran Titan PPL and panicked in
+`IOSurface`. `45856197340` (`c5f2014`) helper startup logs. `45854272241`
+(`dd1edc0`) failed on private `proc_bsdinfo`; fixed. `45850140545` (`ad53d5a`)
+success (60 s wait/no second in-process/release dummy UI/FFKRW).
+`45842992120` (`b926ce1`, first helper with dummy UI) success.
+`45832341640` initially failed before compiling because the runner could not
+resolve `raw.githubusercontent.com` while installing THEOS; rerun succeeded.
+`45830025017` failed because `injectLaunchdHook` was missing its closing
+brace (fixed in `1fe4353`). `45806453556` (`cb1a0fa`, fork-child SIGBUS
+workaround, waitpid, theme icons), `45801834098` (`efeaa21`, no same-boot
+re-exploit, short helper socket, FFKRW icons, Sileo/Zebra removed),
+`45799983758` failed (removed `.deb` still referenced by the Xcode project),
+`45792538497` (`a5c4946`, auto re-acquire + FFKRW boot logo; the auto
+re-acquire caused the GFX panic), `45788389040` (`0e5eaeb`, in-process
+ClearSword + Titan, fork helper), `45781966540` (`771b5aa`, posix_spawn helper
++ FFKRW header), `45776362820` (`3f44da3`, single Builder, kernel-only process
+connect), `45770706349` (`e5f9898`, extmod fallback/branding),
 `45766775974` (`6de2c57`, action menu restore),
 `45714171508` (`e81874b`, button hide/boot logs/kfd migration),
 `45707510584` (`2fc2cc2`, overlay collapse/boot guard),
@@ -844,6 +843,35 @@ The persistence path remains lara's launchd stash: the app-process PPL gives
 `fileport_makeport` + `bootstrap_register` + sandbox tokens, and
 `recover_krw_primitives` on relaunch. `cyanide` has no stash; Background
 Modes do not survive force-quit.
+
+## 8u. Cleanup button removed; lara launchd stash next (2026-11-26)
+
+`FFKRW.log` at 21:15 confirmed the app-process PPL works and process connect
+works, but after closing the app the primitives die with the process:
+`FFKRW.state` is `ran=1 started=1` and relaunch logs
+`kernel R/W already acquired this boot`. The Jetsam event lists only
+`FFKRW` itself; there is no helper process.
+
+The cleanup button was removed in `1e6dc9f` (build `45876593727`, success).
+It had already done its job; `/var/jb` was gone after the previous reboot.
+
+Next: port lara's launchd stash to the ClearSword sockets:
+
+- `g_ctx.control_socket`/`g_ctx.rw_socket` are in
+  `Application/Dopamine/Exploits/ClearSword/exploit/common.h`;
+- `lara/kexploit/persistence.m` uses
+  `transfer_krw_to_launchd_ios16`: `RemoteCall` into launchd,
+  `sandbox_extension_issue_mach` for mach-register/lookup,
+  `fileport_makeport`, `bootstrap_register`, tokens in `NSUserDefaults`;
+- `recover_krw_primitives` calls `bootstrap_look_up` + `fileport_makefd`,
+  restores `control_socket`/`rw_socket`, then `recover_proc_self` and verifies
+  `ds_kread32(kernel_base) == 0xFEEDFACF`;
+- `RemoteCall`/`TaskRop` uses `ds_kread`/`ds_kwrite`/`ds_kcall`; these can be
+  shimmed to the current `gPrimitives` (`kreadbuf`/`kwritebuf`/`kcall`) and
+  `gSystemInfo` offsets.
+
+This keeps the app-process PPL (no helper, no IOSurface panic) and moves only
+the sockets to launchd, so a relaunch can recover kernel R/W.
 
 ## 8k. Research: unkillable process without jailbreak (2026-11-26)
 
