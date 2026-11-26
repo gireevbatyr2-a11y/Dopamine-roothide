@@ -902,3 +902,5 @@ Do not reintroduce `elevatePrivileges`, `injectLaunchdHook`, `prepareBootstrap`,
 `finalize`, `removeJailbreak`, or any respring/reboot call into the kernel-RW
 path. If a future change needs them, it belongs in a separate opt-in tool, not
 in `obtainKernelRW`.
+
+- 2026-11-26: cleanup button removed; next is lara launchd stash.
