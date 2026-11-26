@@ -2,7 +2,8 @@
 #include "darksword.h"
 #include <libjailbreak/primitives.h>
 #include <libjailbreak/info.h>
-#include <libjailbreak/proc.h>
+#include <libjailbreak/util.h>
+#include <libjailbreak/kernel.h>
 #include "../Exploits/ClearSword/exploit/common.h"
 
 int control_socket = -1;

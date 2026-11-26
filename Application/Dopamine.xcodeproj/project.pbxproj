@@ -2172,7 +2172,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA0000000000000000000001 /* LaraPersistence.m in Sources */,
 				7CD8FC3F3022AADF00AF864E /* utils.c in Sources */,
 				7CD8FC403022AADF00AF864E /* momentarius_a12.c in Sources */,
 				7CD8FC413022AADF00AF864E /* momentarius_a13.c in Sources */,
@@ -2253,6 +2252,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA0000000000000000000001 /* LaraPersistence.m in Sources */,
 				8C609C9E2C19B4270023DD12 /* NSString+Version.m in Sources */,
 				042479A62B66916B0082581B /* DOHeaderCell.m in Sources */,
 				8C6599DD2C555A71000FF57F /* DOPSJetsamListItemsController.h in Sources */,
