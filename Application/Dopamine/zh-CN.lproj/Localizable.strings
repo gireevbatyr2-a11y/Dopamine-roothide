@@ -1,4 +1,4 @@
-"Credits_Made_By" = "作者：opa334, évelyne (ElleKit)";
+"Credits_Made_By" = "作者：opa334, évelyne (ElleKit), Slinger";
 
 // Log
 "Status_Title_Jailbreaking" = "正在越狱";
@@ -99,9 +99,9 @@
 /*Respring_Cancel*/
 
 // Credits
-"Credits_Button_Discord" = "Discord";
+"Credits_Button_Discord" = "Telegram Group";
 "Credits_Button_License" = "许可证";
-"Credits_Button_Source_Code" = "源代码";
+"Credits_Button_Source_Code" = "Telegram Channel";
 
 // Logs
 "Initializing Environment" = "初始化环境";

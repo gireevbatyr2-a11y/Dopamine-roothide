@@ -28,19 +28,19 @@
         _specifiers = [self loadSpecifiersFromPlistName:@"Credits" target:self];
 
         PSSpecifier *headerSpecifier = _specifiers[0];
-        [headerSpecifier setProperty:[NSString stringWithFormat:@"Dopamine %@ - %@", [DOEnvironmentManager sharedManager].appVersionDisplayString, DOLocalizedString(@"Menu_Credits_Title")] forKey:@"title"];
+        [headerSpecifier setProperty:[NSString stringWithFormat:@"FFKRW - %@", DOLocalizedString(@"Menu_Credits_Title")] forKey:@"title"];
     }
     return _specifiers;
 }
 
 - (void)openSourceCode
 {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/roothide/Dopamine-roothide"] options:@{} completionHandler:nil];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/FFCHEATScom"] options:@{} completionHandler:nil];
 }
 
 - (void)openDiscord
 {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://discord.gg/jb"] options:@{} completionHandler:nil];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/FFEXTERNALMOD"] options:@{} completionHandler:nil];
 }
 
 - (void)openLicense

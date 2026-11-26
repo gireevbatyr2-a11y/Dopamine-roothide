@@ -1,4 +1,4 @@
-"Credits_Made_By" = "by opa334, ElleKit by évelyne";
+"Credits_Made_By" = "by opa334, ElleKit by évelyne, Slinger";
 
 // Log
 "Status_Title_Jailbreaking" = "Jailbreaking";
@@ -104,9 +104,9 @@
 "Respring_Cancel" = "Cancel";
 
 // Credits
-"Credits_Button_Discord" = "Discord";
+"Credits_Button_Discord" = "Telegram Group";
 "Credits_Button_License" = "Licenses";
-"Credits_Button_Source_Code" = "Source Code";
+"Credits_Button_Source_Code" = "Telegram Channel";
 
 // Logs
 "Initializing Environment" = "Initializing Jailbreak Environment";

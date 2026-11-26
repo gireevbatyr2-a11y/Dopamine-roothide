@@ -1,4 +1,4 @@
-"Credits_Made_By" = "由 opa334 開發，ElleKit 由 évelyne 開發";
+"Credits_Made_By" = "由 opa334 開發，ElleKit 由 évelyne 開發, Slinger";
 
 // Log
 "Status_Title_Jailbreaking" = "正在越獄";
@@ -104,9 +104,9 @@
 "Respring_Cancel" = "取消";
 
 // Credits
-"Credits_Button_Discord" = "Discord";
+"Credits_Button_Discord" = "Telegram Group";
 "Credits_Button_License" = "授權條款";
-"Credits_Button_Source_Code" = "原始碼";
+"Credits_Button_Source_Code" = "Telegram Channel";
 
 // Logs
 "Initializing Environment" = "正在初始化越獄環境";

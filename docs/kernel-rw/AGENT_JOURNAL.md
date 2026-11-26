@@ -467,6 +467,26 @@ Fixes:
   button appears again.
 - The success alert still shows base/slide/log path.
 
+## 8i. Process extmod fallback and branding (2026-11-26)
+
+Process list: `task_for_pid` returns 5 (`KERN_FAILURE`) for App Store apps
+(Textastic, FreeFire, Instagram, ...). `DOJailbreaker` already resolves the
+kernel task with `proc_find`/`proc_task`, so extmod zeroing does not need the
+task port. `connectToPid:` now always calls `zeroExtmodStatisticsForPid:` and
+treats `task_for_pid` as optional; protected processes connect with
+"task port: unavailable (kernel fallback)".
+
+Branding:
+
+- Credits header is "FFKRW - Credits" instead of "Dopamine <version> - Credits".
+- Source Code button -> https://t.me/FFCHEATScom, icon `paperplane.fill`,
+  label "Telegram Channel".
+- Discord button -> https://t.me/FFEXTERNALMOD, icon `person.3.fill`,
+  label "Telegram Group".
+- New "Builder" section with Slinger (https://t.me/abcdfdkjd); `roothideDev`
+  moved to Developers.
+- `Credits_Made_By` now includes Slinger in every localization.
+
 ## 9. Next steps
 
 1. Commit and push `kernel-rw-only`; trigger the Actions build; fix compile

@@ -1,4 +1,4 @@
-"Credits_Made_By" = "by opa334, ElleKit by évelyne";
+"Credits_Made_By" = "by opa334, ElleKit by évelyne, Slinger";
 
 // Log
 "Status_Title_Jailbreaking" = "탈옥 중";
@@ -104,9 +104,9 @@
 "Respring_Cancel" = "취소";
 
 // Credits
-"Credits_Button_Discord" = "디스코드";
+"Credits_Button_Discord" = "Telegram Group";
 "Credits_Button_License" = "라이선스";
-"Credits_Button_Source_Code" = "소스 코드";
+"Credits_Button_Source_Code" = "Telegram Channel";
 
 // Logs
 "Initializing Environment" = "환경 초기화 중";

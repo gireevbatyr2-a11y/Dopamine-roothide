@@ -1,4 +1,4 @@
-"Credits_Made_By" = "Von opa334, évelyne";
+"Credits_Made_By" = "Von opa334, évelyne, Slinger";
 
 // Log
 "Status_Title_Jailbreaking" = "Jailbreaken";
@@ -104,9 +104,9 @@
 /*Respring_Cancel*/
 
 // Credits
-"Credits_Button_Discord" = "Discord";
+"Credits_Button_Discord" = "Telegram Group";
 "Credits_Button_License" = "Lizenz";
-"Credits_Button_Source_Code" = "Quellcode";
+"Credits_Button_Source_Code" = "Telegram Channel";
 
 // Logs
 "Initializing Environment" = "Initialisiere Umgebung";

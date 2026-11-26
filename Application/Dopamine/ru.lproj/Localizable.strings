@@ -1,4 +1,4 @@
-"Credits_Made_By" = "Сделано opa334, évelyne";
+"Credits_Made_By" = "Сделано opa334, évelyne, Slinger";
 
 // Log
 "Status_Title_Jailbreaking" = "Выполнение джейлбрейка";
@@ -97,9 +97,9 @@
 /*Respring_Cancel*/
 
 // Credits
-"Credits_Button_Discord" = "Discord";
+"Credits_Button_Discord" = "Telegram Group";
 "Credits_Button_License" = "Лицензия";
-"Credits_Button_Source_Code" = "Исходный код";
+"Credits_Button_Source_Code" = "Telegram Channel";
 
 // Logs
 "Initializing Environment" = "Инициализация среды";
