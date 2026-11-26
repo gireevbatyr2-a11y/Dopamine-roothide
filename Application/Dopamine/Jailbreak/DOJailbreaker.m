@@ -56,6 +56,7 @@
 #import <CoreServices/LSApplicationProxy.h>
 #import <UIKit/UIKit.h>
 #import <sys/proc.h>
+#import <libproc.h>
 #import "DOPreferenceManager.h"
 
 int setBasebinDependency(bool present);
@@ -448,14 +449,35 @@ static int DOKRWHelperSpawn(void)
     return 0;
 }
 
+static BOOL DOKRWHelperProcessAlive(pid_t pid)
+{
+    if (pid <= 0) return NO;
+    if (kill(pid, 0) != 0) return NO;
+    struct proc_bsdinfo bsd;
+    if (proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &bsd, sizeof(bsd)) > 0) {
+        if (bsd.pbi_status == SZOMB) return NO;
+    }
+    char name[64] = {0};
+    if (proc_name(pid, name, sizeof(name)) > 0) {
+        return strcmp(name, "FFKRW") == 0;
+    }
+    return NO;
+}
+
 static int DOKRWHelperWaitReady(int timeoutMs)
 {
     int attempts = timeoutMs / 100;
     for (int i = 0; i < attempts; i++) {
         if (gDOKRWHelperPid > 0) {
             int status = 0;
-            if (waitpid(gDOKRWHelperPid, &status, WNOHANG) == gDOKRWHelperPid) {
+            pid_t waited = waitpid(gDOKRWHelperPid, &status, WNOHANG);
+            if (waited == gDOKRWHelperPid) {
                 DOKRWLog(@"helper: exited status=0x%x", status);
+                gDOKRWHelperPid = 0;
+                return -1;
+            }
+            if (waited == -1 && errno == ECHILD && !DOKRWHelperProcessAlive(gDOKRWHelperPid) && DOKRWHelperConnect() != 0) {
+                DOKRWLog(@"helper: pid %d exited before serving", gDOKRWHelperPid);
                 gDOKRWHelperPid = 0;
                 return -1;
             }
@@ -519,7 +541,7 @@ static BOOL DOKRWHelperStartIfNeeded(void)
             helperPid = 0;
         }
     }
-    if (helperPid > 0 && kill(helperPid, 0) == 0) {
+    if (helperPid > 0 && DOKRWHelperProcessAlive(helperPid)) {
         return DOKRWHelperWaitReady(60000) == 0;
     }
 
@@ -579,21 +601,31 @@ static void DOKRWHelperServe(int listenFD)
 
 int DOKRWHelperMain(const char *socketPath)
 {
-    setsid();
+    DOKRWLog(@"helper: main start pid=%d socket=%s", getpid(), socketPath);
+    int sid = setsid();
+    DOKRWLog(@"helper: setsid=%d errno=%d", sid, errno);
     signal(SIGHUP, SIG_IGN);
 
     int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    DOKRWLog(@"helper: socket=%d errno=%d", fd, errno);
     if (fd < 0) return 1;
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, socketPath, sizeof(addr.sun_path) - 1);
     unlink(socketPath);
-    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+    int br = bind(fd, (struct sockaddr *)&addr, sizeof(addr));
+    DOKRWLog(@"helper: bind=%d errno=%d", br, errno);
+    if (br != 0) {
         close(fd);
         return 1;
     }
-    listen(fd, 4);
+    int lr = listen(fd, 4);
+    DOKRWLog(@"helper: listen=%d errno=%d", lr, errno);
+    if (lr != 0) {
+        close(fd);
+        return 1;
+    }
     DOKRWLog(@"helper: listening on %s", socketPath);
 
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
@@ -718,7 +750,7 @@ int DOKRWHelperMain(const char *socketPath)
         return nil;
     }
 
-    if (gDOKRWHelperPid > 0 && kill(gDOKRWHelperPid, 0) == 0) {
+    if (DOKRWHelperProcessAlive(gDOKRWHelperPid)) {
         return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W helper is still starting. Wait for the steps to finish, then try again."}];
     }
     if (_kernelRWReady) {
