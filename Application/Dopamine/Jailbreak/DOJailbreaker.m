@@ -51,6 +51,8 @@
 #import <libjailbreak/jbserver_boomerang.h>
 #import <libjailbreak/signatures.h>
 #import <libjailbreak/jbclient_xpc.h>
+#import "../LaraPersistence/persistence.h"
+#import "../Exploits/ClearSword/exploit/krw.h"
 #import <libjailbreak/jbclient_mach.h>
 #import <libjailbreak/basebin_gen.h>
 #import <CoreServices/LSApplicationProxy.h>
@@ -739,6 +741,23 @@ int DOKRWHelperMain(const char *socketPath)
         DOKRWLog(@"obtainKernelRW: roothide jailbreak present");
         return nil;
     }
+    if (!_kernelRWReady) {
+        lara_offsets_init();
+        gPrimitives.kreadbuf = clearsword_kreadbuf;
+        gPrimitives.kwritebuf = clearsword_kwritebuf;
+        gPrimitives.krwMinSafeReadSize = 0x20;
+        if (recover_krw_primitives()) {
+            g_ctx.control_socket = control_socket;
+            g_ctx.rw_socket = rw_socket;
+            g_ctx.kernel_base = kernel_base;
+            g_ctx.kernel_slide = kernel_slide;
+            gSystemInfo.kernelConstant.base = kernel_base;
+            gSystemInfo.kernelConstant.slide = kernel_slide;
+            _kernelRWReady = YES;
+            DOKRWLog(@"obtainKernelRW: recovered from launchd");
+            return nil;
+        }
+    }
     if (_kernelRWReady) {
         DOKRWLog(@"obtainKernelRW: already ready");
         return nil;
@@ -751,6 +770,16 @@ int DOKRWHelperMain(const char *socketPath)
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
     _kernelRWReady = YES;
+    control_socket = g_ctx.control_socket;
+    rw_socket = g_ctx.rw_socket;
+    kernel_base = g_ctx.kernel_base;
+    kernel_slide = g_ctx.kernel_slide;
+    lara_offsets_init();
+    if (transfer_krw_to_launchd_ios16()) {
+        DOKRWLog(@"obtainKernelRW: stashed to launchd");
+    } else {
+        DOKRWLog(@"obtainKernelRW: launchd stash failed");
+    }
     DOKRWLog(@"obtainKernelRW: ready base=0x%llx slide=0x%llx",
              (unsigned long long)gSystemInfo.kernelConstant.base,
              (unsigned long long)gSystemInfo.kernelConstant.slide);

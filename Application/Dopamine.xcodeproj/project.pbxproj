@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA0000000000000000000001 /* LaraPersistence.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002 /* LaraPersistence.m */; };
 		042479A22B66916B0082581B /* DOCreditsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0424796B2B66916B0082581B /* DOCreditsViewController.m */; };
 		042479A32B66916B0082581B /* DOSettingsController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0424796C2B66916B0082581B /* DOSettingsController.m */; };
 		042479A42B66916B0082581B /* Credits.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0424796F2B66916B0082581B /* Credits.plist */; };
@@ -379,6 +380,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA0000000000000000000002 /* LaraPersistence.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LaraPersistence.m; sourceTree = "<group>"; };
 		042479682B66916B0082581B /* DOJailbreakButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOJailbreakButton.h; sourceTree = "<group>"; };
 		0424796B2B66916B0082581B /* DOCreditsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOCreditsViewController.m; sourceTree = "<group>"; };
 		0424796C2B66916B0082581B /* DOSettingsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOSettingsController.m; sourceTree = "<group>"; };
@@ -1321,9 +1323,18 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		AA0000000000000000000003 /* LaraPersistence */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000002 /* LaraPersistence.m */,
+			);
+			path = LaraPersistence;
+			sourceTree = "<group>";
+		};
 		8C7198172ABF0E82003C6658 /* Dopamine */ = {
 			isa = PBXGroup;
 			children = (
+				AA0000000000000000000003 /* LaraPersistence */,
 				8CB94F012B59E16D0098BAFD /* Resources */,
 				8C46D71D2B588857002899DB /* Headers */,
 				8C7198332ABF133D003C6658 /* App Delegates */,
@@ -2161,6 +2172,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA0000000000000000000001 /* LaraPersistence.m in Sources */,
 				7CD8FC3F3022AADF00AF864E /* utils.c in Sources */,
 				7CD8FC403022AADF00AF864E /* momentarius_a12.c in Sources */,
 				7CD8FC413022AADF00AF864E /* momentarius_a13.c in Sources */,
