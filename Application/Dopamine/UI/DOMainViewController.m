@@ -194,13 +194,11 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
     } else {
         BOOL ran = [[DOJailbreaker sharedInstance] exploitRanThisBoot];
         BOOL started = [[DOJailbreaker sharedInstance] exploitStartedThisBoot];
-        if (ran) {
-            DOKRWLog(@"UI: re-acquire available");
-            self.jailbreakBtn.hidden = NO;
-            [self.jailbreakBtn.button setTitle:@"Re-acquire Kernel R/W" forState:UIControlStateNormal];
-            [self startKernelRW];
+        if (started || ran) {
+            DOKRWLog(@"UI: kernel R/W already acquired this boot; reboot required");
+            self.jailbreakBtn.hidden = YES;
         } else {
-            self.jailbreakBtn.hidden = started;
+            self.jailbreakBtn.hidden = NO;
         }
     }
 }

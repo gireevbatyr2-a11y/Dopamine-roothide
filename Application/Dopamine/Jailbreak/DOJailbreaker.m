@@ -205,7 +205,7 @@ static pthread_mutex_t gDOKRWHelperLock = PTHREAD_MUTEX_INITIALIZER;
 
 static NSString *DOKRWHelperSocketPath(void)
 {
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"DopamineKernelRW.sock"];
+    return @"/tmp/DopamineKernelRW.sock";
 }
 
 static void DOKRWHelperResetConnection(void)
@@ -630,15 +630,8 @@ int DOKRWHelperMain(const char *socketPath)
     }
     BOOL ranThisBoot = [self exploitRanThisBoot];
     BOOL startedThisBoot = [self exploitStartedThisBoot];
-    if (startedThisBoot && !ranThisBoot) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"The previous exploit did not complete. Reboot the device before trying again."}];
-    }
-    if (ranThisBoot) {
-        DOKRWLog(@"obtainKernelRW: re-acquiring after app relaunch");
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        [defaults setBool:NO forKey:@"DOKRWExploitRan"];
-        [defaults setBool:NO forKey:@"DOKRWExploitStarted"];
-        [defaults synchronize];
+    if (startedThisBoot || ranThisBoot) {
+        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already started/acquired in this boot. Reboot the device before running the exploit again."}];
     }
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
