@@ -493,6 +493,28 @@ Branding:
   `roothider` is in Developers.
 - `Credits_Made_By` now includes Slinger in every localization.
 
+## 8j. Persistent helper and FFKRW header (2026-11-26)
+
+The kernel R/W provider now runs in a detached `posix_spawn` helper, not in
+the app process:
+
+- `main.m` accepts `krw-helper <socket>` before `UIApplicationMain`.
+- The helper binds a Unix socket in `NSTemporaryDirectory()`, runs
+  `obtainKernelRWInProcess`, then serves `STATUS`, `ZERO_EXTMOD`, `KREAD` and
+  `KWRITE` requests.
+- The app spawns the helper with `posix_spawn` (setsid), stores pid/boot in
+  defaults, and proxies `zeroExtmodStatisticsForPid:`/`kread`/`kwrite` to it.
+- `viewWillAppear` calls `restoreKernelRWFromHelper`; a relaunched app
+  reconnects to the still-running helper and keeps kernel R/W.
+- The boot guard now records `DOKRWExploitStarted` before the exploit. If the
+  helper dies after starting, the app requires a reboot instead of running a
+  second exploit in the same boot.
+- No jbroot, no launchd hook, no jailbreak state, no reboot. The helper is a
+  detached child; iOS can still kill it, and then a reboot is required.
+
+The main header logo is rendered at runtime as a white heavy rounded "FFKRW"
+wordmark via `+[DOHeaderView ffkrwLogo]`, replacing the `Dopamine` image.
+
 ## 9. Next steps
 
 1. Commit and push `kernel-rw-only`; trigger the Actions build; fix compile

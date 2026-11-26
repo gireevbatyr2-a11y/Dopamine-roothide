@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 // Falls back to the app container if that path is not writable.
 void DOKRWLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
 NSString *DOKRWLogPath(void);
+int DOKRWHelperMain(const char *socketPath);
 
 @interface DOJailbreaker : NSObject
 {
@@ -37,6 +38,9 @@ NSString *DOKRWLogPath(void);
 @property (nonatomic, readonly, getter=isKcallAvailable) BOOL kcallAvailable;
 
 - (BOOL)exploitRanThisBoot;
+- (BOOL)exploitStartedThisBoot;
+// Reconnects to a still-running helper from a previous app launch.
+- (BOOL)restoreKernelRWFromHelper;
 // Resolved offset of task->extmod_statistics (0 if not resolved).
 @property (nonatomic, readonly) uint32_t extmodOffset;
 

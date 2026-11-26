@@ -16,6 +16,27 @@
 
 @implementation DOHeaderView
 
++ (UIImage *)ffkrwLogo
+{
+    UIFont *font = [UIFont systemFontOfSize:40 weight:UIFontWeightHeavy];
+    if (@available(iOS 13.0, *)) {
+        UIFontDescriptor *rounded = [font.fontDescriptor fontDescriptorWithDesign:UIFontDescriptorSystemDesignRounded];
+        if (rounded) font = [UIFont fontWithDescriptor:rounded size:40];
+    }
+    NSDictionary *attributes = @{
+        NSFontAttributeName: font,
+        NSForegroundColorAttributeName: [UIColor whiteColor],
+        NSKernAttributeName: @(-1.0),
+    };
+    NSString *text = @"FFKRW";
+    CGSize textSize = [text sizeWithAttributes:attributes];
+    CGSize size = CGSizeMake(ceil(textSize.width), ceil(textSize.height));
+    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size];
+    return [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
+        [text drawAtPoint:CGPointZero withAttributes:attributes];
+    }];
+}
+
 -(id)initWithImage:(UIImage *)image subtitles:(NSArray<NSAttributedString *> *)subtitles {
     if (self = [super init]) {
         UIStackView *stackView = [[UIStackView alloc] init];

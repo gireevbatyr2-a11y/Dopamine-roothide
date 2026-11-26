@@ -26,6 +26,13 @@
 #import <signal.h>
 #import <sys/wait.h>
 #import <sys/sysctl.h>
+#import <sys/socket.h>
+#import <sys/un.h>
+#import <pthread.h>
+#import <fcntl.h>
+#import <errno.h>
+#import <stdint.h>
+#import <dispatch/dispatch.h>
 #import <mach/mach.h>
 #import <mach/vm_region.h>
 #import <mach/ndr.h>
@@ -79,9 +86,9 @@ static NSString *DOKRWLogFallbackPath(void)
     return fallback;
 }
 
-static void DOKRWWriteState(NSString *uuid, BOOL ran)
+static void DOKRWWriteState(NSString *uuid, BOOL ran, BOOL started)
 {
-    NSString *content = [NSString stringWithFormat:@"boot=%@\nran=%d\n", uuid ?: @"?", ran];
+    NSString *content = [NSString stringWithFormat:@"boot=%@\nran=%d\nstarted=%d\n", uuid ?: @"?", ran, started];
     NSArray<NSString *> *paths = @[
         @"/var/mobile/Documents/DopamineKernelRW.state",
         @"/var/mobile/Library/Logs/DopamineKernelRW.state",
@@ -150,7 +157,299 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
 - (NSError *)doExploitation;
 - (NSError *)buildPhysRWPrimitive;
 - (NSError *)cleanUpExploits;
+- (NSError *)obtainKernelRWInProcess;
 @end
+
+#pragma mark - Persistent kernel helper
+
+#define DOKRW_HELPER_MAGIC 0x4B525731u
+
+enum {
+    DOKRWHelperOpStatus = 1,
+    DOKRWHelperOpZeroExtmod = 2,
+    DOKRWHelperOpKread = 3,
+    DOKRWHelperOpKwrite = 4,
+};
+
+typedef struct {
+    uint32_t magic;
+    uint32_t op;
+    int32_t pid;
+    uint32_t size;
+    uint64_t addr;
+    uint8_t data[0x1000];
+} DOKRWHelperRequest;
+
+typedef struct {
+    uint32_t magic;
+    int32_t status;
+    uint32_t size;
+    int32_t ready;
+    uint32_t kcall;
+    uint32_t extmod;
+    uint64_t base;
+    uint64_t slide;
+    uint8_t data[0x1000];
+} DOKRWHelperResponse;
+
+static int gDOKRWHelperSocket = -1;
+static pid_t gDOKRWHelperPid = 0;
+static BOOL gDOKRWHelperActive = NO;
+static BOOL gDOKRWHelperSpawned = NO;
+static volatile int gDOKRWHelperReady = 0;
+static uint64_t gDOKRWHelperBase = 0;
+static uint64_t gDOKRWHelperSlide = 0;
+static BOOL gDOKRWHelperKcall = NO;
+static uint32_t gDOKRWHelperExtmod = 0;
+static pthread_mutex_t gDOKRWHelperLock = PTHREAD_MUTEX_INITIALIZER;
+
+static NSString *DOKRWHelperSocketPath(void)
+{
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"DopamineKernelRW.sock"];
+}
+
+static void DOKRWHelperResetConnection(void)
+{
+    if (gDOKRWHelperSocket >= 0) {
+        close(gDOKRWHelperSocket);
+        gDOKRWHelperSocket = -1;
+    }
+    gDOKRWHelperActive = NO;
+    gDOKRWHelperReady = 0;
+}
+
+static int DOKRWHelperConnect(void)
+{
+    if (gDOKRWHelperSocket >= 0) return 0;
+    int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (fd < 0) return -1;
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, DOKRWHelperSocketPath().fileSystemRepresentation, sizeof(addr.sun_path) - 1);
+    if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+        close(fd);
+        return -1;
+    }
+    gDOKRWHelperSocket = fd;
+    gDOKRWHelperActive = YES;
+    return 0;
+}
+
+static int DOKRWHelperSend(DOKRWHelperRequest *request, DOKRWHelperResponse *response)
+{
+    pthread_mutex_lock(&gDOKRWHelperLock);
+    if (gDOKRWHelperSocket < 0) {
+        pthread_mutex_unlock(&gDOKRWHelperLock);
+        return -1;
+    }
+    ssize_t sent = send(gDOKRWHelperSocket, request, sizeof(*request), 0);
+    ssize_t received = -1;
+    if (sent == (ssize_t)sizeof(*request)) {
+        received = recv(gDOKRWHelperSocket, response, sizeof(*response), MSG_WAITALL);
+    }
+    if (sent != (ssize_t)sizeof(*request) || received != (ssize_t)sizeof(*response)) {
+        DOKRWHelperResetConnection();
+        pthread_mutex_unlock(&gDOKRWHelperLock);
+        return -1;
+    }
+    pthread_mutex_unlock(&gDOKRWHelperLock);
+    return response->status;
+}
+
+static int DOKRWHelperStart(void)
+{
+    NSString *exe = [NSBundle mainBundle].executablePath;
+    if (!exe) return -1;
+
+    posix_spawnattr_t attr;
+    posix_spawnattr_init(&attr);
+#ifdef POSIX_SPAWN_SETSID
+    posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSID);
+#endif
+    posix_spawn_file_actions_t actions;
+    posix_spawn_file_actions_init(&actions);
+    posix_spawn_file_actions_addopen(&actions, STDIN_FILENO, "/dev/null", O_RDWR, 0);
+    posix_spawn_file_actions_addopen(&actions, STDOUT_FILENO, "/dev/null", O_RDWR, 0);
+    posix_spawn_file_actions_addopen(&actions, STDERR_FILENO, "/dev/null", O_RDWR, 0);
+
+    NSString *sock = DOKRWHelperSocketPath();
+    char *argv[] = { (char *)exe.fileSystemRepresentation, "krw-helper", (char *)sock.fileSystemRepresentation, NULL };
+    pid_t pid = 0;
+    int rc = posix_spawn(&pid, exe.fileSystemRepresentation, &actions, &attr, argv, environ);
+    posix_spawn_file_actions_destroy(&actions);
+    posix_spawnattr_destroy(&attr);
+    if (rc != 0) {
+        DOKRWLog(@"helper: spawn failed (%d)", rc);
+        return -1;
+    }
+    gDOKRWHelperPid = pid;
+    gDOKRWHelperSpawned = YES;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setInteger:pid forKey:@"DOKRWHelperPid"];
+    NSString *boot = DOKRWCurrentBootSessionUUID();
+    if (boot) [defaults setObject:boot forKey:@"DOKRWHelperBoot"];
+    [defaults synchronize];
+    DOKRWLog(@"helper: spawned pid=%d socket=%@", pid, sock);
+    return 0;
+}
+
+static int DOKRWHelperWaitReady(int timeoutMs)
+{
+    int attempts = timeoutMs / 100;
+    for (int i = 0; i < attempts; i++) {
+        if (DOKRWHelperConnect() == 0) {
+            DOKRWHelperRequest req;
+            memset(&req, 0, sizeof(req));
+            req.magic = DOKRW_HELPER_MAGIC;
+            req.op = DOKRWHelperOpStatus;
+            DOKRWHelperResponse resp;
+            memset(&resp, 0, sizeof(resp));
+            if (DOKRWHelperSend(&req, &resp) == 0) {
+                gDOKRWHelperReady = resp.ready;
+                gDOKRWHelperBase = resp.base;
+                gDOKRWHelperSlide = resp.slide;
+                gDOKRWHelperKcall = resp.kcall != 0;
+                gDOKRWHelperExtmod = resp.extmod;
+                if (resp.ready == 1) return 0;
+                if (resp.ready < 0) return -1;
+            }
+        }
+        usleep(100 * 1000);
+    }
+    return -1;
+}
+
+static BOOL DOKRWHelperStartIfNeeded(void)
+{
+    if (gDOKRWHelperActive && gDOKRWHelperReady == 1) {
+        DOKRWHelperRequest req;
+        memset(&req, 0, sizeof(req));
+        req.magic = DOKRW_HELPER_MAGIC;
+        req.op = DOKRWHelperOpStatus;
+        DOKRWHelperResponse resp;
+        memset(&resp, 0, sizeof(resp));
+        if (DOKRWHelperSend(&req, &resp) == 0 && resp.ready == 1) {
+            gDOKRWHelperBase = resp.base;
+            gDOKRWHelperSlide = resp.slide;
+            gDOKRWHelperKcall = resp.kcall != 0;
+            gDOKRWHelperExtmod = resp.extmod;
+            return YES;
+        }
+        DOKRWHelperResetConnection();
+    }
+
+    if (DOKRWHelperConnect() == 0) {
+        return DOKRWHelperWaitReady(120000) == 0;
+    }
+
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *currentBoot = DOKRWCurrentBootSessionUUID();
+    NSString *helperBoot = [defaults stringForKey:@"DOKRWHelperBoot"];
+    if (!currentBoot || !helperBoot || ![currentBoot isEqualToString:helperBoot]) {
+        [defaults removeObjectForKey:@"DOKRWHelperPid"];
+        [defaults synchronize];
+    }
+    pid_t helperPid = (pid_t)[defaults integerForKey:@"DOKRWHelperPid"];
+    if (helperPid > 0) {
+        int status = 0;
+        if (waitpid(helperPid, &status, WNOHANG) == helperPid) {
+            helperPid = 0;
+        }
+    }
+    if (helperPid > 0 && kill(helperPid, 0) == 0) {
+        return DOKRWHelperWaitReady(120000) == 0;
+    }
+
+    if ([[DOJailbreaker sharedInstance] exploitStartedThisBoot]) {
+        return NO;
+    }
+
+    if (DOKRWHelperStart() != 0) return NO;
+    return DOKRWHelperWaitReady(120000) == 0;
+}
+
+static void DOKRWHelperServe(int listenFD)
+{
+    while (1) {
+        int fd = accept(listenFD, NULL, NULL);
+        if (fd < 0) {
+            if (errno == EINTR) continue;
+            break;
+        }
+        DOKRWHelperRequest req;
+        while (recv(fd, &req, sizeof(req), MSG_WAITALL) == (ssize_t)sizeof(req)) {
+            DOKRWHelperResponse resp;
+            memset(&resp, 0, sizeof(resp));
+            resp.magic = DOKRW_HELPER_MAGIC;
+            resp.ready = (int32_t)gDOKRWHelperReady;
+            resp.base = gSystemInfo.kernelConstant.base;
+            resp.slide = gSystemInfo.kernelConstant.slide;
+            resp.kcall = gPrimitives.kcall != NULL;
+            resp.extmod = [[DOJailbreaker sharedInstance] extmodOffset];
+            switch (req.op) {
+                case DOKRWHelperOpStatus:
+                    resp.status = 0;
+                    break;
+                case DOKRWHelperOpZeroExtmod:
+                    resp.status = [[DOJailbreaker sharedInstance] zeroExtmodStatisticsForPid:req.pid] ? 0 : -1;
+                    break;
+                case DOKRWHelperOpKread:
+                    if (req.size <= sizeof(resp.data)) {
+                        resp.size = req.size;
+                        resp.status = [[DOJailbreaker sharedInstance] kreadbuf:req.addr to:resp.data size:req.size];
+                    } else {
+                        resp.status = -1;
+                    }
+                    break;
+                case DOKRWHelperOpKwrite:
+                    if (req.size <= sizeof(req.data)) {
+                        resp.status = [[DOJailbreaker sharedInstance] kwritebuf:req.addr from:req.data size:req.size];
+                    } else {
+                        resp.status = -1;
+                    }
+                    break;
+                default:
+                    resp.status = -1;
+                    break;
+            }
+            send(fd, &resp, sizeof(resp), 0);
+        }
+        close(fd);
+    }
+}
+
+int DOKRWHelperMain(const char *socketPath)
+{
+    setsid();
+    signal(SIGHUP, SIG_IGN);
+
+    int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (fd < 0) return 1;
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, socketPath, sizeof(addr.sun_path) - 1);
+    unlink(socketPath);
+    if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+        close(fd);
+        return 1;
+    }
+    listen(fd, 4);
+    DOKRWLog(@"helper: listening on %s", socketPath);
+
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        NSError *error = [[DOJailbreaker sharedInstance] obtainKernelRWInProcess];
+        gDOKRWHelperReady = error ? -1 : 1;
+        DOKRWLog(@"helper: %@", error ? error.localizedDescription : @"kernel R/W ready");
+    });
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+        DOKRWHelperServe(fd);
+    });
+
+    dispatch_main();
+    return 0;
+}
 
 @implementation DOJailbreaker
 
@@ -180,24 +479,76 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
     return lastBoot && [currentBoot isEqualToString:lastBoot] && [defaults boolForKey:@"DOKRWExploitRan"];
 }
 
+- (BOOL)exploitStartedThisBoot
+{
+    NSString *currentBoot = DOKRWCurrentBootSessionUUID();
+    if (!currentBoot) return NO;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *lastBoot = [defaults stringForKey:@"DOKRWBootSessionUUID"];
+    return lastBoot && [currentBoot isEqualToString:lastBoot] && [defaults boolForKey:@"DOKRWExploitStarted"];
+}
+
+- (BOOL)restoreKernelRWFromHelper
+{
+    if (DOKRWHelperConnect() != 0) return NO;
+    DOKRWHelperRequest req;
+    memset(&req, 0, sizeof(req));
+    req.magic = DOKRW_HELPER_MAGIC;
+    req.op = DOKRWHelperOpStatus;
+    DOKRWHelperResponse resp;
+    memset(&resp, 0, sizeof(resp));
+    if (DOKRWHelperSend(&req, &resp) != 0 || resp.ready != 1) return NO;
+    gDOKRWHelperActive = YES;
+    gDOKRWHelperReady = 1;
+    gDOKRWHelperBase = resp.base;
+    gDOKRWHelperSlide = resp.slide;
+    gDOKRWHelperKcall = resp.kcall != 0;
+    gDOKRWHelperExtmod = resp.extmod;
+    _kernelRWReady = YES;
+    DOKRWLog(@"helper: restored base=0x%llx slide=0x%llx",
+             (unsigned long long)resp.base, (unsigned long long)resp.slide);
+    return YES;
+}
+
 - (uint64_t)kernelBase
 {
+    if (gDOKRWHelperActive) return gDOKRWHelperBase;
     return gSystemInfo.kernelConstant.base;
 }
 
 - (uint64_t)kernelSlide
 {
+    if (gDOKRWHelperActive) return gDOKRWHelperSlide;
     return gSystemInfo.kernelConstant.slide;
 }
 
 - (BOOL)isKcallAvailable
 {
+    if (gDOKRWHelperActive) return gDOKRWHelperKcall;
     return gPrimitives.kcall != NULL;
 }
 
 #pragma mark - Pipeline
 
 - (NSError *)obtainKernelRW
+{
+    if (DOKRWHelperStartIfNeeded()) {
+        _kernelRWReady = YES;
+        DOKRWLog(@"obtainKernelRW: helper ready base=0x%llx slide=0x%llx",
+                 (unsigned long long)gDOKRWHelperBase, (unsigned long long)gDOKRWHelperSlide);
+        return nil;
+    }
+    if (gDOKRWHelperSpawned) {
+        DOKRWLog(@"obtainKernelRW: helper failed");
+        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"The kernel R/W helper failed. Reboot the device before trying again."}];
+    }
+    if ([self exploitStartedThisBoot]) {
+        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already started in this boot. Reboot the device before running the exploit again."}];
+    }
+    return [self obtainKernelRWInProcess];
+}
+
+- (NSError *)obtainKernelRWInProcess
 {
     @synchronized (self) {
         if (_kernelRWReady) return nil;
@@ -206,19 +557,25 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         NSString *lastBoot = [defaults stringForKey:@"DOKRWBootSessionUUID"];
         BOOL ranThisBoot = [defaults boolForKey:@"DOKRWExploitRan"];
-        DOKRWLog(@"boot: uuid=%@ last=%@ ran=%d prefs=%@",
-                 currentBoot ?: @"?", lastBoot ?: @"?", ranThisBoot,
+        BOOL startedThisBoot = [defaults boolForKey:@"DOKRWExploitStarted"];
+        DOKRWLog(@"boot: uuid=%@ last=%@ ran=%d started=%d prefs=%@",
+                 currentBoot ?: @"?", lastBoot ?: @"?", ranThisBoot, startedThisBoot,
                  [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Preferences"]);
-        DOKRWWriteState(currentBoot, ranThisBoot);
-        if (currentBoot && lastBoot && [currentBoot isEqualToString:lastBoot] && ranThisBoot) {
-            DOKRWLog(@"obtainKernelRW: exploit already ran in this boot; reboot required");
+        DOKRWWriteState(currentBoot, ranThisBoot, startedThisBoot);
+        if (currentBoot && lastBoot && [currentBoot isEqualToString:lastBoot] && (ranThisBoot || startedThisBoot)) {
+            DOKRWLog(@"obtainKernelRW: exploit already ran/started in this boot; reboot required");
             return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already acquired in this boot. Reboot the device before running the exploit again."}];
         }
         if (currentBoot && (!lastBoot || ![currentBoot isEqualToString:lastBoot])) {
             [defaults setBool:NO forKey:@"DOKRWExploitRan"];
+            [defaults setBool:NO forKey:@"DOKRWExploitStarted"];
             [defaults setObject:currentBoot forKey:@"DOKRWBootSessionUUID"];
             [defaults synchronize];
         }
+
+        [defaults setBool:YES forKey:@"DOKRWExploitStarted"];
+        [defaults synchronize];
+        DOKRWWriteState(currentBoot, ranThisBoot, YES);
 
         DOKRWLog(@"obtainKernelRW: start");
         NSError *error = [self gatherSystemInformation];
@@ -252,9 +609,10 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
         _kernelRWReady = YES;
         if (currentBoot) {
             [defaults setBool:YES forKey:@"DOKRWExploitRan"];
+            [defaults setBool:YES forKey:@"DOKRWExploitStarted"];
             [defaults setObject:currentBoot forKey:@"DOKRWBootSessionUUID"];
             [defaults synchronize];
-            DOKRWWriteState(currentBoot, YES);
+            DOKRWWriteState(currentBoot, YES, YES);
         }
         DOKRWLog(@"obtainKernelRW: ready base=0x%llx slide=0x%llx kcall=%@",
                  (unsigned long long)gSystemInfo.kernelConstant.base,
@@ -453,31 +811,88 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
 
 - (uint64_t)kread64:(uint64_t)addr
 {
+    if (gDOKRWHelperActive) {
+        DOKRWHelperRequest req;
+        memset(&req, 0, sizeof(req));
+        req.magic = DOKRW_HELPER_MAGIC;
+        req.op = DOKRWHelperOpKread;
+        req.addr = addr;
+        req.size = sizeof(uint64_t);
+        DOKRWHelperResponse resp;
+        memset(&resp, 0, sizeof(resp));
+        if (DOKRWHelperSend(&req, &resp) != 0) return 0;
+        uint64_t value = 0;
+        memcpy(&value, resp.data, sizeof(value));
+        return value;
+    }
     return kread64(addr);
 }
 
 - (uint32_t)kread32:(uint64_t)addr
 {
+    if (gDOKRWHelperActive) {
+        DOKRWHelperRequest req;
+        memset(&req, 0, sizeof(req));
+        req.magic = DOKRW_HELPER_MAGIC;
+        req.op = DOKRWHelperOpKread;
+        req.addr = addr;
+        req.size = sizeof(uint32_t);
+        DOKRWHelperResponse resp;
+        memset(&resp, 0, sizeof(resp));
+        if (DOKRWHelperSend(&req, &resp) != 0) return 0;
+        uint32_t value = 0;
+        memcpy(&value, resp.data, sizeof(value));
+        return value;
+    }
     return kread32(addr);
 }
 
 - (int)kreadbuf:(uint64_t)addr to:(void *)out size:(size_t)size
 {
+    if (gDOKRWHelperActive) {
+        if (size > sizeof(((DOKRWHelperResponse *)0)->data)) return -1;
+        DOKRWHelperRequest req;
+        memset(&req, 0, sizeof(req));
+        req.magic = DOKRW_HELPER_MAGIC;
+        req.op = DOKRWHelperOpKread;
+        req.addr = addr;
+        req.size = (uint32_t)size;
+        DOKRWHelperResponse resp;
+        memset(&resp, 0, sizeof(resp));
+        if (DOKRWHelperSend(&req, &resp) != 0) return -1;
+        memcpy(out, resp.data, size);
+        return 0;
+    }
     return kreadbuf(addr, out, size);
 }
 
 - (int)kwrite64:(uint64_t)addr value:(uint64_t)value
 {
+    if (gDOKRWHelperActive) return [self kwritebuf:addr from:&value size:sizeof(value)];
     return kwrite64(addr, value);
 }
 
 - (int)kwrite32:(uint64_t)addr value:(uint32_t)value
 {
+    if (gDOKRWHelperActive) return [self kwritebuf:addr from:&value size:sizeof(value)];
     return kwrite32(addr, value);
 }
 
 - (int)kwritebuf:(uint64_t)addr from:(const void *)in size:(size_t)size
 {
+    if (gDOKRWHelperActive) {
+        if (size > sizeof(((DOKRWHelperRequest *)0)->data)) return -1;
+        DOKRWHelperRequest req;
+        memset(&req, 0, sizeof(req));
+        req.magic = DOKRW_HELPER_MAGIC;
+        req.op = DOKRWHelperOpKwrite;
+        req.addr = addr;
+        req.size = (uint32_t)size;
+        memcpy(req.data, in, size);
+        DOKRWHelperResponse resp;
+        memset(&resp, 0, sizeof(resp));
+        return DOKRWHelperSend(&req, &resp);
+    }
     return kwritebuf(addr, in, size);
 }
 
@@ -564,6 +979,7 @@ static NSString *DOKRWOSVersion(void)
 
 - (uint32_t)extmodOffset
 {
+    if (gDOKRWHelperActive) return gDOKRWHelperExtmod;
     return _extmodOffset;
 }
 
@@ -777,6 +1193,16 @@ static BOOL DOKRWStatsAreZero(const int64_t *stats)
 
 - (BOOL)zeroExtmodStatisticsForPid:(pid_t)pid
 {
+    if (gDOKRWHelperActive) {
+        DOKRWHelperRequest req;
+        memset(&req, 0, sizeof(req));
+        req.magic = DOKRW_HELPER_MAGIC;
+        req.op = DOKRWHelperOpZeroExtmod;
+        req.pid = pid;
+        DOKRWHelperResponse resp;
+        memset(&resp, 0, sizeof(resp));
+        return DOKRWHelperSend(&req, &resp) == 0;
+    }
     return [self zeroExtmodStatisticsForTask:[self kernelTaskForPid:pid]];
 }
 

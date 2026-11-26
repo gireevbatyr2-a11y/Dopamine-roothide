@@ -91,7 +91,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
     }
 
     //Header
-    DOHeaderView *headerView = [[DOHeaderView alloc] initWithImage: [UIImage imageNamed:@"Dopamine"] subtitles: @[
+    DOHeaderView *headerView = [[DOHeaderView alloc] initWithImage: [DOHeaderView ffkrwLogo] subtitles: @[
         [DOGlobalAppearance mainSubtitleString:[[DOEnvironmentManager sharedManager] versionSupportString]],
         [DOGlobalAppearance secondarySubtitleString:DOLocalizedString(@"Credits_Made_By")],
     ]];
@@ -187,7 +187,13 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 {
     [super viewWillAppear:animated];
     [self.jailbreakBtn.button setTitle:[self kernelRWButtonTitle] forState:UIControlStateNormal];
-    self.jailbreakBtn.hidden = [[DOJailbreaker sharedInstance] exploitRanThisBoot];
+    BOOL restored = [[DOJailbreaker sharedInstance] restoreKernelRWFromHelper];
+    if (restored) {
+        DOKRWLog(@"UI: helper restored");
+        self.jailbreakBtn.hidden = YES;
+    } else {
+        self.jailbreakBtn.hidden = [[DOJailbreaker sharedInstance] exploitStartedThisBoot];
+    }
 }
 
 - (void)startKernelRW
