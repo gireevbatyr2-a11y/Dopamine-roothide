@@ -354,9 +354,11 @@ static int DOKRWHelperFork(void)
         return -1;
     }
 
+    gDOKRWHelperReady = 1;
     pid_t pid = fork();
     if (pid < 0) {
         DOKRWLog(@"helper: fork failed errno=%d %s", errno, strerror(errno));
+        gDOKRWHelperReady = 0;
         close(listenFD);
         return -1;
     }
@@ -364,11 +366,11 @@ static int DOKRWHelperFork(void)
         setsid();
         signal(SIGHUP, SIG_IGN);
         signal(SIGPIPE, SIG_IGN);
-        gDOKRWHelperReady = 1;
         DOKRWHelperServeForked(listenFD);
         _exit(0);
     }
 
+    gDOKRWHelperReady = 0;
     close(listenFD);
     gDOKRWHelperPid = pid;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -384,6 +386,14 @@ static int DOKRWHelperWaitReady(int timeoutMs)
 {
     int attempts = timeoutMs / 100;
     for (int i = 0; i < attempts; i++) {
+        if (gDOKRWHelperPid > 0) {
+            int status = 0;
+            if (waitpid(gDOKRWHelperPid, &status, WNOHANG) == gDOKRWHelperPid) {
+                DOKRWLog(@"helper: exited status=0x%x", status);
+                gDOKRWHelperPid = 0;
+                return -1;
+            }
+        }
         if (DOKRWHelperConnect() == 0) {
             DOKRWHelperRequest req;
             memset(&req, 0, sizeof(req));
@@ -426,7 +436,7 @@ static BOOL DOKRWHelperStartIfNeeded(void)
     }
 
     if (DOKRWHelperConnect() == 0) {
-        return DOKRWHelperWaitReady(120000) == 0;
+        return DOKRWHelperWaitReady(15000) == 0;
     }
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -444,12 +454,12 @@ static BOOL DOKRWHelperStartIfNeeded(void)
         }
     }
     if (helperPid > 0 && kill(helperPid, 0) == 0) {
-        return DOKRWHelperWaitReady(120000) == 0;
+        return DOKRWHelperWaitReady(15000) == 0;
     }
 
     if ([[DOJailbreaker sharedInstance] kernelRWReady]) {
         if (DOKRWHelperFork() != 0) return NO;
-        return DOKRWHelperWaitReady(120000) == 0;
+        return DOKRWHelperWaitReady(15000) == 0;
     }
 
     return NO;
