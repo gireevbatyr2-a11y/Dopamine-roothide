@@ -782,7 +782,7 @@ int DOKRWHelperMain(const char *socketPath)
     kernel_base = g_ctx.kernel_base;
     kernel_slide = g_ctx.kernel_slide;
     lara_offsets_init();
-    if (transfer_krw_to_launchd_ios16()) {
+    if (transfer_krw_to_launchd()) {
         DOKRWLog(@"obtainKernelRW: stashed to launchd");
     } else {
         DOKRWLog(@"obtainKernelRW: launchd stash failed");

@@ -20,5 +20,7 @@ char *sandbox_extension_issue_mach(const char *extension_class, const char *name
 #define APP_MACH_LOOKUP "com.apple.security.exception.mach-lookup.global-name"
 #define APP_MACH_REGISTER "com.apple.security.exception.mach-register.global-name"
 
+void lara_offsets_init(void);
+
 bool transfer_krw_to_launchd(void);
 bool recover_krw_primitives(void);
