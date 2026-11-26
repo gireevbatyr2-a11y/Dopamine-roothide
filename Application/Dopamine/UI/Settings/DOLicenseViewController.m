@@ -77,7 +77,7 @@
 {
     return @[
         @{
-            @"name": @"Dopamine",
+            @"name": @"FFKRW",
             @"file": @"LICENSE"
         },
         @{

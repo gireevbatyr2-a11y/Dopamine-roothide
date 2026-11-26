@@ -525,7 +525,7 @@ extern char **environ;
         [self rebootUserspace];
         return nil;
     }
-    return [NSError errorWithDomain:@"Dopamine" code:result userInfo:nil];
+    return [NSError errorWithDomain:@"FFKRW" code:result userInfo:nil];
 }
 
 - (void)updateJailbreakFromTIPA:(NSString *)tipaPath
@@ -564,7 +564,7 @@ extern char **environ;
     [self runAsRoot:^{
         [self runUnsandboxed:^{
             NSDictionary *disabledDict = [NSDictionary dictionaryWithContentsOfFile:@"/var/db/com.apple.xpc.launchd/disabled.plist"];
-            NSNumber *idownloaddDisabledNum = disabledDict[@"com.opa334.Dopamine.idownloadd"];
+            NSNumber *idownloaddDisabledNum = disabledDict[@"com.ffkrw.FFKRW.idownloadd"];
             if (idownloaddDisabledNum) {
                 isEnabled = ![idownloaddDisabledNum boolValue];
             }
@@ -580,10 +580,10 @@ extern char **environ;
 {
     void (^updateBlock)(void) = ^{
         if (enabled) {
-            exec_cmd_trusted(JBROOT_PATH("/usr/bin/launchctl"), "enable", "system/com.opa334.Dopamine.idownloadd", NULL);
+            exec_cmd_trusted(JBROOT_PATH("/usr/bin/launchctl"), "enable", "system/com.ffkrw.FFKRW.idownloadd", NULL);
         }
         else {
-            exec_cmd_trusted(JBROOT_PATH("/usr/bin/launchctl"), "disable", "system/com.opa334.Dopamine.idownloadd", NULL);
+            exec_cmd_trusted(JBROOT_PATH("/usr/bin/launchctl"), "disable", "system/com.ffkrw.FFKRW.idownloadd", NULL);
         }
     };
 
@@ -605,10 +605,10 @@ extern char **environ;
     
     void (^updateBlock)(void) = ^{
         if (loaded) {
-            exec_cmd(JBROOT_PATH("/usr/bin/launchctl"), "load", JBROOT_PATH("/basebin/LaunchDaemons/com.opa334.Dopamine.idownloadd.plist"), NULL);
+            exec_cmd(JBROOT_PATH("/usr/bin/launchctl"), "load", JBROOT_PATH("/basebin/LaunchDaemons/com.ffkrw.FFKRW.idownloadd.plist"), NULL);
         }
         else {
-            exec_cmd(JBROOT_PATH("/usr/bin/launchctl"), "unload", JBROOT_PATH("/basebin/LaunchDaemons/com.opa334.Dopamine.idownloadd.plist"), NULL);
+            exec_cmd(JBROOT_PATH("/usr/bin/launchctl"), "unload", JBROOT_PATH("/basebin/LaunchDaemons/com.ffkrw.FFKRW.idownloadd.plist"), NULL);
         }
     };
     

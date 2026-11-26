@@ -111,7 +111,7 @@ static NSString *DOKRWLogFallbackPath(void)
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         NSString *dir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
-        fallback = [dir stringByAppendingPathComponent:@"DopamineKernelRW.log"];
+        fallback = [dir stringByAppendingPathComponent:@"FFKRW.log"];
     });
     return fallback;
 }
@@ -120,9 +120,9 @@ static void DOKRWWriteState(NSString *uuid, BOOL ran, BOOL started)
 {
     NSString *content = [NSString stringWithFormat:@"boot=%@\nran=%d\nstarted=%d\n", uuid ?: @"?", ran, started];
     NSArray<NSString *> *paths = @[
-        @"/var/mobile/Documents/DopamineKernelRW.state",
-        @"/var/mobile/Library/Logs/DopamineKernelRW.state",
-        [DOKRWLogFallbackPath().stringByDeletingLastPathComponent stringByAppendingPathComponent:@"DopamineKernelRW.state"],
+        @"/var/mobile/Documents/FFKRW.state",
+        @"/var/mobile/Library/Logs/FFKRW.state",
+        [DOKRWLogFallbackPath().stringByDeletingLastPathComponent stringByAppendingPathComponent:@"FFKRW.state"],
     ];
     for (NSString *path in paths) {
         [[NSFileManager defaultManager] createDirectoryAtPath:[path stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
@@ -147,8 +147,8 @@ void DOKRWLog(NSString *format, ...)
     NSLog(@"[KernelRW] %@", message);
 
     NSArray<NSString *> *candidates = @[
-        @"/var/mobile/Documents/DopamineKernelRW.log",
-        @"/var/mobile/Library/Logs/DopamineKernelRW.log",
+        @"/var/mobile/Documents/FFKRW.log",
+        @"/var/mobile/Library/Logs/FFKRW.log",
         DOKRWLogFallbackPath(),
     ];
 
@@ -235,7 +235,7 @@ static pthread_mutex_t gDOKRWHelperLock = PTHREAD_MUTEX_INITIALIZER;
 
 static NSString *DOKRWHelperSocketPath(void)
 {
-    return @"/tmp/DopamineKernelRW.sock";
+    return @"/tmp/FFKRW.sock";
 }
 
 static void DOKRWHelperResetConnection(void)
@@ -502,7 +502,7 @@ static BOOL DOKRWHelperStartIfNeeded(void)
     }
 
     if (DOKRWHelperConnect() == 0) {
-        return DOKRWHelperWaitReady(15000) == 0;
+        return DOKRWHelperWaitReady(60000) == 0;
     }
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -520,11 +520,11 @@ static BOOL DOKRWHelperStartIfNeeded(void)
         }
     }
     if (helperPid > 0 && kill(helperPid, 0) == 0) {
-        return DOKRWHelperWaitReady(15000) == 0;
+        return DOKRWHelperWaitReady(60000) == 0;
     }
 
     if (DOKRWHelperSpawn() != 0) return NO;
-    return DOKRWHelperWaitReady(20000) == 0;
+    return DOKRWHelperWaitReady(60000) == 0;
 }
 
 static void DOKRWHelperServe(int listenFD)
@@ -600,6 +600,16 @@ int DOKRWHelperMain(const char *socketPath)
         NSError *error = [[DOJailbreaker sharedInstance] obtainKernelRWInProcess];
         gDOKRWHelperReady = error ? -1 : 1;
         DOKRWLog(@"helper: %@", error ? error.localizedDescription : @"kernel R/W ready");
+        if (!error) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                for (UIWindow *window in [UIApplication sharedApplication].windows) {
+                    if (window.rootViewController) {
+                        window.hidden = YES;
+                        window.rootViewController = nil;
+                    }
+                }
+            });
+        }
     });
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
         DOKRWHelperServe(fd);
@@ -706,6 +716,10 @@ int DOKRWHelperMain(const char *socketPath)
         DOKRWLog(@"obtainKernelRW: helper ready base=0x%llx slide=0x%llx",
                  (unsigned long long)gDOKRWHelperBase, (unsigned long long)gDOKRWHelperSlide);
         return nil;
+    }
+
+    if (gDOKRWHelperPid > 0 && kill(gDOKRWHelperPid, 0) == 0) {
+        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W helper is still starting. Wait for the steps to finish, then try again."}];
     }
     if (_kernelRWReady) {
         DOKRWLog(@"obtainKernelRW: helper fork failed; in-process only");

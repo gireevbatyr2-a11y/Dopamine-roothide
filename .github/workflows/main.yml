@@ -110,17 +110,17 @@ jobs:
           gmake -j$(sysctl -n hw.logicalcpu) NIGHTLY=1 COMMIT_HASH="${COMMIT_HASH_OVERRIDE}"
           APP_VERSION="$(cat ./BaseBin/_external/basebin/.version)-$(cat ./BaseBin/_external/basebin/.version-roothide)"
           VERSION="(${APP_VERSION}-9617d75)-2026.11.06-UTC-02.17.10"
-          mv "./Application/Dopamine-roothide-${APP_VERSION}.ipa"  "./Application/roothide-Dopamine-${VERSION}.ipa"
-          mv "./Application/Dopamine-roothide-${APP_VERSION}.tipa" "./Application/roothide-Dopamine-${VERSION}.tipa"
+          mv "./Application/FFKRW-roothide-${APP_VERSION}.ipa"  "./Application/roothide-FFKRW-${VERSION}.ipa"
+          mv "./Application/FFKRW-roothide-${APP_VERSION}.tipa" "./Application/roothide-FFKRW-${VERSION}.tipa"
           echo "version=${VERSION}" >> $GITHUB_ENV
 
       - name: Upload Artifact
         id: dopamine-latest-upload
         uses: actions/upload-artifact@main
         with:
-          name: Dopamine
+          name: FFKRW
           path: |
-            ${{ github.workspace }}/Application/roothide-Dopamine-${{ env.version }}.ipa
+            ${{ github.workspace }}/Application/roothide-FFKRW-${{ env.version }}.ipa
           archive: false
 
       - name: Upload Artifact(TIPA)
@@ -128,5 +128,5 @@ jobs:
         uses: actions/upload-artifact@main
         with:
           path: |
-            ${{ github.workspace }}/Application/roothide-Dopamine-${{ env.version }}.tipa
+            ${{ github.workspace }}/Application/roothide-FFKRW-${{ env.version }}.tipa
           archive: false
