@@ -1,3 +1,7 @@
+#include "darksword.h"
+#include "offsets.h"
+#include "utils.h"
+#include "TaskRop/RemoteCall.h"
 #include "TaskRop/RemoteCall.m"
 #include "TaskRop/thread.m"
 #include "TaskRop/pac.m"
