@@ -287,21 +287,22 @@ affecting behaviour.
 
 ### Push and build status (success, 2026-11-26)
 
-Write access became available; the branch was pushed at `efeaa21`.
+Write access became available; the branch was pushed at `cb1a0fa`.
 
-- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45801834098
+- Run: https://github.com/gireevbatyr2-a11y/Dopamine-roothide/actions/runs/45806453556
 - Conclusion: success (Build, Upload Artifact, Upload Artifact(TIPA)).
 - Artifacts (not expired):
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.ipa`
   - `roothide-Dopamine-(3.0.13-30-9617d75)-2026.11.06-UTC-02.17.10.tipa`
-- The run built commit `efeaa21` (no same-boot re-exploit, short helper
-  socket, FFKRW icons, Sileo/Zebra removed).
+- The run built commit `cb1a0fa` (fork-child SIGBUS workaround, waitpid,
+  theme-matched FFKRW icons).
 
-Previous successful runs: `45799983758` failed (removed `.deb` still
-referenced by the Xcode project), `45792538497` (`a5c4946`, auto re-acquire +
-FFKRW boot logo; auto re-acquire caused the GFX panic),
-`45788389040` (`0e5eaeb`, in-process ClearSword + Titan, fork helper),
-`45781966540` (`771b5aa`, posix_spawn helper + FFKRW header),
+Previous successful runs: `45801834098` (`efeaa21`, no same-boot re-exploit,
+short helper socket, FFKRW icons, Sileo/Zebra removed), `45799983758` failed
+(removed `.deb` still referenced by the Xcode project), `45792538497`
+(`a5c4946`, auto re-acquire + FFKRW boot logo; the auto re-acquire caused the
+GFX panic), `45788389040` (`0e5eaeb`, in-process ClearSword + Titan, fork
+helper), `45781966540` (`771b5aa`, posix_spawn helper + FFKRW header),
 `45776362820` (`3f44da3`, single Builder, kernel-only process connect),
 `45770706349` (`e5f9898`, extmod fallback/branding),
 `45766775974` (`6de2c57`, action menu restore),
@@ -572,6 +573,29 @@ boot. Re-running the exploit in one boot is unsafe.
   repo still contains `BaseBin/launchdhook`, `jailbreakd` and
   `DOBootstrapper`, but the original `DOJailbreaker` injection methods would
   have to be ported back. That enters roothide jailbreak state.
+
+## 8n. Fork child SIGBUS and theme icons (2026-11-26)
+
+`Dopamine-2026-11-26-134845.ips` is the **fork child** (pid 351, parent 295),
+not the app: `EXC_BAD_ACCESS/SIGBUS KERN_PROTECTION_FAILURE at
+0x102330844`, backtrace `DOKRWHelperFork`. The child died immediately after
+fork; the app then waited 120 s in `DOKRWHelperWaitReady`, which looked like a
+never-ending PPL step.
+
+- `gDOKRWHelperReady` is now set before `fork`, so the child no longer writes
+  that global; the child only runs `DOKRWHelperServeForked`.
+- `DOKRWHelperWaitReady` now calls `waitpid(..., WNOHANG)` and returns at once
+  if the child died (`helper: exited status=0x...`). Timeout reduced from
+  120 s to 15 s.
+- If the child still crashes, the in-process kernel R/W remains usable and the
+  app no longer hangs; after a force-quit the boot guard still requires reboot.
+- Icons: regenerated from the actual theme backgrounds:
+  `Background_Green.jpg` for Dopamine/`AppIcon`, `Background_ElleKit.jpg` for
+  ElleKit, plus Blue/Purple/Red. The home screen icon now matches the in-app
+  theme colors.
+- `External-iOS-App` was inspected: it only has `SpawnRoot` (`posix_spawn` as
+  root) and `UIBackgroundModes`; no launchd/daemon persistence. It does not
+  provide an unkillable process.
 
 ## 8k. Research: unkillable process without jailbreak (2026-11-26)
 
