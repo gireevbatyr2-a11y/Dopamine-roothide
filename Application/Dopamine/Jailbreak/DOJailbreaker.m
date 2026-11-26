@@ -1545,6 +1545,9 @@ void *boomerang_server(struct boomerang_info *info)
     dispatch_semaphore_wait(info.boomerangDone, DISPATCH_TIME_FOREVER);
     mach_port_deallocate(mach_task_self(), serverPort);
 
+    return nil;
+}
+
 - (NSError *)removeJailbreak
 {
     if (@available(iOS 18.0, *)) {
