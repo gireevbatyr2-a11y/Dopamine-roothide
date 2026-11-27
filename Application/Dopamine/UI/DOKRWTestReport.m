@@ -9,6 +9,8 @@
 #import "DOExploitManager.h"
 #import <sys/sysctl.h>
 #import <sys/utsname.h>
+#import <fcntl.h>
+#import <unistd.h>
 #import <libjailbreak/machine_info.h>
 
 extern NSString *persist_status_summary(void);
@@ -42,6 +44,36 @@ static NSString *DOKRWSysctlString(const char *name)
     size_t size = sizeof(value) - 1;
     if (sysctlbyname(name, value, &size, NULL, 0) != 0) return @"?";
     return [NSString stringWithUTF8String:value] ?: @"?";
+}
+
+// A TrollStore build carries com.apple.private.security.no-sandbox, so other apps'
+// containers are writable. On versions where that entitlement is not honoured the
+// app is still sandboxed and privileged file work needs a kernel-side sandbox patch,
+// which is a different problem from keeping the primitive alive. The report has to
+// say which of the two situations a device is in.
+static NSString *DOKRWSandboxProbe(void)
+{
+    const char *probes[] = {
+        "/private/var/mobile/Containers/Data/Application",
+        "/private/var/mobile/Containers/Data/System",
+    };
+
+    for (size_t i = 0; i < sizeof(probes) / sizeof(probes[0]); i++) {
+        NSString *path = [NSString stringWithFormat:@"%s/.ffkrw_probe_%d", probes[i], getpid()];
+        int fd = open(path.fileSystemRepresentation, O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+        if (fd < 0) {
+            return [NSString stringWithFormat:@"closed(%s)", probes[i]];
+        }
+        uint8_t byte = 0x31, back = 0;
+        bool ok = write(fd, &byte, 1) == 1 && lseek(fd, 0, SEEK_SET) == 0 &&
+                  read(fd, &back, 1) == 1 && back == byte;
+        close(fd);
+        unlink(path.fileSystemRepresentation);
+        if (!ok) {
+            return [NSString stringWithFormat:@"readonly(%s)", probes[i]];
+        }
+    }
+    return @"open";
 }
 
 static NSString *DOKRWLogTail(void)
@@ -98,6 +130,7 @@ NSString *DOKRWTestReport(void)
     [lines addObject:[NSString stringWithFormat:@"extmod_offset=0x%x", kernelRW.extmodOffset]];
     [lines addObject:[NSString stringWithFormat:@"boot_session=%@", [defaults stringForKey:@"DOKRWBootSessionUUID"] ?: @"?"]];
     [lines addObject:[NSString stringWithFormat:@"exploit_ran_this_boot=%d", kernelRW.exploitRanThisBoot]];
+    [lines addObject:[NSString stringWithFormat:@"sandbox=%@", DOKRWSandboxProbe()]];
     [lines addObject:[NSString stringWithFormat:@"persist=%@", persist_status_summary() ?: @"unavailable"]];
     [lines addObject:@"--- log ---"];
     [lines addObject:DOKRWLogTail()];
