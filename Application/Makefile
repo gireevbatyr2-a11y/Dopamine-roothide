@@ -34,6 +34,7 @@ endif
 	plutil -replace CFBundleDisplayName -string "FFKRW" build/Build/Products/Debug-iphoneos/FFKRW.app/Info.plist
 	plutil -replace CFBundleName -string "FFKRW" build/Build/Products/Debug-iphoneos/FFKRW.app/Info.plist
 	plutil -replace CFBundleShortVersionString -string "$(APP_VERSION)" build/Build/Products/Debug-iphoneos/FFKRW.app/Info.plist
+	plutil -replace DOKRWForkSHA -string "$(FORK_SHA)" build/Build/Products/Debug-iphoneos/FFKRW.app/Info.plist 2>/dev/null || plutil -insert DOKRWForkSHA -string "$(FORK_SHA)" build/Build/Products/Debug-iphoneos/FFKRW.app/Info.plist
 # ifeq ($(PALEHIDE), 1)
 	make -C Dopamine/Exploits/palera1n package
 	cp -a Dopamine/Exploits/palera1n/.framework build/Build/Products/Debug-iphoneos/FFKRW.app/Frameworks/palera1n.framework
