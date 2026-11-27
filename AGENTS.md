@@ -11,3 +11,12 @@
 - Keep these eight status documents current: `REPOSITORY_INVENTORY.md`, `ARCHITECTURE.md`, `DEPENDENCIES.md`, `HISTORY_AND_DECISIONS.md`, `BUILD_SPECIFICATION.md`, `TOOLS_AND_SKILLS.md`, `ATTEMPTS.md`, and `FINAL_VERIFICATION.md`.
 - Kernel-RW-only work log: `docs/kernel-rw/AGENT_JOURNAL.md` (read before continuing).
 - Kernel-RW handoff for a new chat: `HANDOFF.md` (current build/status, runtime flow, known issues, next steps).
+
+## Kernel R/W work — start here
+
+- Branch: `kernel-rw-only`; canonical base `9617d75f476423fdfd33477299c8a1349eb6f375`.
+- Read `HANDOFF.md` first: it has the runtime flow, file map, all fixes, known failures and next steps.
+- Last successful build: `45957452107` (commit `ab10177`).
+- First launch works (PPL + process connect). After force-quit the app now re-runs PPL instead of blocking on "reboot required".
+- `launchd stash failed`: lara persistence is not actually working yet; many lara offsets are still 0.
+- Do not define/shadow `xpf_start_with_kernel_path` in app code; it recreates the `xpf_set_is_supported` crash in `gatherSystemInformation`.
