@@ -56,7 +56,7 @@ NSString *persist_status_summary(void)
             gPersistRecovered ? "yes" : "no",
             gPersistChannel.UTF8String ?: "none",
             (unsigned long long)(gPersistBase ?: [record[@"KernelBase"] unsignedLongLongValue]),
-            [self_boot_matches_record(record) ? "same" : "other"],
+            (self_boot_matches_record(record) ? "same" : "other"),
             gPersistFailure.length ? [NSString stringWithFormat:@" failure=%@", gPersistFailure] : @""];
 }
 
