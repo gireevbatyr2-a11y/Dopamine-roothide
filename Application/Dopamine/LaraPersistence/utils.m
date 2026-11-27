@@ -23,11 +23,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+extern int xpf_start_with_kernel_path(const char *kernelPath, const char *optSptmPath, const char *optTxmPath);
+extern const char *xpf_get_error(void);
+extern uint64_t xpf_gett1szboot(void);
+
 static inline uint64_t lara_xpaci(uint64_t v) { return v & 0x0000FFFFFFFFFFFFULL; }
 static uint64_t lara_pac_mask = 0xFFFFFF8000000000ULL;
-int xpf_start_with_kernel_path(const char *path) { (void)path; return 0; }
-const char *xpf_get_error(void) { return ""; }
-uint64_t xpf_gett1szboot(void) { return 0; }
 #define xpaci(v) lara_xpaci(v)
 #define pac_mask lara_pac_mask
 
@@ -128,7 +129,7 @@ void init_offsets(void) {
         printf("(utils) no kernelcache...\n");
     }
     
-    if (xpf_start_with_kernel_path(kcpath.UTF8String) != 0) {
+    if (xpf_start_with_kernel_path(kcpath.UTF8String, NULL, NULL) != 0) {
         printf("xpf start error: %s\n", xpf_get_error());
     }
     
