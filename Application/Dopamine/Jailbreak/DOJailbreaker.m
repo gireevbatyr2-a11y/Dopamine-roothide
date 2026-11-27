@@ -918,6 +918,14 @@ int DOKRWHelperMain(const char *socketPath)
             sets[idx++] = "perfkrw";
         }
 
+        // Recorded for tester reports: when a set is unsupported, patchfinding on
+        // that kernel build cannot supply what the exploit needs.
+        DOKRWLog(@"xpf: sets struct=%d physrw=%d IOSurface=%d translation=%d trustcache=%d sandbox=%d physmap=%d",
+                 xpf_set_is_supported("struct"), xpf_set_is_supported("physrw"),
+                 xpf_set_is_supported("IOSurface"), xpf_set_is_supported("translation"),
+                 xpf_set_is_supported("trustcache"), xpf_set_is_supported("sandbox"),
+                 xpf_set_is_supported("physmap"));
+
         _systemInfoXdict = roothide_xpf_construct_offset_dictionary_wrapper((const char **)sets);
         if (_systemInfoXdict) {
             xpc_dictionary_set_uint64(_systemInfoXdict, "kernelConstant.staticBase", gXPF.kernelBase);
