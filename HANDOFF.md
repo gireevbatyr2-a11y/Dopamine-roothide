@@ -1,6 +1,6 @@
 # Kernel R/W handoff
 
-Last updated: 2026-11-27 (after build `45987649525`).
+Last updated: 2026-11-27 (after build `45993179143`).
 Read this before touching the branch. It is intentionally short; deep history is in
 `docs/kernel-rw/AGENT_JOURNAL.md`.
 
@@ -22,8 +22,8 @@ Test device used for evidence: iPhone13,2 (iPhone 12), iOS 16.6 (20G75).
 
 ## 2. Current state
 
-- HEAD: `bc90360` — bootstrap-stashed fileports + lara log bridge + no unsafe re-exploit
-- Latest build: **`45987649525` — success** (`.ipa` + `.tipa` uploaded)
+- HEAD: `40f883c` — + resumable-exploit preference with fallback chain
+- Latest build: **`45993179143` — success** (`.ipa` + `.tipa` uploaded)
 - Previous success: `45953263580` (`9c2fd20`) — fixed the `xpf` relaunch crash
 - Previous success from the other AI: `45907696779` (`2bc2792`)
 - First launch on device: PPL works, process connect works.
@@ -68,6 +68,29 @@ after a successful run in the same boot, and recovery has to work instead.
 Open question for the next device run: whether `bootstrap_register` from the app
 namespace survives process exit. The log now prints the `kern_return` of every
 step, so one run answers it.
+
+## 2d. Coverage across the supported matrix
+
+Upstream support statement (ellekit.space/dopamine): arm64 A8-A11 and arm64e
+A12-A17/M1-M2; iOS 15.0-17.3.1 for A14-A17/M1-M2; iOS 15.0-18.7.1 and
+26.0-26.0.1 for A8-A13.
+
+Which kernel exploit runs is decided by `DPFlavorPriority` in the exploit
+Info.plists, and only some transports can be resumed after process death:
+
+| iOS | exploit chosen by priority | transport resumable |
+|---|---|---|
+| 15.0-15.1.1 (A10+) | multicast_bytecopy 950 | no |
+| 15.0-15.1.1 (A8/A9) | ClearSword 895 | yes |
+| 15.0-15.7.3, 16.0-16.3.1 | kfd physpuppet 1000 | no |
+| 15.7.4-18.7.1, 19.0-26.0.1 | ClearSword 895 | yes |
+
+`orderedKernelExploits` now tries an explicit user pick first, then exploits with
+`DPPersistentTransport` (ClearSword, DarkSword), then the rest by priority, and
+`doExploitation` walks the whole list instead of giving up on the first failure.
+Effect: on 15.0-16.3.1 ClearSword is attempted before kfd, so those devices get
+persistence if ClearSword works there; if it does not run, kfd still gets R/W
+(without persistence). Unverified on hardware: 15.x, 16.0-16.3.1, arm64, 26.x.
 
 ## 3. Runtime flow (what is wired to what)
 
