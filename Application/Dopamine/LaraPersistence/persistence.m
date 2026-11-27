@@ -131,6 +131,19 @@ static bool persist_probe_fd(int fd, bool controlSide, uint64_t base)
     return ok;
 }
 
+// A boot-scoped, attempt-scoped suffix: names are never reused, so a stash that
+// died halfway cannot block the next attempt for the rest of the boot.
+static NSString *persist_next_service_suffix(void)
+{
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *boot = persist_boot_uuid() ?: @"unknown";
+    NSString *stamp = [boot componentsSeparatedByString:@"-"][0];
+    NSInteger attempt = [defaults integerForKey:@"DOKRWStashAttempt"] + 1;
+    [defaults setInteger:attempt forKey:@"DOKRWStashAttempt"];
+    [defaults synchronize];
+    return [NSString stringWithFormat:@"%@.%ld", stamp, (long)attempt];
+}
+
 static bool persist_register_name(const char *name, mach_port_t port)
 {
     kern_return_t kr = bootstrap_register(bootstrap_port, name, port);
@@ -157,6 +170,12 @@ static bool persist_simple_stash(void)
         return false;
     }
 
+    NSString *suffix = persist_next_service_suffix();
+    NSString *controlPortName = [NSString stringWithFormat:@"%s.%@", PERSIST_SIMPLE_CONTROL_NAME, suffix];
+    NSString *rwPortName = [NSString stringWithFormat:@"%s.%@", PERSIST_SIMPLE_RW_NAME, suffix];
+    const char *controlName = controlPortName.UTF8String;
+    const char *rwName = rwPortName.UTF8String;
+
     fileport_t controlPort = FILEPORT_NULL;
     int rc = fileport_makeport(control_socket, &controlPort);
     PERSIST_LOG("simple: fileport_makeport(control) rc=%d (%s) port=0x%x\n",
@@ -175,14 +194,11 @@ static bool persist_simple_stash(void)
         return false;
     }
 
-    if (!persist_register_name(PERSIST_SIMPLE_CONTROL_NAME, controlPort)) {
+    if (!persist_register_name(controlName, controlPort)) {
         gPersistFailure = @"register control";
         return false;
     }
-    if (!persist_register_name(PERSIST_SIMPLE_RW_NAME, rwPort)) {
-        // Never leave half a stash behind: the name would block the retry for the
-        // rest of the boot.
-        bootstrap_unregister(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME);
+    if (!persist_register_name(rwName, rwPort)) {
         gPersistFailure = @"register rw";
         return false;
     }
@@ -192,8 +208,8 @@ static bool persist_simple_stash(void)
         @"KernelSlide" : @(kernel_slide),
         @"BootUUID" : persist_boot_uuid() ?: @"",
         @"Channel" : @"simple",
-        @"ControlName" : @(PERSIST_SIMPLE_CONTROL_NAME),
-        @"RWName" : @(PERSIST_SIMPLE_RW_NAME),
+        @"ControlName" : controlPortName,
+        @"RWName" : rwPortName,
     };
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setObject:primitive forKey:PERSIST_SIMPLE_KEY];
@@ -269,8 +285,6 @@ static bool persist_simple_recover(void)
         PERSIST_LOG("simple: recovered fds do not read/write kernel memory\n");
         close(controlFd);
         close(rwFd);
-        bootstrap_unregister(bootstrap_port, controlName);
-        bootstrap_unregister(bootstrap_port, rwName);
         gPersistFailure = @"verify";
         persist_drop_record(PERSIST_SIMPLE_KEY);
         return false;
