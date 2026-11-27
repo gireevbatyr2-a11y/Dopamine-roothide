@@ -1,3 +1,25 @@
+// lara's translation units log with printf/fflush, which is invisible on iOS
+// (no stdout). Route printf into the app's file log so stash/recovery failures
+// are diagnosable from /var/mobile/Documents/DopamineKernelRW.log.
+#include <stdio.h>
+#include <stdarg.h>
+
+void DOKRWLog(NSString *format, ...);
+
+static void laraLogf(const char *format, ...) __attribute__((format(__printf__, 1, 2)));
+static void laraLogf(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    NSString *message = [[NSString alloc] initWithFormat:@(format) arguments:args];
+    va_end(args);
+    if (message.length) {
+        DOKRWLog(@"[lara] %@", message);
+    }
+}
+
+#define printf(...) laraLogf(__VA_ARGS__)
+
 #include "darksword.h"
 #include "offsets.h"
 #include "utils.h"

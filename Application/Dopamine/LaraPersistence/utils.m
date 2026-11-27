@@ -163,7 +163,7 @@ static inline uint64_t signptr(uint64_t v) {
 
 #define S(x) ({ uint64_t _v = xpaci(x); signptr(_v); })
 
-static void utils_log_file(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void utils_log_file(const char *fmt, ...) __attribute__((format(__printf__, 1, 2)));
 static void utils_log_file(const char *fmt, ...) {
     static int fd = -2;
     if (fd == -2) {

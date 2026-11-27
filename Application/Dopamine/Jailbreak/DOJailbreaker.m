@@ -769,6 +769,15 @@ int DOKRWHelperMain(const char *socketPath)
         DOKRWLog(@"obtainKernelRW: already ready");
         return nil;
     }
+    if ([self exploitRanThisBoot]) {
+        // Re-running ClearSword/Titan in the same boot corrupts kernel state and
+        // panics (GFX NMI in backboardd). Once the exploit has run, the only way
+        // back is recovery of the stashed sockets.
+        DOKRWLog(@"obtainKernelRW: recovery failed and the exploit already ran this boot; refusing to re-run it");
+        return [NSError errorWithDomain:JBErrorDomain
+                                   code:JBErrorCodeFailedExploitation
+                               userInfo:@{NSLocalizedDescriptionKey : @"Kernel R/W from this boot could not be recovered. Reboot the device and run it again."}];
+    }
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
     _kernelRWReady = YES;
