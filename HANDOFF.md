@@ -1,6 +1,6 @@
 # Kernel R/W handoff
 
-Last updated: 2026-11-27 (after build `46003161569`).
+Last updated: 2026-11-27 (after build `46014408252`).
 Read this before touching the branch. It is intentionally short; deep history is in
 `docs/kernel-rw/AGENT_JOURNAL.md`.
 
@@ -22,8 +22,8 @@ Test device used for evidence: iPhone13,2 (iPhone 12), iOS 16.6 (20G75).
 
 ## 2. Current state
 
-- HEAD: `8d6a9f2` — + Settings lists only resumable kernel exploits
-- Latest build: **`46003161569` — success** (`.ipa` + `.tipa` uploaded)
+- HEAD: `04a62bc` — + exploit matrix simulation + CI job
+- Latest build: **`46014408252` — success** (`.ipa` + `.tipa` uploaded)
 - Previous success: `45953263580` (`9c2fd20`) — fixed the `xpf` relaunch crash
 - Previous success from the other AI: `45907696779` (`2bc2792`)
 - First launch on device: PPL works, process connect works.
