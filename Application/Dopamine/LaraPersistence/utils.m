@@ -25,7 +25,8 @@
 
 extern int xpf_start_with_kernel_path(const char *kernelPath, const char *optSptmPath, const char *optTxmPath);
 extern const char *xpf_get_error(void);
-extern uint64_t xpf_gett1szboot(void);
+
+uint64_t xpf_gett1szboot(void) { return 0; }
 
 static inline uint64_t lara_xpaci(uint64_t v) { return v & 0x0000FFFFFFFFFFFFULL; }
 static uint64_t lara_pac_mask = 0xFFFFFF8000000000ULL;
