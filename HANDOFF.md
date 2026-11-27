@@ -1,6 +1,6 @@
 # Kernel R/W handoff
 
-Last updated: 2026-11-27 (after build `46014408252`).
+Last updated: 2026-11-27 (after tester build `46026065852`).
 Read this before touching the branch. It is intentionally short; deep history is in
 `docs/kernel-rw/AGENT_JOURNAL.md`.
 
@@ -22,8 +22,14 @@ Test device used for evidence: iPhone13,2 (iPhone 12), iOS 16.6 (20G75).
 
 ## 2. Current state
 
-- HEAD: `04a62bc` — + exploit matrix simulation + CI job
-- Latest build: **`46014408252` — success** (`.ipa` + `.tipa` uploaded)
+Tester build: menu → **Test report** copies device/exploit/transport state plus the
+log tail to the clipboard and rewrites `Documents/FFKRW-report.txt` after every run;
+`docs/kernel-rw/TESTER_GUIDE.md` is what subscribers get. Verified by unpacking the
+artifact: report strings are in the binary and `DOKRWForkSHA` is in `Info.plist`.
+
+
+- HEAD: `0a98add` — + tester report, build stamp, tester guide
+- Latest build: **`46026065852` — success** (`.ipa` + `.tipa`, `DOKRWForkSHA=0a98add` verified in the packaged Info.plist)
 - Previous success: `45953263580` (`9c2fd20`) — fixed the `xpf` relaunch crash
 - Previous success from the other AI: `45907696779` (`2bc2792`)
 - First launch on device: PPL works, process connect works.
