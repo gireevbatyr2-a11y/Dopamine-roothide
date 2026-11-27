@@ -1,3 +1,17 @@
+## Persistence (kernel R/W across relaunch)
+
+- Mechanism: after the exploit, both sockets are converted with `fileport_makeport`
+  and registered in the bootstrap namespace (`com.ffkrw.krw.control.<boot>.<n>` /
+  `com.ffkrw.krw.rw.<boot>.<n>`). launchd holds the fileport, so the socket outlives
+  the app; the next launch does `bootstrap_look_up` + `fileport_makefd` and verifies
+  kread+kwrite. Confirmed on 20G75 (iPhone 12, iOS 16.6) across three launches.
+- Fallback channel: `RemoteCall` into launchd issues the register/lookup sandbox
+  extensions and registers the primitive under a UUID-suffixed name.
+- Hardening in 60790b6: fileport round-trip probe before registering, write check on
+  recovery, `kern.bootsessionuuid` in the record, per-attempt service names, launchd
+  recovery uses the stored names, report shows `channel`/`boot`/`failure`.
+- Details and how to read tester reports: `docs/kernel-rw/PERSISTENCE.md`.
+
 # Kernel R/W handoff
 
 Last updated: 2026-11-27 (after tester build `46026065852`).

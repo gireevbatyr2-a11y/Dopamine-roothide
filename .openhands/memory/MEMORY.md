@@ -139,3 +139,15 @@
   10x; ~8 Xcode builds/day at ~15 min each burns the monthly 2000 minutes.
 - Repo is private (gireevbatyr2-a11y/Dopamine-roothide); making it public gives free
   Actions minutes, but that is the user's decision.
+
+## Kernel R/W persistence (this fork's mechanism)
+- Primitive holder: `fileport_makeport` on the two ClearSword sockets, then
+  `bootstrap_register` into the app's bootstrap namespace; launchd holds the port, so
+  the sockets survive app death (exploit leaks so_usecount). Recovery is
+  `bootstrap_look_up` + `fileport_makefd` + kread/kwrite verify. Works on 20G75.
+- `bootstrap_unregister` is NOT exported by libSystem -> link error. Use unique
+  per-attempt service names instead of unregistering.
+- The iOS16 launchd fallback wrote UUID-suffixed names into its record but recovery
+  looked up the fixed constants, so that channel could never recover (fixed in 60790b6).
+- Re-running the exploit in the same boot panics; that is why persistence exists at all.
+- Build 46061999163 (sha 60790b6) = first build with hardened persistence.
