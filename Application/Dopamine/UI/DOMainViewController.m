@@ -6,6 +6,7 @@
 //
 
 #import "DOMainViewController.h"
+#import "../LaraPersistence/persistence.h"
 #import "DOUIManager.h"
 #import "DOEnvironmentManager.h"
 #import "DOJailbreaker.h"
@@ -243,6 +244,26 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
                 [[DOUIManager sharedInstance] sendLog:message debug:NO];
                 [self.jailbreakBtn.button setTitle:@"Kernel R/W Ready" forState:UIControlStateNormal];
                 UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Kernel R/W" message:message preferredStyle:UIAlertControllerStyleAlert];
+                if (!persist_is_stashed()) {
+                    // R/W is live in this process but nothing was handed to launchd,
+                    // so closing the app would lose it. Retrying costs nothing: the
+                    // sockets are already here.
+                    [alertController addAction:[UIAlertAction actionWithTitle:@"Save R/W" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+                            bool saved = transfer_krw_to_launchd();
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                DOKRWLog(@"UI: manual stash %@ (%@)", saved ? @"ok" : @"failed", persist_status_summary());
+                                DOKRWTestReportSave();
+                                UIAlertController *result = [UIAlertController
+                                    alertControllerWithTitle:(saved ? @"R/W saved" : @"R/W not saved")
+                                                     message:persist_status_summary()
+                                              preferredStyle:UIAlertControllerStyleAlert];
+                                [result addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+                                [self presentViewController:result animated:YES completion:nil];
+                            });
+                        });
+                    }]];
+                }
                 [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
                 [self presentViewController:alertController animated:YES completion:nil];
             }

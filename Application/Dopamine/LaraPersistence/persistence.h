@@ -24,5 +24,6 @@ void lara_offsets_init(void);
 
 bool transfer_krw_to_launchd(void);
 // One-line state for the tester report: stash record, attempts, service, base.
+bool persist_is_stashed(void);
 NSString *persist_status_summary(void);
 bool recover_krw_primitives(void);

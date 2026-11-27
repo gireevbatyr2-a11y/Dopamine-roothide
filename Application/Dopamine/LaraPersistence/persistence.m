@@ -237,6 +237,11 @@ static bool persist_simple_recover(void)
     return true;
 }
 
+bool persist_is_stashed(void)
+{
+    return gPersistStashed;
+}
+
 static bool transfer_krw_to_launchd_impl(void);
 
 // The stash touches private kernel interfaces; if one of them blocks, the caller
