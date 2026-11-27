@@ -162,7 +162,15 @@
         
         NSSortDescriptor *prioritySortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"priority" ascending:NO];
         
-        _availableKernelExploits = [[exploitManager availableExploitsForType:EXPLOIT_TYPE_KERNEL] sortedArrayUsingDescriptors:@[prioritySortDescriptor]];
+        // Only exploits whose kread/kwrite survive process death are offered: the
+        // others silently lose kernel R/W when the app is closed. They stay
+        // installed as an automatic fallback (see -[DOExploitManager orderedKernelExploits]).
+        NSArray<DOExploit *> *allKernelExploits = [[exploitManager availableExploitsForType:EXPLOIT_TYPE_KERNEL] sortedArrayUsingDescriptors:@[prioritySortDescriptor]];
+        NSPredicate *resumable = [NSPredicate predicateWithBlock:^BOOL(DOExploit *exploit, NSDictionary *bindings) {
+            return exploit.persistentTransport;
+        }];
+        NSArray<DOExploit *> *resumableKernelExploits = [allKernelExploits filteredArrayUsingPredicate:resumable];
+        _availableKernelExploits = resumableKernelExploits.count ? resumableKernelExploits : allKernelExploits;
         if (envManager.isArm64e) {
             _availablePACBypasses = [[exploitManager availableExploitsForType:EXPLOIT_TYPE_PAC] sortedArrayUsingDescriptors:@[prioritySortDescriptor]];
             _availablePPLBypasses = [[exploitManager availableExploitsForType:EXPLOIT_TYPE_PPL] sortedArrayUsingDescriptors:@[prioritySortDescriptor]];
@@ -179,15 +187,17 @@
                 exploitGroupSpecifier.name = DOLocalizedString(@"Section_Exploits");
                 [specifiers addObject:exploitGroupSpecifier];
                 
-                PSSpecifier *kernelExploitSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Kernel Exploit") target:self set:defSetter get:expGetter detail:nil cell:PSLinkListCell edit:nil];
-                [kernelExploitSpecifier setProperty:@YES forKey:@"enabled"];
-                [kernelExploitSpecifier setProperty:exploitManager.preferredKernelExploit.identifier forKey:@"default"];
-                kernelExploitSpecifier.detailControllerClass = [DOPSExploitListItemsController class];
-                [kernelExploitSpecifier setProperty:@"availableKernelExploitIdentifiers" forKey:@"valuesDataSource"];
-                [kernelExploitSpecifier setProperty:@"availableKernelExploitNames" forKey:@"titlesDataSource"];
-                [kernelExploitSpecifier setProperty:@"selectedKernelExploit" forKey:@"key"];
-                [kernelExploitSpecifier setProperty:(_availableKernelExploits.firstObject.identifier ?: @"none") forKey:@"recommendedExploitIdentifier"];
-                [specifiers addObject:kernelExploitSpecifier];
+                if (_availableKernelExploits.count > 1) {
+                    PSSpecifier *kernelExploitSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Kernel Exploit") target:self set:defSetter get:expGetter detail:nil cell:PSLinkListCell edit:nil];
+                    [kernelExploitSpecifier setProperty:@YES forKey:@"enabled"];
+                    [kernelExploitSpecifier setProperty:exploitManager.preferredKernelExploit.identifier forKey:@"default"];
+                    kernelExploitSpecifier.detailControllerClass = [DOPSExploitListItemsController class];
+                    [kernelExploitSpecifier setProperty:@"availableKernelExploitIdentifiers" forKey:@"valuesDataSource"];
+                    [kernelExploitSpecifier setProperty:@"availableKernelExploitNames" forKey:@"titlesDataSource"];
+                    [kernelExploitSpecifier setProperty:@"selectedKernelExploit" forKey:@"key"];
+                    [kernelExploitSpecifier setProperty:(_availableKernelExploits.firstObject.identifier ?: @"none") forKey:@"recommendedExploitIdentifier"];
+                    [specifiers addObject:kernelExploitSpecifier];
+                }
                 
                 if (envManager.isArm64e) {
                     PSSpecifier *pacBypassSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"PAC Bypass") target:self set:defSetter get:expGetter detail:nil cell:PSLinkListCell edit:nil];
