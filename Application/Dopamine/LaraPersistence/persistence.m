@@ -36,6 +36,21 @@ static bool transfer_krw_to_launchd_ios16(void);
 // without launchd-side sandbox extensions. fileport keeps the socket file
 // description alive through the registered send right, which is all kread/kwrite
 // need (the kernel-side socket objects are leaked by so_usecount).
+static bool gPersistStashed;
+static bool gPersistRecovered;
+static uint64_t gPersistBase;
+
+NSString *persist_status_summary(void)
+{
+    NSDictionary *record = [[NSUserDefaults standardUserDefaults] dictionaryForKey:PERSIST_SIMPLE_KEY];
+    return [NSString stringWithFormat:@"record=%s stashed=%@ recovered=%@ service=%s base=0x%llx",
+            record ? "yes" : "no",
+            gPersistStashed ? @"yes" : @"no",
+            gPersistRecovered ? @"yes" : @"no",
+            PERSIST_SIMPLE_CONTROL_NAME,
+            (unsigned long long)(gPersistBase ?: [record[@"KernelBase"] unsignedLongLongValue])];
+}
+
 static bool persist_simple_stash(void)
 {
     PERSIST_LOG("simple: stash begin control_fd=%d rw_fd=%d\n", control_socket, rw_socket);
@@ -80,6 +95,8 @@ static bool persist_simple_stash(void)
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setObject:primitive forKey:PERSIST_SIMPLE_KEY];
     [defaults synchronize];
+    gPersistStashed = true;
+    gPersistBase = kernel_base;
     PERSIST_LOG("simple: stashed base=0x%llx slide=0x%llx\n",
                 (unsigned long long)kernel_base, (unsigned long long)kernel_slide);
     return true;
@@ -135,6 +152,8 @@ static bool persist_simple_recover(void)
 
     kernel_base = base;
     kernel_slide = slide;
+    gPersistRecovered = true;
+    gPersistBase = base;
     return true;
 }
 

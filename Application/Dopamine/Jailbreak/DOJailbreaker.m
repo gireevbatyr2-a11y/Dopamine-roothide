@@ -1012,6 +1012,10 @@ int DOKRWHelperMain(const char *socketPath)
         return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Failed to exploit kernel"}];
     }
 
+    NSUserDefaults *exploitDefaults = [NSUserDefaults standardUserDefaults];
+    [exploitDefaults setObject:(kernelExploit.displayName ?: @"") forKey:@"DOKRWLastKernelExploitName"];
+    [exploitDefaults setObject:@(kernelExploit.persistentTransport) forKey:@"DOKRWLastKernelExploitResumable"];
+
     DOKRWLog(@"exploit: kernel=%@ pac=%@ ppl=%@", kernelExploit.displayName, pacBypass.displayName ?: @"none", pplBypass.displayName ?: @"none");
 
     jbinfo_initialize_boot_constants();

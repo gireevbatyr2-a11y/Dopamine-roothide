@@ -13,6 +13,7 @@
 #import "DOActionMenuButton.h"
 #import "DOUpdateViewController.h"
 #import "DOLogCrashViewController.h"
+#import "DOKRWTestReport.h"
 #import <pthread.h>
 #import <sys/sysctl.h>
 #import <stdio.h>
@@ -111,6 +112,14 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         }],
         [UIAction actionWithTitle:@"Processes" image:[UIImage systemImageNamed:@"list.bullet" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"processes" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOProcessListViewController alloc] init] animated:YES];
+        }],
+        [UIAction actionWithTitle:@"Test report" image:[UIImage systemImageNamed:@"doc.on.doc" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"testreport" handler:^(__kindof UIAction * _Nonnull action) {
+            [UIPasteboard generalPasteboard].string = DOKRWTestReport();
+            NSURL *url = DOKRWTestReportSave();
+            NSString *message = [NSString stringWithFormat:@"Report copied to the clipboard.\nSaved to Documents/%@", url.lastPathComponent ?: @"(failed)"];
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Test report" message:message preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+            [self presentViewController:alert animated:YES completion:nil];
         }],
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Credits_Title") image:[UIImage systemImageNamed:@"info.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"credits" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOCreditsViewController alloc] init] animated:YES];
@@ -237,6 +246,8 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
                 [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
                 [self presentViewController:alertController animated:YES completion:nil];
             }
+            // Written on every run so a tester who forgets the menu entry still has it.
+            DOKRWTestReportSave();
         });
         [self.jailbreakBtn unlockMutex];
     });

@@ -1,6 +1,7 @@
 .PHONY: all clean build_clean
 
 APP_VERSION := $(shell cat ../BaseBin/_external/basebin/.version)-$(shell cat ../BaseBin/_external/basebin/.version-roothide)
+FORK_SHA := $(shell git rev-parse --short HEAD 2>/dev/null)
 
 all: FFKRW.ipa
 
