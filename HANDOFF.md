@@ -1,6 +1,6 @@
 # Kernel R/W handoff
 
-Last updated: 2026-11-27 (after build `45957452107`).
+Last updated: 2026-11-27 (after build `45987649525`).
 Read this before touching the branch. It is intentionally short; deep history is in
 `docs/kernel-rw/AGENT_JOURNAL.md`.
 
@@ -22,8 +22,8 @@ Test device used for evidence: iPhone13,2 (iPhone 12), iOS 16.6 (20G75).
 
 ## 2. Current state
 
-- HEAD: `ab10177` — "fix: allow fresh kernel R/W attempt after app relaunch"
-- Latest build: **`45957452107` — success** (`.ipa` + `.tipa` uploaded)
+- HEAD: `bc90360` — bootstrap-stashed fileports + lara log bridge + no unsafe re-exploit
+- Latest build: **`45987649525` — success** (`.ipa` + `.tipa` uploaded)
 - Previous success: `45953263580` (`9c2fd20`) — fixed the `xpf` relaunch crash
 - Previous success from the other AI: `45907696779` (`2bc2792`)
 - First launch on device: PPL works, process connect works.
@@ -33,6 +33,41 @@ Test device used for evidence: iPhone13,2 (iPhone 12), iOS 16.6 (20G75).
 
 Do not claim persistence across force-quit yet. The current recovery is:
 try lara `recover_krw_primitives()`, then fall back to re-running the in-process PPL.
+
+## 2b. 2026-11-27 device run: what the logs showed
+
+`FFKRW.log` + `panic-full-2026-11-27-133421.000.ips` from build `45957452107`:
+
+- first launch: `patchfinding -> exploitation -> physrw -> ready`, kread/kwrite work,
+  `process: connected to 34 (nfcacd), extmod zeroed=yes`, pinned extmod offset 0x438;
+- `launchd stash failed` (lara RemoteCall path, offsets still 0);
+- force-quit, relaunch (`main: launch pid=630`), second tap on the button;
+- kernel panic: `GFX NMI: GFXEndpoint2: send msg=0x83000000000000 error=0xe00002db`,
+  panicked task `pid 64: backboardd` (RTBuddy / IOGPUFamily in the backtrace).
+  FFKRW is not a jetsam victim and has no thread in the backtrace.
+
+Conclusion: the second ClearSword/Titan run in the same boot is what kills the
+device. Force-quitting alone did not panic. So the app must never re-exploit
+after a successful run in the same boot, and recovery has to work instead.
+
+## 2c. What was changed for that (build 45987649525)
+
+- `persistence.m`: the kread/kwrite transport is two sockets whose kernel objects
+  are leaked on purpose (`so_usecount`), so the primitive survives process death;
+  only the fds die. The sockets are now also converted with `fileport_makeport`
+  and registered as `com.ffkrw.krw.control` / `com.ffkrw.krw.rw` in the app's
+  bootstrap namespace (the app has `com.apple.private.security.no-sandbox`), with
+  kernel base/slide in NSUserDefaults. Recovery does `bootstrap_look_up` +
+  `fileport_makefd` and verifies `kread32(kernel_base) == 0xFEEDFACF`.
+  lara's launchd `RemoteCall` path is still tried second as a fallback.
+- `LaraPersistence.m`: lara logs with `printf`, which goes nowhere on iOS. It is
+  now routed into `DOKRWLog` (`[lara]` lines in the app log).
+- `DOJailbreaker.m`: if recovery fails and the exploit already ran this boot,
+  return an error instead of re-running PPL (that is the panic path).
+
+Open question for the next device run: whether `bootstrap_register` from the app
+namespace survives process exit. The log now prints the `kern_return` of every
+step, so one run answers it.
 
 ## 3. Runtime flow (what is wired to what)
 
