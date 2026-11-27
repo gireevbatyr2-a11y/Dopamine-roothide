@@ -1,6 +1,7 @@
 // lara's translation units log with printf/fflush, which is invisible on iOS
 // (no stdout). Route printf into the app's file log so stash/recovery failures
 // are diagnosable from /var/mobile/Documents/DopamineKernelRW.log.
+#import <Foundation/Foundation.h>
 #include <stdio.h>
 #include <stdarg.h>
 
