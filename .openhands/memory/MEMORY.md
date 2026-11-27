@@ -151,3 +151,14 @@
   looked up the fixed constants, so that channel could never recover (fixed in 60790b6).
 - Re-running the exploit in the same boot panics; that is why persistence exists at all.
 - Build 46061999163 (sha 60790b6) = first build with hardened persistence.
+
+## Regression lesson (2026-11-28)
+- Calling `fileport_makefd` on a port we just made with `fileport_makeport` in the
+  same process HANGS (no reply ever arrives). Only makefd ports obtained from
+  `bootstrap_look_up` (i.e. registered in launchd). This hung the UI with an endless
+  spinner and left the boot without a stash; reverted in favour of the 0a98add flow.
+- Known-good persistence code = commit 0a98add / build 46026065852 (stash + 2
+  recoveries on 20G75). Any change to persistence must keep that sequence intact.
+- `bootstrap_look_up` kr=0x44e is BOOTSTRAP_UNKNOWN_SERVICE: the name is gone (reboot).
+- Wrap the stash in a watchdog (20s): a blocking private kernel call must never hang
+  obtainKernelRW.
