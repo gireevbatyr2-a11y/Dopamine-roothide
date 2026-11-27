@@ -42,6 +42,7 @@
 		04DD0B372B7BA6180055DE4F /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = 04DD0B362B7BA6180055DE4F /* LICENSE.md */; };
 		04DD0B3A2B7BF3E80055DE4F /* LICENSE_libc.md in Resources */ = {isa = PBXBuildFile; fileRef = 04DD0B392B7BF3E80055DE4F /* LICENSE_libc.md */; };
 		04DD0B3D2B7C88210055DE4F /* DOLogCrashViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 04DD0B3C2B7C88210055DE4F /* DOLogCrashViewController.m */; };
+		A1B2C3D4000000000000F001 /* DOKRWTestReport.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4000000000000F003 /* DOKRWTestReport.m */; };
 		04DD0B402B7CBD3D0055DE4F /* Themes.plist in Resources */ = {isa = PBXBuildFile; fileRef = 04DD0B3F2B7CBD3D0055DE4F /* Themes.plist */; };
 		04DD0B442B7CBE2E0055DE4F /* DOThemeManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 04DD0B432B7CBE2E0055DE4F /* DOThemeManager.m */; };
 		04DD0B472B7CBEEA0055DE4F /* DOTheme.m in Sources */ = {isa = PBXBuildFile; fileRef = 04DD0B462B7CBEEA0055DE4F /* DOTheme.m */; };
@@ -468,6 +469,8 @@
 		04DD0B392B7BF3E80055DE4F /* LICENSE_libc.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE_libc.md; sourceTree = "<group>"; };
 		04DD0B3B2B7C88210055DE4F /* DOLogCrashViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DOLogCrashViewController.h; sourceTree = "<group>"; };
 		04DD0B3C2B7C88210055DE4F /* DOLogCrashViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DOLogCrashViewController.m; sourceTree = "<group>"; };
+		A1B2C3D4000000000000F002 /* DOKRWTestReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DOKRWTestReport.h; sourceTree = "<group>"; };
+		A1B2C3D4000000000000F003 /* DOKRWTestReport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DOKRWTestReport.m; sourceTree = "<group>"; };
 		04DD0B3F2B7CBD3D0055DE4F /* Themes.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Themes.plist; sourceTree = "<group>"; };
 		04DD0B422B7CBE2E0055DE4F /* DOThemeManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DOThemeManager.h; sourceTree = "<group>"; };
 		04DD0B432B7CBE2E0055DE4F /* DOThemeManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DOThemeManager.m; sourceTree = "<group>"; };
@@ -920,6 +923,8 @@
 				042479932B66916B0082581B /* DOLogViewProtocol.h */,
 				04DD0B3B2B7C88210055DE4F /* DOLogCrashViewController.h */,
 				04DD0B3C2B7C88210055DE4F /* DOLogCrashViewController.m */,
+				A1B2C3D4000000000000F002 /* DOKRWTestReport.h */,
+				A1B2C3D4000000000000F003 /* DOKRWTestReport.m */,
 			);
 			path = Log;
 			sourceTree = "<group>";
@@ -2292,6 +2297,7 @@
 				0443A9B12B79D9C10014C933 /* DOPSListItemsController.m in Sources */,
 				8C71982B2ABF0E84003C6658 /* main.m in Sources */,
 				04DD0B3D2B7C88210055DE4F /* DOLogCrashViewController.m in Sources */,
+				A1B2C3D4000000000000F001 /* DOKRWTestReport.m in Sources */,
 				8614E357301AB63E00B1B88C /* DOBootstrapper+zstd.m in Sources */,
 				8C029F602B4E25350071DE58 /* DOEnvironmentManager.m in Sources */,
 				04C246A12B73225800E17924 /* DODownloadViewController.m in Sources */,
