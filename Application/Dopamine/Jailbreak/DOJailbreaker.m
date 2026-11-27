@@ -769,11 +769,6 @@ int DOKRWHelperMain(const char *socketPath)
         DOKRWLog(@"obtainKernelRW: already ready");
         return nil;
     }
-    BOOL ranThisBoot = [self exploitRanThisBoot];
-    BOOL startedThisBoot = [self exploitStartedThisBoot];
-    if (startedThisBoot || ranThisBoot) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already started/acquired in this boot. Reboot the device before running the exploit again."}];
-    }
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
     _kernelRWReady = YES;
@@ -808,10 +803,6 @@ int DOKRWHelperMain(const char *socketPath)
                  currentBoot ?: @"?", lastBoot ?: @"?", ranThisBoot, startedThisBoot,
                  [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Preferences"]);
         DOKRWWriteState(currentBoot, ranThisBoot, startedThisBoot);
-        if (currentBoot && lastBoot && [currentBoot isEqualToString:lastBoot] && (ranThisBoot || startedThisBoot)) {
-            DOKRWLog(@"obtainKernelRW: exploit already ran/started in this boot; reboot required");
-            return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel R/W was already acquired in this boot. Reboot the device before running the exploit again."}];
-        }
         if (currentBoot && (!lastBoot || ![currentBoot isEqualToString:lastBoot])) {
             [defaults setBool:NO forKey:@"DOKRWExploitRan"];
             [defaults setBool:NO forKey:@"DOKRWExploitStarted"];

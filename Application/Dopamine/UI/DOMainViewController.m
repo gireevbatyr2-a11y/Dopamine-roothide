@@ -197,14 +197,9 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         DOKRWLog(@"UI: kernel R/W present");
         self.jailbreakBtn.hidden = YES;
     } else {
-        BOOL ran = [[DOJailbreaker sharedInstance] exploitRanThisBoot];
-        BOOL started = [[DOJailbreaker sharedInstance] exploitStartedThisBoot];
-        if (started || ran) {
-            DOKRWLog(@"UI: kernel R/W already acquired this boot; reboot required");
-            self.jailbreakBtn.hidden = YES;
-        } else {
-            self.jailbreakBtn.hidden = NO;
-        }
+        // A new process has no live primitives even if a previous run set the
+        // boot flag; always allow a fresh attempt instead of blocking on reboot.
+        self.jailbreakBtn.hidden = NO;
     }
 }
 
