@@ -19,7 +19,6 @@
 #import "TaskRop/RemoteCall.h"
 
 bool recover_proc_self(uint64_t launchd_proc);
-static bool self_boot_matches_record(NSDictionary *record);
 static bool persist_is_ios16(void);
 static bool transfer_krw_to_launchd_ios16(void);
 
@@ -33,7 +32,6 @@ static bool transfer_krw_to_launchd_ios16(void);
 #define PERSIST_SIMPLE_CONTROL_NAME "com.ffkrw.krw.control"
 #define PERSIST_SIMPLE_RW_NAME "com.ffkrw.krw.rw"
 #define PERSIST_SIMPLE_KEY @"KRWPrimitiveSimple"
-#define PERSIST_LAUNCHD_KEY @"KRWPrimitive"
 
 // The app runs with com.apple.private.security.no-sandbox, so it can register a
 // service in its own bootstrap namespace and look it up from the next launch
@@ -43,26 +41,11 @@ static bool transfer_krw_to_launchd_ios16(void);
 static bool gPersistStashed;
 static bool gPersistRecovered;
 static uint64_t gPersistBase;
-static NSString *gPersistChannel;
 static NSString *gPersistFailure;
 
-NSString *persist_status_summary(void)
-{
-    NSDictionary *record = [[NSUserDefaults standardUserDefaults] dictionaryForKey:PERSIST_SIMPLE_KEY]
-                        ?: [[NSUserDefaults standardUserDefaults] dictionaryForKey:PERSIST_LAUNCHD_KEY];
-    return [NSString stringWithFormat:@"record=%s stashed=%s recovered=%s channel=%s base=0x%llx boot=%s%@",
-            record ? "yes" : "no",
-            gPersistStashed ? "yes" : "no",
-            gPersistRecovered ? "yes" : "no",
-            gPersistChannel.UTF8String ?: "none",
-            (unsigned long long)(gPersistBase ?: [record[@"KernelBase"] unsignedLongLongValue]),
-            (self_boot_matches_record(record) ? "same" : "other"),
-            gPersistFailure.length ? [NSString stringWithFormat:@" failure=%@", gPersistFailure] : @""];
-}
-
-// kern.bootsessionuuid changes on every boot, and the stashed fileports live in
-// kernel memory of the boot that created them, so a record from an older boot is
-// guaranteed to be dead and must not cost a lookup.
+// kern.bootsessionuuid changes on every boot, and a stashed fileport lives in the
+// kernel memory of the boot that created it, so a record from an older boot is
+// guaranteed to be dead. Checking costs one sysctl and saves a doomed lookup.
 static NSString *persist_boot_uuid(void)
 {
     char uuid[64] = {0};
@@ -73,82 +56,47 @@ static NSString *persist_boot_uuid(void)
     return [NSString stringWithUTF8String:uuid];
 }
 
-static bool self_boot_matches_record(NSDictionary *record)
+static bool persist_record_is_current_boot(NSDictionary *record)
 {
     NSString *recordBoot = record[@"BootUUID"];
     NSString *boot = persist_boot_uuid();
     if (recordBoot.length == 0 || boot.length == 0) {
-        return true; // old record without a boot stamp: try it
+        return true; // record from an older build: try it
     }
     return [recordBoot isEqualToString:boot];
 }
 
-static void persist_drop_record(NSString *key)
+static void persist_drop_record(void)
 {
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey:key];
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:PERSIST_SIMPLE_KEY];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-// A recovered primitive has to read *and* write. A read-only recovery looks
-// healthy in a log and then silently fails on the first write, so exercise kwrite
-// by writing back the value that is already there.
-static bool persist_verify_fds(int controlFd, int rwFd, uint64_t base)
+// A primitive that only reads looks healthy in a log and then fails on the first
+// write, so exercise kwrite by writing back the value that is already there.
+static bool persist_check_rw(uint64_t base)
 {
-    int previousControl = control_socket;
-    int previousRw = rw_socket;
-    control_socket = controlFd;
-    rw_socket = rwFd;
-
-    bool ok = false;
     uint32_t magic = ds_kread32(base);
     uint32_t cputype = ds_kread32(base + 4);
-    if (magic == 0xFEEDFACF && cputype == CPU_TYPE_ARM64) {
-        ds_kwrite32(base + 4, cputype);
-        ok = ds_kread32(base + 4) == cputype;
-    }
-    control_socket = previousControl;
-    rw_socket = previousRw;
-    return ok;
-}
-
-// Convert fd into a fileport and prove a fresh fd made from it still works. This
-// is the property the next launch depends on, so it is checked before the stash
-// is registered rather than after the app has already exited.
-static bool persist_probe_fd(int fd, bool controlSide, uint64_t base)
-{
-    fileport_t port = FILEPORT_NULL;
-    if (fileport_makeport(fd, &port) != 0 || port == FILEPORT_NULL) {
+    PERSIST_LOG("simple: verify kread32(0x%llx)=0x%x cputype=0x%x\n",
+                (unsigned long long)base, magic, cputype);
+    if (magic != 0xFEEDFACF || cputype != CPU_TYPE_ARM64) {
         return false;
     }
-    int probe = fileport_makefd(port);
-    bool ok = false;
-    if (probe >= 0) {
-        ok = controlSide ? persist_verify_fds(probe, rw_socket, base)
-                         : persist_verify_fds(control_socket, probe, base);
-        close(probe);
-    }
-    mach_port_deallocate(mach_task_self(), port);
-    return ok;
+    ds_kwrite32(base + 4, cputype);
+    return ds_kread32(base + 4) == cputype;
 }
 
-// A boot-scoped, attempt-scoped suffix: names are never reused, so a stash that
-// died halfway cannot block the next attempt for the rest of the boot.
-static NSString *persist_next_service_suffix(void)
+NSString *persist_status_summary(void)
 {
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSString *boot = persist_boot_uuid() ?: @"unknown";
-    NSString *stamp = [boot componentsSeparatedByString:@"-"][0];
-    NSInteger attempt = [defaults integerForKey:@"DOKRWStashAttempt"] + 1;
-    [defaults setInteger:attempt forKey:@"DOKRWStashAttempt"];
-    [defaults synchronize];
-    return [NSString stringWithFormat:@"%@.%ld", stamp, (long)attempt];
-}
-
-static bool persist_register_name(const char *name, mach_port_t port)
-{
-    kern_return_t kr = bootstrap_register(bootstrap_port, name, port);
-    PERSIST_LOG("simple: bootstrap_register(%s) kr=0x%x (%s)\n", name, kr, mach_error_string(kr));
-    return kr == KERN_SUCCESS;
+    NSDictionary *record = [[NSUserDefaults standardUserDefaults] dictionaryForKey:PERSIST_SIMPLE_KEY];
+    return [NSString stringWithFormat:@"record=%s stashed=%@ recovered=%@ service=%s base=0x%llx%@",
+            record ? "yes" : "no",
+            gPersistStashed ? @"yes" : @"no",
+            gPersistRecovered ? @"yes" : @"no",
+            PERSIST_SIMPLE_CONTROL_NAME,
+            (unsigned long long)(gPersistBase ?: [record[@"KernelBase"] unsignedLongLongValue]),
+            gPersistFailure.length ? [NSString stringWithFormat:@" failure=%@", gPersistFailure] : @""];
 }
 
 static bool persist_simple_stash(void)
@@ -158,23 +106,6 @@ static bool persist_simple_stash(void)
         gPersistFailure = @"no sockets";
         return false;
     }
-
-    if (!persist_probe_fd(control_socket, true, kernel_base)) {
-        PERSIST_LOG("simple: control fd does not survive a fileport round trip\n");
-        gPersistFailure = @"control fileport round trip";
-        return false;
-    }
-    if (!persist_probe_fd(rw_socket, false, kernel_base)) {
-        PERSIST_LOG("simple: rw fd does not survive a fileport round trip\n");
-        gPersistFailure = @"rw fileport round trip";
-        return false;
-    }
-
-    NSString *suffix = persist_next_service_suffix();
-    NSString *controlPortName = [NSString stringWithFormat:@"%s.%@", PERSIST_SIMPLE_CONTROL_NAME, suffix];
-    NSString *rwPortName = [NSString stringWithFormat:@"%s.%@", PERSIST_SIMPLE_RW_NAME, suffix];
-    const char *controlName = controlPortName.UTF8String;
-    const char *rwName = rwPortName.UTF8String;
 
     fileport_t controlPort = FILEPORT_NULL;
     int rc = fileport_makeport(control_socket, &controlPort);
@@ -194,11 +125,18 @@ static bool persist_simple_stash(void)
         return false;
     }
 
-    if (!persist_register_name(controlName, controlPort)) {
+    kern_return_t kr;
+
+    kr = bootstrap_register(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME, controlPort);
+    PERSIST_LOG("simple: bootstrap_register(control) kr=0x%x (%s)\n", kr, mach_error_string(kr));
+    if (kr != KERN_SUCCESS) {
         gPersistFailure = @"register control";
         return false;
     }
-    if (!persist_register_name(rwName, rwPort)) {
+
+    kr = bootstrap_register(bootstrap_port, PERSIST_SIMPLE_RW_NAME, rwPort);
+    PERSIST_LOG("simple: bootstrap_register(rw) kr=0x%x (%s)\n", kr, mach_error_string(kr));
+    if (kr != KERN_SUCCESS) {
         gPersistFailure = @"register rw";
         return false;
     }
@@ -207,15 +145,11 @@ static bool persist_simple_stash(void)
         @"KernelBase" : @(kernel_base),
         @"KernelSlide" : @(kernel_slide),
         @"BootUUID" : persist_boot_uuid() ?: @"",
-        @"Channel" : @"simple",
-        @"ControlName" : controlPortName,
-        @"RWName" : rwPortName,
     };
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setObject:primitive forKey:PERSIST_SIMPLE_KEY];
     [defaults synchronize];
     gPersistStashed = true;
-    gPersistChannel = @"simple";
     gPersistBase = kernel_base;
     PERSIST_LOG("simple: stashed base=0x%llx slide=0x%llx boot=%s\n",
                 (unsigned long long)kernel_base, (unsigned long long)kernel_slide,
@@ -231,31 +165,28 @@ static bool persist_simple_recover(void)
         return false;
     }
 
-    if (!self_boot_matches_record(primitive)) {
+    if (!persist_record_is_current_boot(primitive)) {
         PERSIST_LOG("simple: stash belongs to an older boot, dropping it\n");
-        persist_drop_record(PERSIST_SIMPLE_KEY);
+        persist_drop_record();
         gPersistFailure = @"stale boot";
         return false;
     }
 
-    const char *controlName = [primitive[@"ControlName"] ?: @(PERSIST_SIMPLE_CONTROL_NAME) UTF8String];
-    const char *rwName = [primitive[@"RWName"] ?: @(PERSIST_SIMPLE_RW_NAME) UTF8String];
-
     mach_port_t controlPort = MACH_PORT_NULL;
-    kern_return_t kr = bootstrap_look_up(bootstrap_port, controlName, &controlPort);
-    PERSIST_LOG("simple: look_up(%s) kr=0x%x (%s)\n", controlName, kr, mach_error_string(kr));
+    kern_return_t kr = bootstrap_look_up(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME, &controlPort);
+    PERSIST_LOG("simple: look_up(control) kr=0x%x (%s)\n", kr, mach_error_string(kr));
     if (kr != KERN_SUCCESS) {
         gPersistFailure = @"lookup control";
-        persist_drop_record(PERSIST_SIMPLE_KEY);
+        persist_drop_record();
         return false;
     }
 
     mach_port_t rwPort = MACH_PORT_NULL;
-    kr = bootstrap_look_up(bootstrap_port, rwName, &rwPort);
-    PERSIST_LOG("simple: look_up(%s) kr=0x%x (%s)\n", rwName, kr, mach_error_string(kr));
+    kr = bootstrap_look_up(bootstrap_port, PERSIST_SIMPLE_RW_NAME, &rwPort);
+    PERSIST_LOG("simple: look_up(rw) kr=0x%x (%s)\n", kr, mach_error_string(kr));
     if (kr != KERN_SUCCESS) {
         gPersistFailure = @"lookup rw";
-        persist_drop_record(PERSIST_SIMPLE_KEY);
+        persist_drop_record();
         return false;
     }
 
@@ -266,7 +197,7 @@ static bool persist_simple_recover(void)
         if (controlFd >= 0) close(controlFd);
         if (rwFd >= 0) close(rwFd);
         gPersistFailure = @"makefd";
-        persist_drop_record(PERSIST_SIMPLE_KEY);
+        persist_drop_record();
         return false;
     }
 
@@ -277,16 +208,23 @@ static bool persist_simple_recover(void)
         close(controlFd);
         close(rwFd);
         gPersistFailure = @"zero base";
-        persist_drop_record(PERSIST_SIMPLE_KEY);
+        persist_drop_record();
         return false;
     }
 
-    if (!persist_verify_fds(controlFd, rwFd, base)) {
+    int previousControl = control_socket;
+    int previousRw = rw_socket;
+    control_socket = controlFd;
+    rw_socket = rwFd;
+    bool verified = persist_check_rw(base);
+    control_socket = previousControl;
+    rw_socket = previousRw;
+    if (!verified) {
         PERSIST_LOG("simple: recovered fds do not read/write kernel memory\n");
         close(controlFd);
         close(rwFd);
         gPersistFailure = @"verify";
-        persist_drop_record(PERSIST_SIMPLE_KEY);
+        persist_drop_record();
         return false;
     }
 
@@ -295,13 +233,34 @@ static bool persist_simple_recover(void)
     kernel_base = base;
     kernel_slide = slide;
     gPersistRecovered = true;
-    gPersistChannel = @"simple";
     gPersistBase = base;
-    PERSIST_LOG("simple: verified kread/kwrite at 0x%llx\n", (unsigned long long)base);
     return true;
 }
 
-bool transfer_krw_to_launchd(void) {
+static bool transfer_krw_to_launchd_impl(void);
+
+// The stash touches private kernel interfaces; if one of them blocks, the caller
+// must not wait forever with a spinner. 20s is far above the observed sub-second
+// cost and far below the user's patience.
+#define PERSIST_STASH_TIMEOUT_NS (20ull * NSEC_PER_SEC)
+
+bool transfer_krw_to_launchd(void)
+{
+    dispatch_semaphore_t done = dispatch_semaphore_create(0);
+    __block bool result = false;
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        result = transfer_krw_to_launchd_impl();
+        dispatch_semaphore_signal(done);
+    });
+    if (dispatch_semaphore_wait(done, dispatch_time(DISPATCH_TIME_NOW, PERSIST_STASH_TIMEOUT_NS)) != 0) {
+        PERSIST_LOG("stash did not finish in 20s, continuing without persistence\n");
+        gPersistFailure = @"timeout";
+        return false;
+    }
+    return result;
+}
+
+static bool transfer_krw_to_launchd_impl(void) {
     if (persist_simple_stash()) {
         return true;
     }
@@ -353,8 +312,6 @@ bool transfer_krw_to_launchd(void) {
     primitive[@"KernelBase"] = @(kernel_base);
     primitive[@"KernelSlide"] = @(kernel_slide);
     primitive[@"LaunchdProcAddr"] = @(lara_procbypid(1));
-    primitive[@"BootUUID"] = persist_boot_uuid() ?: @"";
-    primitive[@"Channel"] = @"launchd";
     
     // stash ports to launchd and issue sandbox extensions for them
     kr = bootstrap_register(bootstrap_port, CONTROL_PORT_NAME, control_socketPort);
@@ -397,76 +354,55 @@ bool recover_krw_primitives(void) {
         return true;
     }
 
-    NSDictionary *primitive = [NSUserDefaults.standardUserDefaults dictionaryForKey:PERSIST_LAUNCHD_KEY];
+    // TODO: move primitive data to a file that can be retrieved using bookmark data
+    NSDictionary *primitive = [NSUserDefaults.standardUserDefaults dictionaryForKey:@"KRWPrimitive"];
     if (!primitive) {
-        PERSIST_LOG("launchd: nothing stashed\n");
+        printf("(persist) No stashed primitive found\n");
         return false;
     }
-
-    if (!self_boot_matches_record(primitive)) {
-        PERSIST_LOG("launchd: stash belongs to an older boot, dropping it\n");
-        persist_drop_record(PERSIST_LAUNCHD_KEY);
-        gPersistFailure = @"stale boot";
-        return false;
-    }
-
+    
     kern_return_t kr;
-    mach_port_t control_socketPort = MACH_PORT_NULL, rw_socketPort = MACH_PORT_NULL;
-    const char *controlName = [primitive[@"ControlPortName"] ?: @(CONTROL_PORT_NAME) UTF8String];
-    const char *rwName = [primitive[@"RWPortName"] ?: @(RW_PORT_NAME) UTF8String];
-
+    mach_port_t control_socketPort, rw_socketPort;
+    
     if (sandbox_extension_consume([primitive[@"ControlPort"] UTF8String] ?: "") < 1 ||
         sandbox_extension_consume([primitive[@"RWPort"] UTF8String] ?: "") < 1) {
-        PERSIST_LOG("launchd: sandbox_extension_consume failed\n");
+        printf("(persist) sandbox_extension_consume failed\n");
     }
-
-    kr = bootstrap_look_up(bootstrap_port, controlName, &control_socketPort);
-    PERSIST_LOG("launchd: look_up(%s) kr=0x%x (%s)\n", controlName, kr, mach_error_string(kr));
-    kr = bootstrap_look_up(bootstrap_port, rwName, &rw_socketPort);
-    PERSIST_LOG("launchd: look_up(%s) kr=0x%x (%s)\n", rwName, kr, mach_error_string(kr));
-    if (kr != KERN_SUCCESS) {
-        gPersistFailure = @"launchd lookup";
-        persist_drop_record(PERSIST_LAUNCHD_KEY);
+    
+    kr = bootstrap_look_up(bootstrap_port, CONTROL_PORT_NAME, &control_socketPort);
+    kr = bootstrap_look_up(bootstrap_port, RW_PORT_NAME, &rw_socketPort);
+    if(kr != KERN_SUCCESS) {
+        printf("(persist) bootstrap_look_up failed: %s\n", mach_error_string(kr));
         return false;
     }
-
-    int controlFd = fileport_makefd(control_socketPort);
-    int rwFd = fileport_makefd(rw_socketPort);
-    PERSIST_LOG("launchd: fileport_makefd control=%d rw=%d\n", controlFd, rwFd);
-    if (controlFd < 0 || rwFd < 0) {
-        if (controlFd >= 0) close(controlFd);
-        if (rwFd >= 0) close(rwFd);
-        gPersistFailure = @"launchd makefd";
-        persist_drop_record(PERSIST_LAUNCHD_KEY);
+    
+    control_socket = fileport_makefd(control_socketPort);
+    rw_socket = fileport_makefd(rw_socketPort);
+    printf("(persist) recovered control_socket: %d\n", control_socket);
+    printf("(persist) recovered rw_socket: %d\n", rw_socket);
+    
+    kernel_base = [primitive[@"KernelBase"] unsignedLongLongValue];
+    kernel_slide = [primitive[@"KernelSlide"] unsignedLongLongValue];
+    // see if it works properly
+    @try {
+        if (ds_kread32(kernel_base) != 0xFEEDFACF || ds_kread32(kernel_base + 4) != CPU_TYPE_ARM64) {
+            printf("(persist) kread failed\n");
+            return false;
+        }
+    } @catch (NSException *exception) {
+        printf("(persist) kread threw an exception: %s\n", exception.reason.UTF8String);
         return false;
     }
-
-    uint64_t base = [primitive[@"KernelBase"] unsignedLongLongValue];
-    uint64_t slide = [primitive[@"KernelSlide"] unsignedLongLongValue];
-    if (base == 0 || !persist_verify_fds(controlFd, rwFd, base)) {
-        PERSIST_LOG("launchd: recovered fds do not read/write kernel memory\n");
-        close(controlFd);
-        close(rwFd);
-        gPersistFailure = @"launchd verify";
-        persist_drop_record(PERSIST_LAUNCHD_KEY);
-        return false;
-    }
-
-    control_socket = controlFd;
-    rw_socket = rwFd;
-    kernel_base = base;
-    kernel_slide = slide;
-    gPersistChannel = @"launchd";
-    gPersistBase = base;
-
+    
     if (!recover_proc_self([primitive[@"LaunchdProcAddr"] unsignedLongLongValue])) {
-        PERSIST_LOG("launchd: failed to recover proc_self\n");
-        gPersistFailure = @"launchd proc_self";
+        printf("(persist) Failed to recover proc_self\n");
         return false;
     }
+    
+    printf("(persist) early_kread64(%#llx) -> %#llx\n", kernel_base,
+           ds_kread64(kernel_base));
+    fflush(stdout);
 
-    PERSIST_LOG("launchd: verified kread/kwrite at 0x%llx\n", (unsigned long long)kernel_base);
-    gPersistRecovered = true;
     return true;
 }
 
@@ -616,15 +552,10 @@ static bool transfer_krw_to_launchd_ios16(void) {
     primitive[@"RWPort"] = rwToken;
     primitive[@"ControlPortName"] = controlPortName;
     primitive[@"RWPortName"] = rwPortName;
-    primitive[@"BootUUID"] = persist_boot_uuid() ?: @"";
-    primitive[@"Channel"] = @"launchd";
 
     NSLog(@"Primitive: %@", primitive);
-    [NSUserDefaults.standardUserDefaults setObject:primitive forKey:PERSIST_LAUNCHD_KEY];
+    [NSUserDefaults.standardUserDefaults setObject:primitive forKey:@"KRWPrimitive"];
     [NSUserDefaults.standardUserDefaults synchronize];
-    gPersistStashed = true;
-    gPersistChannel = @"launchd";
-    gPersistBase = kernel_base;
     ok = true;
 
 out:

@@ -773,10 +773,11 @@ int DOKRWHelperMain(const char *socketPath)
         // Re-running ClearSword/Titan in the same boot corrupts kernel state and
         // panics (GFX NMI in backboardd). Once the exploit has run, the only way
         // back is recovery of the stashed sockets.
-        DOKRWLog(@"obtainKernelRW: recovery failed and the exploit already ran this boot; refusing to re-run it");
+        DOKRWLog(@"obtainKernelRW: recovery failed (%@) and the exploit already ran this boot; refusing to re-run it",
+                 persist_status_summary());
         return [NSError errorWithDomain:JBErrorDomain
                                    code:JBErrorCodeFailedExploitation
-                               userInfo:@{NSLocalizedDescriptionKey : @"Kernel R/W from this boot could not be recovered. Reboot the device and run it again."}];
+                               userInfo:@{NSLocalizedDescriptionKey : @"Kernel R/W was obtained earlier in this boot but was not saved, so it cannot be restored. Restart the device and run again."}];
     }
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
@@ -789,7 +790,8 @@ int DOKRWHelperMain(const char *socketPath)
     if (transfer_krw_to_launchd()) {
         DOKRWLog(@"obtainKernelRW: stashed (%@)", persist_status_summary());
     } else {
-        DOKRWLog(@"obtainKernelRW: stash failed (%@)", persist_status_summary());
+        DOKRWLog(@"obtainKernelRW: stash failed (%@) — R/W works now but closing the app loses it",
+                 persist_status_summary());
     }
     DOKRWLog(@"obtainKernelRW: ready base=0x%llx slide=0x%llx",
              (unsigned long long)gSystemInfo.kernelConstant.base,
