@@ -761,7 +761,7 @@ int DOKRWHelperMain(const char *socketPath)
             gSystemInfo.kernelConstant.base = kernel_base;
             gSystemInfo.kernelConstant.slide = kernel_slide;
             _kernelRWReady = YES;
-            DOKRWLog(@"obtainKernelRW: recovered from launchd");
+            DOKRWLog(@"obtainKernelRW: recovered from stash (%@)", persist_status_summary());
             return nil;
         }
     }
@@ -787,9 +787,9 @@ int DOKRWHelperMain(const char *socketPath)
     kernel_slide = g_ctx.kernel_slide;
     lara_offsets_init();
     if (transfer_krw_to_launchd()) {
-        DOKRWLog(@"obtainKernelRW: stashed to launchd");
+        DOKRWLog(@"obtainKernelRW: stashed (%@)", persist_status_summary());
     } else {
-        DOKRWLog(@"obtainKernelRW: launchd stash failed");
+        DOKRWLog(@"obtainKernelRW: stash failed (%@)", persist_status_summary());
     }
     DOKRWLog(@"obtainKernelRW: ready base=0x%llx slide=0x%llx",
              (unsigned long long)gSystemInfo.kernelConstant.base,
