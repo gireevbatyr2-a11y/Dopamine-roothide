@@ -10,3 +10,4 @@
 - For the reproducible build, use the original workflow's complete sequence in an isolated GitHub Actions repository/branch. The current host is Linux and cannot substitute for the original macOS/Xcode runner.
 - Keep these eight status documents current: `REPOSITORY_INVENTORY.md`, `ARCHITECTURE.md`, `DEPENDENCIES.md`, `HISTORY_AND_DECISIONS.md`, `BUILD_SPECIFICATION.md`, `TOOLS_AND_SKILLS.md`, `ATTEMPTS.md`, and `FINAL_VERIFICATION.md`.
 - Kernel-RW-only work log: `docs/kernel-rw/AGENT_JOURNAL.md` (read before continuing).
+- Kernel-RW handoff for a new chat: `HANDOFF.md` (current build/status, runtime flow, known issues, next steps).
