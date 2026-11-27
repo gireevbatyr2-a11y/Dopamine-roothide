@@ -862,6 +862,8 @@
 				042479872B66916B0082581B /* DOHeaderView.m */,
 				042479832B66916B0082581B /* DOGlobalAppearance.h */,
 				042479A02B66916B0082581B /* DOGlobalAppearance.m */,
+				A1B2C3D4000000000000F002 /* DOKRWTestReport.h */,
+				A1B2C3D4000000000000F003 /* DOKRWTestReport.m */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -923,8 +925,6 @@
 				042479932B66916B0082581B /* DOLogViewProtocol.h */,
 				04DD0B3B2B7C88210055DE4F /* DOLogCrashViewController.h */,
 				04DD0B3C2B7C88210055DE4F /* DOLogCrashViewController.m */,
-				A1B2C3D4000000000000F002 /* DOKRWTestReport.h */,
-				A1B2C3D4000000000000F003 /* DOKRWTestReport.m */,
 			);
 			path = Log;
 			sourceTree = "<group>";
