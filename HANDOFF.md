@@ -1,6 +1,6 @@
 # Kernel R/W handoff
 
-Last updated: 2026-11-27 (after build `45993179143`).
+Last updated: 2026-11-27 (after build `46003161569`).
 Read this before touching the branch. It is intentionally short; deep history is in
 `docs/kernel-rw/AGENT_JOURNAL.md`.
 
@@ -22,8 +22,8 @@ Test device used for evidence: iPhone13,2 (iPhone 12), iOS 16.6 (20G75).
 
 ## 2. Current state
 
-- HEAD: `40f883c` — + resumable-exploit preference with fallback chain
-- Latest build: **`45993179143` — success** (`.ipa` + `.tipa` uploaded)
+- HEAD: `8d6a9f2` — + Settings lists only resumable kernel exploits
+- Latest build: **`46003161569` — success** (`.ipa` + `.tipa` uploaded)
 - Previous success: `45953263580` (`9c2fd20`) — fixed the `xpf` relaunch crash
 - Previous success from the other AI: `45907696779` (`2bc2792`)
 - First launch on device: PPL works, process connect works.
@@ -91,6 +91,15 @@ Info.plists, and only some transports can be resumed after process death:
 Effect: on 15.0-16.3.1 ClearSword is attempted before kfd, so those devices get
 persistence if ClearSword works there; if it does not run, kfd still gets R/W
 (without persistence). Unverified on hardware: 15.x, 16.0-16.3.1, arm64, 26.x.
+
+ClearSword's own range (15.0-18.7.1, 19.0-26.0.1, every device) is wider than the
+app's support, because the ceiling is the PPL/PAC bypass, not the kernel exploit:
+`isPPLBypassRequired` is true on every arm64e device, Titan covers 16.1-17.3.1 and
+A14-A17 only, momentarius covers 15.0-26.0.1 but only A12/A13, dmaFail 15.0-16.5.1,
+badRecovery 15.0-15.4.1. That is why `versionSupportString` reports 15.0-17.3.1 for
+A14+ and 15.0-18.7.1 / 26.0-26.0.1 for A12/A13. Removing the other kernel exploits
+would not widen support; keeping them as a silent fallback does keep R/W working
+where ClearSword does not run.
 
 ## 3. Runtime flow (what is wired to what)
 
