@@ -972,11 +972,11 @@ int DOKRWHelperMain(const char *socketPath)
 
 - (NSError *)doExploitation
 {
-    DOExploit *kernelExploit = [DOExploitManager sharedManager].selectedKernelExploit;
+    NSArray<DOExploit *> *kernelExploits = [DOExploitManager sharedManager].orderedKernelExploits;
     DOExploit *pacBypass     = [DOExploitManager sharedManager].selectedPACBypass;
     DOExploit *pplBypass     = [DOExploitManager sharedManager].selectedPPLBypass;
 
-    if (!kernelExploit) {
+    if (!kernelExploits.count) {
         return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel exploit is required but we did not find any"}];
     }
     if (!pacBypass && [DOEnvironmentManager sharedManager].isPACBypassRequired) {
@@ -991,11 +991,28 @@ int DOKRWHelperMain(const char *socketPath)
         }
     }
 
-    DOKRWLog(@"exploit: kernel=%@ pac=%@ ppl=%@", kernelExploit.name, pacBypass.name ?: @"none", pplBypass.name ?: @"none");
+    DOExploit *kernelExploit = nil;
+    for (DOExploit *candidate in kernelExploits) {
+        DOKRWLog(@"exploit: trying kernel=%@ priority=%llu persistentTransport=%d",
+                 candidate.displayName, (unsigned long long)candidate.priority, candidate.persistentTransport);
+        [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:DOLocalizedString(@"Exploiting Kernel (%@)"), candidate.name] debug:NO];
+        if ([candidate load] != 0) {
+            DOKRWLog(@"exploit: kernel=%@ failed to load: %s", candidate.displayName, dlerror() ?: "");
+            continue;
+        }
+        if ([candidate run] != 0) {
+            DOKRWLog(@"exploit: kernel=%@ failed to run, trying the next one", candidate.displayName);
+            [candidate cleanup];
+            continue;
+        }
+        kernelExploit = candidate;
+        break;
+    }
+    if (!kernelExploit) {
+        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Failed to exploit kernel"}];
+    }
 
-    [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:DOLocalizedString(@"Exploiting Kernel (%@)"), kernelExploit.name] debug:NO];
-    if ([kernelExploit load] != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLoadingExploit userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to load kernel exploit: %s", dlerror()]}];
-    if ([kernelExploit run] != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Failed to exploit kernel"}];
+    DOKRWLog(@"exploit: kernel=%@ pac=%@ ppl=%@", kernelExploit.displayName, pacBypass.displayName ?: @"none", pplBypass.displayName ?: @"none");
 
     jbinfo_initialize_boot_constants();
     libjailbreak_translation_init();
