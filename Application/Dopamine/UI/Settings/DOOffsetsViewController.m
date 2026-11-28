@@ -7,7 +7,7 @@
 #import "DOEnvironmentManager.h"
 #import "DOUIManager.h"
 #import "DOJailbreaker.h"
-#import <libjailbreak/libjailbreak.h>
+#import <libjailbreak/libjailbreak.h>#import "../Jailbreak/DOFreeFireBridge.h"
 
 @interface DOOffsetsViewController ()
 {
@@ -39,6 +39,17 @@
                       @"name": @"extmod",
                       @"value": [NSString stringWithFormat:@"0x%x", kernelRW.extmodOffset]}];
 
+    DOFreeFireBridge *bridge = [DOFreeFireBridge sharedInstance];
+    [rows addObject:@{@"group": DOLocalizedString(@"Functions"),
+                      @"name": @"FreeFire",
+                      @"value": bridge.attached ? DOLocalizedString(@"Attached") : DOLocalizedString(@"Not attached")}];
+    [rows addObject:@{@"group": DOLocalizedString(@"Functions"),
+                      @"name": @"pid",
+                      @"value": bridge.attached ? [NSString stringWithFormat:@"%d", bridge.attachedPid] : @"-"}];
+    [rows addObject:@{@"group": DOLocalizedString(@"Functions"),
+                      @"name": @"UnityFramework",
+                      @"value": bridge.unityBase ? [NSString stringWithFormat:@"0x%016llx", bridge.unityBase] : @"-"}];
+
     xpc_object_t info = jbinfo_get_serialized();
     if (info) {
         __block NSMutableArray<NSDictionary<NSString *, id> *> *offsets = [NSMutableArray array];
@@ -63,17 +74,22 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 2;
+    return 3;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-    return section == 0 ? DOLocalizedString(@"State") : DOLocalizedString(@"System Info");
+    if (section == 0) return DOLocalizedString(@"State");
+    if (section == 1) return DOLocalizedString(@"Functions");
+    return DOLocalizedString(@"System Info");
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    NSString *group = section == 0 ? DOLocalizedString(@"State") : DOLocalizedString(@"System Info");
+    NSString *group = nil;
+    if (section == 0) group = DOLocalizedString(@"State");
+    else if (section == 1) group = DOLocalizedString(@"Functions");
+    else group = DOLocalizedString(@"System Info");
     NSUInteger n = 0;
     for (NSDictionary *row in _rows) {
         if ([row[@"group"] isEqualToString:group]) n++;
@@ -93,7 +109,10 @@
         cell.detailTextLabel.minimumScaleFactor = 0.6;
     }
 
-    NSString *group = indexPath.section == 0 ? DOLocalizedString(@"State") : DOLocalizedString(@"System Info");
+    NSString *group = nil;
+    if (indexPath.section == 0) group = DOLocalizedString(@"State");
+    else if (indexPath.section == 1) group = DOLocalizedString(@"Functions");
+    else group = DOLocalizedString(@"System Info");
     NSMutableArray *groupRows = [NSMutableArray array];
     for (NSDictionary *row in _rows) {
         if ([row[@"group"] isEqualToString:group]) [groupRows addObject:row];

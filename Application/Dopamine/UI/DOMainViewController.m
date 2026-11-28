@@ -13,6 +13,7 @@
 #import "DOActionMenuButton.h"
 #import "DOUpdateViewController.h"
 #import "DOLogCrashViewController.h"
+#import "DOFreeFireBridge.h"
 #import <pthread.h>
 #import <sys/sysctl.h>
 #import <stdio.h>
@@ -27,7 +28,10 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 #define PROC_ALL_PIDS 1
 #endif
 
-@interface DOProcessListViewController : UITableViewController
+@interface DOFreeFireSwitchRow : NSObject
++ (UIView *)rowWithOwner:(DOMainViewController *)owner;
++ (void)updateOwnerStatus:(DOMainViewController *)owner;
++ (void)restoreOwner:(DOMainViewController *)owner;
 @end
 
 @interface DOMainViewController ()
@@ -37,10 +41,14 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 @property DOActionMenuButton *updateButton;
 @property DOActionMenuView *actionView;
 @property DOHeaderView *headerView;
+@property UIStackView *stackView;
 @property(nonatomic) BOOL hideStatusBar;
 @property(nonatomic) BOOL hideHomeIndicator;
 
 - (void)finishKernelRWUI:(BOOL)success;
+- (void)installFreeFireSwitch;
+- (void)freeFireStateChanged;
+- (void)freeFireSwitchChanged:(UISwitch *)sender;
 
 @end
 
@@ -54,6 +62,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 -(void)setupStack
 {
     UIStackView *stackView = [[UIStackView alloc] init];
+    self.stackView = stackView;
     [stackView setAxis:UILayoutConstraintAxisVertical];
     [stackView setAlignment:UIStackViewAlignmentTrailing];
     [stackView setDistribution:UIStackViewDistributionEqualSpacing];
@@ -109,9 +118,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Settings_Title") image:[UIImage systemImageNamed:@"gearshape" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"settings" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOSettingsController alloc] init] animated:YES];
         }],
-        [UIAction actionWithTitle:@"Processes" image:[UIImage systemImageNamed:@"list.bullet" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"processes" handler:^(__kindof UIAction * _Nonnull action) {
-            [self.navigationController pushViewController:[[DOProcessListViewController alloc] init] animated:YES];
-        }],
+
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Credits_Title") image:[UIImage systemImageNamed:@"info.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"credits" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOCreditsViewController alloc] init] animated:YES];
         }]
@@ -196,6 +203,8 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
     if (restored || [DOJailbreaker sharedInstance].kernelRWReady) {
         DOKRWLog(@"UI: kernel R/W present");
         self.jailbreakBtn.hidden = YES;
+        [self installFreeFireSwitch];
+        [DOFreeFireSwitchRow restoreOwner:self];
     } else {
         // A new process has no live primitives even if a previous run set the
         // boot flag; always allow a fresh attempt instead of blocking on reboot.
@@ -254,6 +263,10 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
         [self.headerView setTransform:CGAffineTransformIdentity];
     }];
     self.hideHomeIndicator = NO;
+    if (success && [DOJailbreaker sharedInstance].kernelRWReady) {
+        [self installFreeFireSwitch];
+        [DOFreeFireSwitchRow restoreOwner:self];
+    }
     DOKRWLog(@"UI: finish success=%d jailbreakHidden=%d jailbreakFrame=%@ stackHidden=%d stackAlpha=%.2f menuAlpha=%.2f",
              success, self.jailbreakBtn.hidden, NSStringFromCGRect(self.jailbreakBtn.frame),
              self.headerView.superview.hidden, self.headerView.superview.alpha, self.actionView.alpha);
@@ -325,7 +338,7 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 
 - (BOOL)actionMenuShowsChevronForAction:(UIAction *)action
 {
-    if ([action.identifier isEqualToString:@"settings"] || [action.identifier isEqualToString:@"credits"] || [action.identifier isEqualToString:@"processes"]) return YES;
+
     return NO;
 }
 
@@ -365,120 +378,155 @@ extern int proc_name(int pid, void *buffer, uint32_t buffersize);
 
 @end
 
-#pragma mark - Process list
+#pragma mark - FreeFire switch
 
-@interface DOProcessListViewController ()
-@property (nonatomic, strong) NSArray<NSDictionary<NSString *, id> *> *processes;
-@property (nonatomic, assign) pid_t connectedPid;
-- (void)reloadProcesses;
-- (void)connectToPid:(pid_t)pid name:(NSString *)name;
-@end
+#define DOFREEFIRE_ROW_TAG 0xD00F
 
-@implementation DOProcessListViewController
+@implementation DOMainViewController (FreeFireSwitch)
 
-- (void)viewDidLoad
+- (void)installFreeFireSwitch
 {
-    [super viewDidLoad];
-    self.title = @"Processes";
-    self.tableView.rowHeight = 44.0;
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(reloadProcesses)];
-
-    UIRefreshControl *refresh = [[UIRefreshControl alloc] init];
-    [refresh addTarget:self action:@selector(reloadProcesses) forControlEvents:UIControlEventValueChanged];
-    self.refreshControl = refresh;
-
-    [self reloadProcesses];
-}
-
-- (void)reloadProcesses
-{
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        int size = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0);
-        NSMutableArray<NSDictionary<NSString *, id> *> *list = [NSMutableArray array];
-        if (size > 0) {
-            NSMutableData *data = [NSMutableData dataWithLength:(NSUInteger)size];
-            int used = proc_listpids(PROC_ALL_PIDS, 0, data.mutableBytes, size);
-            int count = used / (int)sizeof(pid_t);
-            pid_t *pids = (pid_t *)data.mutableBytes;
-            for (int i = 0; i < count; i++) {
-                pid_t pid = pids[i];
-                if (pid <= 0) continue;
-                char name[256] = {0};
-                if (proc_name(pid, name, sizeof(name)) <= 0) {
-                    snprintf(name, sizeof(name), "pid %d", pid);
-                }
-                [list addObject:@{@"pid": @(pid), @"name": [NSString stringWithUTF8String:name] ?: @"?"}];
-            }
-        }
-        [list sortUsingComparator:^NSComparisonResult(NSDictionary *a, NSDictionary *b) {
-            return [a[@"pid"] compare:b[@"pid"]];
-        }];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.processes = list;
-            [self.tableView reloadData];
-            [self.refreshControl endRefreshing];
-        });
-    });
-}
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-    return (NSInteger)self.processes.count;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    static NSString *cellID = @"DOProcessCell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
-    if (!cell) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellID];
+    for (UIView *existing in self.stackView.arrangedSubviews) {
+        if (existing.tag == DOFREEFIRE_ROW_TAG) return;
     }
-    NSDictionary *proc = self.processes[(NSUInteger)indexPath.row];
-    cell.textLabel.text = proc[@"name"];
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"pid %@", proc[@"pid"]];
-    cell.accessoryType = ([proc[@"pid"] intValue] == self.connectedPid) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
-    return cell;
+    UIView *row = [DOFreeFireSwitchRow rowWithOwner:self];
+    row.tag = DOFREEFIRE_ROW_TAG;
+    [self.stackView addArrangedSubview:row];
+    [NSLayoutConstraint activateConstraints:@[
+        [row.leadingAnchor constraintEqualToAnchor:self.stackView.leadingAnchor],
+        [row.trailingAnchor constraintEqualToAnchor:self.stackView.trailingAnchor],
+    ]];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(freeFireStateChanged) name:DOFreeFireBridgeAttachDidChangeNotification object:nil];
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+- (void)freeFireStateChanged
 {
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    NSDictionary *proc = self.processes[(NSUInteger)indexPath.row];
-    [self connectToPid:[proc[@"pid"] intValue] name:proc[@"name"]];
+    [DOFreeFireSwitchRow updateOwnerStatus:self];
 }
 
-- (void)connectToPid:(pid_t)pid name:(NSString *)name
+- (void)freeFireSwitchChanged:(UISwitch *)sender
 {
-    DOJailbreaker *krw = [DOJailbreaker sharedInstance];
-    if (!krw.kernelRWReady) {
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Kernel R/W required" message:@"Get kernel R/W first, then connect to a process." preferredStyle:UIAlertControllerStyleAlert];
+    BOOL on = sender.isOn;
+    if (![DOJailbreaker sharedInstance].kernelRWReady) {
+        sender.on = NO;
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Kernel R/W required" message:@"Get kernel R/W first, then enable the FreeFire switch." preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
         return;
     }
-
-    DOKRWLog(@"process: connecting to %d (%@) via kernel task", pid, name);
+    [[NSUserDefaults standardUserDefaults] setBool:on forKey:@"DOKRWFreeFireAttach"];
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        BOOL zeroed = [krw zeroExtmodStatisticsForPid:pid];
+        NSError *error = nil;
+        if (on) {
+            [[DOFreeFireBridge sharedInstance] attachWithError:&error];
+            if (error) DOKRWLog(@"FreeFire: attach failed: %@", error.localizedDescription);
+        } else {
+            [[DOFreeFireBridge sharedInstance] detach];
+        }
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (!zeroed) {
-                DOKRWLog(@"process: extmod zero failed for %d (%@)", pid, name);
-                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connection failed" message:[NSString stringWithFormat:@"Could not zero extmod for pid %d (%@).", pid, name] preferredStyle:UIAlertControllerStyleAlert];
-                [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-                [self presentViewController:alert animated:YES completion:nil];
-                return;
-            }
-
-            self.connectedPid = pid;
-            [self.tableView reloadData];
-
-            DOKRWLog(@"process: connected to %d (%@), extmod zeroed=yes (kernel task)", pid, name);
-            NSString *message = [NSString stringWithFormat:@"Connected to %@ (pid %d).\nextmod counters zeroed: yes", name, pid];
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connected" message:message preferredStyle:UIAlertControllerStyleAlert];
-            [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-            [self presentViewController:alert animated:YES completion:nil];
+            [DOFreeFireSwitchRow updateOwnerStatus:self];
         });
     });
+}
+
+@end
+
+@implementation DOFreeFireSwitchRow
+
++ (UISwitch *)switchIn:(UIView *)row
+{
+    for (UIView *sub in row.subviews) {
+        if ([sub isKindOfClass:[UISwitch class]]) return (UISwitch *)sub;
+    }
+    return nil;
+}
+
++ (UILabel *)detailIn:(UIView *)row
+{
+    for (UIView *sub in row.subviews) {
+        if ([sub isKindOfClass:[UILabel class]] && sub.tag == 0xD00D) return (UILabel *)sub;
+    }
+    return nil;
+}
+
++ (UIView *)rowWithOwner:(DOMainViewController *)owner
+{
+    UIView *row = [[UIView alloc] init];
+    row.translatesAutoresizingMaskIntoConstraints = NO;
+
+    UILabel *title = [[UILabel alloc] init];
+    title.text = @"FreeFire";
+    title.font = [UIFont boldSystemFontOfSize:16];
+    title.translatesAutoresizingMaskIntoConstraints = NO;
+    [row addSubview:title];
+
+    UILabel *detail = [[UILabel alloc] init];
+    detail.tag = 0xD00D;
+    detail.font = [UIFont systemFontOfSize:12];
+    detail.textColor = [UIColor secondaryLabelColor];
+    detail.translatesAutoresizingMaskIntoConstraints = NO;
+    [row addSubview:detail];
+
+    UISwitch *sw = [[UISwitch alloc] init];
+    sw.on = [[NSUserDefaults standardUserDefaults] boolForKey:@"DOKRWFreeFireAttach"];
+    sw.translatesAutoresizingMaskIntoConstraints = NO;
+    [sw addTarget:owner action:@selector(freeFireSwitchChanged:) forControlEvents:UIControlEventValueChanged];
+    [row addSubview:sw];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [title.leadingAnchor constraintEqualToAnchor:row.leadingAnchor constant:5],
+        [title.centerYAnchor constraintEqualToAnchor:row.centerYAnchor],
+        [detail.leadingAnchor constraintEqualToAnchor:row.leadingAnchor constant:5],
+        [detail.topAnchor constraintEqualToAnchor:title.bottomAnchor constant:2],
+        [sw.trailingAnchor constraintEqualToAnchor:row.trailingAnchor],
+        [sw.centerYAnchor constraintEqualToAnchor:row.centerYAnchor],
+        [row.heightAnchor constraintEqualToConstant:48],
+    ]];
+
+    return row;
+}
+
++ (void)updateOwnerStatus:(DOMainViewController *)owner
+{
+    DOJailbreaker *krw = [DOJailbreaker sharedInstance];
+    DOFreeFireBridge *bridge = [DOFreeFireBridge sharedInstance];
+    NSString *detailText = nil;
+    if (!krw.kernelRWReady) {
+        detailText = @"Get Kernel R/W first";
+    } else if (bridge.attached) {
+        detailText = [NSString stringWithFormat:@"pid %d · UnityFramework 0x%llx",
+                      bridge.attachedPid, bridge.unityBase];
+    } else {
+        detailText = @"Not attached";
+    }
+    for (UIWindowScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        for (UIViewController *vc in scene.windows.firstObject.rootViewController.navigationController.viewControllers) {
+            if (![vc isKindOfClass:[DOMainViewController class]]) continue;
+            DOMainViewController *main = (DOMainViewController *)vc;
+            for (UIView *row in main.stackView.arrangedSubviews) {
+                if (row.tag != DOFREEFIRE_ROW_TAG) continue;
+                for (UIView *sub in row.subviews) {
+                    if ([sub isKindOfClass:[UISwitch class]]) {
+                        UISwitch *sw = (UISwitch *)sub;
+                        if (sw.isOn != bridge.attached) [sw setOn:bridge.attached animated:YES];
+                    }
+                    if ([sub isKindOfClass:[UILabel class]] && sub.tag == 0xD00D) {
+                        ((UILabel *)sub).text = detailText;
+                    }
+                }
+            }
+        }
+    }
+}
+
++ (void)restoreOwner:(DOMainViewController *)owner
+{
+    BOOL want = [[NSUserDefaults standardUserDefaults] boolForKey:@"DOKRWFreeFireAttach"];
+    if (want && [DOJailbreaker sharedInstance].kernelRWReady) {
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            [[DOFreeFireBridge sharedInstance] attachWithError:nil];
+        });
+    }
 }
 
 @end
