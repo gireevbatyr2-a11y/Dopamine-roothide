@@ -15,6 +15,7 @@
 #import "DOExploitManager.h"
 #import "DOPSListItemsController.h"
 #import "DOPSExploitListItemsController.h"
+#import "DOOffsetsViewController.h"
 #import "DOThemeManager.h"
 #import "DOSceneDelegate.h"
 #import "DOPSJetsamListItemsController.h"
@@ -229,6 +230,15 @@
         PSSpecifier *themingGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
         themingGroupSpecifier.name = DOLocalizedString(@"Section_Customization");
         [specifiers addObject:themingGroupSpecifier];
+
+        PSSpecifier *diagnosticsGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
+        diagnosticsGroupSpecifier.name = DOLocalizedString(@"Diagnostics");
+        [specifiers addObject:diagnosticsGroupSpecifier];
+        
+        PSSpecifier *offsetsSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Kernel Offsets") target:self set:nil get:nil detail:nil cell:PSLinkCell edit:nil];
+        [offsetsSpecifier setProperty:@YES forKey:@"enabled"];
+        offsetsSpecifier.detailControllerClass = [DOOffsetsViewController class];
+        [specifiers addObject:offsetsSpecifier];
         
         PSSpecifier *themeSpecifier = [PSSpecifier preferenceSpecifierNamed:DOLocalizedString(@"Theme") target:self set:defSetter get:defGetter detail:nil cell:PSLinkListCell edit:nil];
         themeSpecifier.detailControllerClass = [DOPSListItemsController class];

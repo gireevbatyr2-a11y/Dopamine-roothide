@@ -10,6 +10,7 @@
 		AA0000000000000000000001 /* LaraPersistence.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002 /* LaraPersistence.m */; };
 		042479A22B66916B0082581B /* DOCreditsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0424796B2B66916B0082581B /* DOCreditsViewController.m */; };
 		042479A32B66916B0082581B /* DOSettingsController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0424796C2B66916B0082581B /* DOSettingsController.m */; };
+		D01C0FFE0000000000000001 /* DOOffsetsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D01C0FFE0000000000000002 /* DOOffsetsViewController.m */; };
 		042479A42B66916B0082581B /* Credits.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0424796F2B66916B0082581B /* Credits.plist */; };
 		042479A52B66916B0082581B /* DOCreditsCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 042479732B66916B0082581B /* DOCreditsCell.m */; };
 		042479A62B66916B0082581B /* DOHeaderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 042479752B66916B0082581B /* DOHeaderCell.m */; };
@@ -384,6 +385,8 @@
 		042479682B66916B0082581B /* DOJailbreakButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOJailbreakButton.h; sourceTree = "<group>"; };
 		0424796B2B66916B0082581B /* DOCreditsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOCreditsViewController.m; sourceTree = "<group>"; };
 		0424796C2B66916B0082581B /* DOSettingsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOSettingsController.m; sourceTree = "<group>"; };
+		D01C0FFE0000000000000002 /* DOOffsetsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DOOffsetsViewController.m; sourceTree = "<group>"; };
+		D01C0FFE0000000000000003 /* DOOffsetsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOOffsetsViewController.h; sourceTree = "<group>"; };
 		0424796D2B66916B0082581B /* DOPSListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOPSListController.h; sourceTree = "<group>"; };
 		0424796E2B66916B0082581B /* DOCreditsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DOCreditsViewController.h; sourceTree = "<group>"; };
 		0424796F2B66916B0082581B /* Credits.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Credits.plist; sourceTree = "<group>"; };
@@ -872,7 +875,9 @@
 				0424796E2B66916B0082581B /* DOCreditsViewController.h */,
 				0424796B2B66916B0082581B /* DOCreditsViewController.m */,
 				042479702B66916B0082581B /* DOSettingsController.h */,
+				D01C0FFE0000000000000003 /* DOOffsetsViewController.h */,
 				0424796C2B66916B0082581B /* DOSettingsController.m */,
+				D01C0FFE0000000000000002 /* DOOffsetsViewController.m */,
 				04DD0B332B7BA38C0055DE4F /* DOLicenseViewController.h */,
 				04DD0B342B7BA38C0055DE4F /* DOLicenseViewController.m */,
 			);
@@ -2303,6 +2308,7 @@
 				042479B62B66916B0082581B /* DOActionMenuButton.m in Sources */,
 				8C71981D2ABF0E82003C6658 /* DOSceneDelegate.m in Sources */,
 				042479A32B66916B0082581B /* DOSettingsController.m in Sources */,
+				D01C0FFE0000000000000001 /* DOOffsetsViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -43,6 +43,9 @@ int DOKRWHelperMain(const char *socketPath);
 - (BOOL)restoreKernelRWFromHelper;
 // Resolved offset of task->extmod_statistics (0 if not resolved).
 @property (nonatomic, readonly) uint32_t extmodOffset;
+// YES when this boot runs without PAC/PPL bypass (external KRW-only mode:
+// data r/w + extmod attach, no code patches). NO on the full jailbreak path.
+- (BOOL)isKRWOnlyMode;
 
 // Runs patchfinding, the kernel exploit (plus PAC/PPL bypass when required) and
 // builds the physrw primitive. Returns nil on success. On success this process

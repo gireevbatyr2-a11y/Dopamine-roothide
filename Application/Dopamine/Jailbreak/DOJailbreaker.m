@@ -191,6 +191,7 @@ static NSString *DOKRWCurrentBootSessionUUID(void)
 - (NSError *)buildPhysRWPrimitive;
 - (NSError *)cleanUpExploits;
 - (NSError *)obtainKernelRWInProcess;
+@property (nonatomic, assign) BOOL krwOnlyMode;
 @end
 
 #pragma mark - Persistent kernel helper
@@ -734,6 +735,11 @@ int DOKRWHelperMain(const char *socketPath)
 
 #pragma mark - Pipeline
 
+- (BOOL)isKRWOnlyMode
+{
+    return _krwOnlyMode;
+}
+
 - (NSError *)obtainKernelRW
 {
     if ([self isJailbroken]) {
@@ -994,19 +1000,24 @@ int DOKRWHelperMain(const char *socketPath)
     if (!kernelExploit) {
         return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"Kernel exploit is required but we did not find any"}];
     }
+
+    // The socket-based kernel exploits only write kernel DATA. PAC/PPL bypasses
+    // exist to patch kernel code (AMFI, launchd hooks, ...), which the external
+    // KRW/attach stack never does. When no bypass is available for this OS we
+    // degrade to KRW-only instead of failing: this is what lifts the A14+ cap
+    // from 17.3.1 to 26.0.1 (lara/darksword-kexploit-fun work the same way).
+    _krwOnlyMode = [[DOPreferenceManager sharedManager] boolPreferenceValueForKey:@"FFKRWKRWOnlyMode"];
     if (!pacBypass && [DOEnvironmentManager sharedManager].isPACBypassRequired) {
-        return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"PAC bypass is required but we did not find any"}];
+        _krwOnlyMode = YES;
+        DOKRWLog(@"exploit: no PAC bypass for this OS, continuing KRW-only (kcall unavailable)");
     }
     if (!pplBypass && [DOEnvironmentManager sharedManager].isPPLBypassRequired) {
-        if ([DOEnvironmentManager sharedManager].isSPTM) {
-            return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"SPTM bypass is required but we did not find any"}];
-        }
-        else {
-            return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedExploitation userInfo:@{NSLocalizedDescriptionKey:@"PPL bypass is required but we did not find any"}];
-        }
+        _krwOnlyMode = YES;
+        DOKRWLog(@"exploit: no %@ bypass for this OS, continuing KRW-only (data r/w only)",
+                 [DOEnvironmentManager sharedManager].isSPTM ? @"SPTM" : @"PPL");
     }
 
-    DOKRWLog(@"exploit: kernel=%@ pac=%@ ppl=%@", kernelExploit.name, pacBypass.name ?: @"none", pplBypass.name ?: @"none");
+    DOKRWLog(@"exploit: kernel=%@ pac=%@ ppl=%@ krwOnly=%d", kernelExploit.name, pacBypass.name ?: @"none", pplBypass.name ?: @"none", _krwOnlyMode);
 
     [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:DOLocalizedString(@"Exploiting Kernel (%@)"), kernelExploit.name] debug:NO];
     if ([kernelExploit load] != 0) return [NSError errorWithDomain:JBErrorDomain code:JBErrorCodeFailedLoadingExploit userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Failed to load kernel exploit: %s", dlerror()]}];
@@ -1023,7 +1034,7 @@ int DOKRWHelperMain(const char *socketPath)
         gSystemInfo.jailbreakInfo.usesPACBypass = true;
     }
 
-    if ([[DOEnvironmentManager sharedManager] isPPLBypassRequired]) {
+    if (pplBypass && !_krwOnlyMode && [[DOEnvironmentManager sharedManager] isPPLBypassRequired]) {
         if ([DOEnvironmentManager sharedManager].isSPTM) {
             [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:DOLocalizedString(@"Bypassing SPTM (%@)"), pplBypass.name] debug:NO];
         }
