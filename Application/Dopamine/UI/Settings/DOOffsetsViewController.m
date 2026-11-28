@@ -7,7 +7,8 @@
 #import "DOEnvironmentManager.h"
 #import "DOUIManager.h"
 #import "DOJailbreaker.h"
-#import <libjailbreak/libjailbreak.h>#import "../Jailbreak/DOFreeFireBridge.h"
+#import <libjailbreak/libjailbreak.h>
+#import "../Jailbreak/DOFreeFireBridge.h"
 
 @interface DOOffsetsViewController ()
 {
