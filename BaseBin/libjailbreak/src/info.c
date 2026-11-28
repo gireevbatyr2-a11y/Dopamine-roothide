@@ -781,3 +781,20 @@ uint64_t get_l2_block_count(void)
 		return 0;
 	}
 }
+
+// Shared handoff channel between the kernel-exploit frameworks (ClearSword,
+// DarkSword) and the app-side stash (LaraPersistence). An exploit sets this
+// once its sockets are leaked and the kernel base is resolved; the stash then
+// registers the fileports for restore in later launches of the same boot.
+krw_persist_info_t gKRWPersistInfo = { .valid = false, .control_socket = -1, .rw_socket = -1, .kernel_base = 0, .kernel_slide = 0 };
+
+void krw_persist_set_krw(int control_fd, int rw_fd, uint64_t base, uint64_t slide)
+{
+	gKRWPersistInfo.control_socket = control_fd;
+	gKRWPersistInfo.rw_socket = rw_fd;
+	if (base != 0) {
+		gKRWPersistInfo.kernel_base = base;
+		gKRWPersistInfo.kernel_slide = slide;
+	}
+	gKRWPersistInfo.valid = (control_fd > 0 && rw_fd > 0 && base != 0);
+}

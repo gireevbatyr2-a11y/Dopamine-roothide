@@ -770,21 +770,31 @@ int DOKRWHelperMain(const char *socketPath)
         return nil;
     }
     if ([self exploitRanThisBoot]) {
-        // Re-running ClearSword/Titan in the same boot corrupts kernel state and
-        // panics (GFX NMI in backboardd). Once the exploit has run, the only way
-        // back is recovery of the stashed sockets.
-        DOKRWLog(@"obtainKernelRW: recovery failed and the exploit already ran this boot; refusing to re-run it");
-        return [NSError errorWithDomain:JBErrorDomain
-                                   code:JBErrorCodeFailedExploitation
-                               userInfo:@{NSLocalizedDescriptionKey : @"Kernel R/W from this boot could not be recovered. Reboot the device and run it again."}];
+        // The stashed sockets can decay during the boot: when the last fd
+        // reference dies, soclose runs pru_detach regardless of the leaked
+        // so_usecount, which frees the ICMPv6 filter and breaks setsockopt.
+        // ClearSword/DarkSword rebuild their own sockets and surfaces on every
+        // run, so instead of demanding a reboot, self-heal by re-running the
+        // exploit once in this launch.
+        static BOOL rerunAttempted = NO;
+        if (rerunAttempted) {
+            DOKRWLog(@"obtainKernelRW: recovery failed and re-run was already attempted this launch; reboot required");
+            return [NSError errorWithDomain:JBErrorDomain
+                                       code:JBErrorCodeFailedExploitation
+                                   userInfo:@{NSLocalizedDescriptionKey : @"Kernel R/W from this boot could not be recovered. Reboot the device and run it again."}];
+        }
+        rerunAttempted = YES;
+        DOKRWLog(@"obtainKernelRW: recovery failed and the exploit already ran this boot; re-running it to rebuild KRW");
     }
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
     _kernelRWReady = YES;
-    control_socket = g_ctx.control_socket;
-    rw_socket = g_ctx.rw_socket;
-    kernel_base = g_ctx.kernel_base;
-    kernel_slide = g_ctx.kernel_slide;
+    if (g_ctx.control_socket > 0 && g_ctx.rw_socket > 0) {
+        // ClearSword produced the sockets; sync them into the stash globals.
+        // For DarkSword the exploit already called krw_persist_set_krw itself
+        // and g_ctx is untouched, so don't clobber it with garbage here.
+        krw_persist_set_krw(g_ctx.control_socket, g_ctx.rw_socket, g_ctx.kernel_base, g_ctx.kernel_slide);
+    }
     lara_offsets_init();
     if (transfer_krw_to_launchd()) {
         DOKRWLog(@"obtainKernelRW: stashed to launchd");

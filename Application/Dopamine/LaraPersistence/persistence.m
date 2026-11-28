@@ -25,8 +25,8 @@ static bool transfer_krw_to_launchd_ios16(void);
 #define PERSIST_LOG(...) do { printf("(persist) " __VA_ARGS__); fflush(stdout); } while (0)
 
 // Names must stay stable across launches: the next process looks them up in the
-// same bootstrap namespace. Registering twice in one boot fails, which is fine
-// because a successful stash happens once per boot.
+// same bootstrap namespace. A stale registration from a decayed previous run is
+// replaced (unregister + re-register) so the stash always points at live sockets.
 #define PERSIST_SIMPLE_CONTROL_NAME "com.ffkrw.krw.control"
 #define PERSIST_SIMPLE_RW_NAME "com.ffkrw.krw.rw"
 #define PERSIST_SIMPLE_KEY @"KRWPrimitiveSimple"
@@ -36,10 +36,44 @@ static bool transfer_krw_to_launchd_ios16(void);
 // without launchd-side sandbox extensions. fileport keeps the socket file
 // description alive through the registered send right, which is all kread/kwrite
 // need (the kernel-side socket objects are leaked by so_usecount).
+static bool persist_simple_register(mach_port_t bp, const char *name, mach_port_t port)
+{
+    kern_return_t kr = bootstrap_register(bp, name, port);
+    if (kr != KERN_SUCCESS) {
+        // Re-runs in the same boot produce fresh sockets; replace the stale
+        // registration so the stash always points at the live primitive.
+        PERSIST_LOG("simple: register %s kr=0x%x (%s), retrying after unregister\n",
+                    name, kr, mach_error_string(kr));
+        bootstrap_unregister(bp, name);
+        kr = bootstrap_register(bp, name, port);
+    }
+    PERSIST_LOG("simple: register %s final kr=0x%x (%s)\n", name, kr, mach_error_string(kr));
+    return kr == KERN_SUCCESS;
+}
+
+static void persist_simple_forget(const char *reason)
+{
+    PERSIST_LOG("simple: forgetting stash (%s)\n", reason);
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:PERSIST_SIMPLE_KEY];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    bootstrap_unregister(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME);
+    bootstrap_unregister(bootstrap_port, PERSIST_SIMPLE_RW_NAME);
+}
+
 static bool persist_simple_stash(void)
 {
+    if (gKRWPersistInfo.valid) {
+        control_socket = gKRWPersistInfo.control_socket;
+        rw_socket = gKRWPersistInfo.rw_socket;
+        kernel_base = gKRWPersistInfo.kernel_base;
+        kernel_slide = gKRWPersistInfo.kernel_slide;
+    }
     PERSIST_LOG("simple: stash begin control_fd=%d rw_fd=%d\n", control_socket, rw_socket);
     if (control_socket < 0 || rw_socket < 0) {
+        return false;
+    }
+    if (kernel_base == 0) {
+        PERSIST_LOG("simple: stash refused, kernel base unknown\n");
         return false;
     }
 
@@ -59,17 +93,8 @@ static bool persist_simple_stash(void)
         return false;
     }
 
-    kern_return_t kr;
-
-    kr = bootstrap_register(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME, controlPort);
-    PERSIST_LOG("simple: bootstrap_register(control) kr=0x%x (%s)\n", kr, mach_error_string(kr));
-    if (kr != KERN_SUCCESS) {
-        return false;
-    }
-
-    kr = bootstrap_register(bootstrap_port, PERSIST_SIMPLE_RW_NAME, rwPort);
-    PERSIST_LOG("simple: bootstrap_register(rw) kr=0x%x (%s)\n", kr, mach_error_string(kr));
-    if (kr != KERN_SUCCESS) {
+    if (!persist_simple_register(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME, controlPort) ||
+        !persist_simple_register(bootstrap_port, PERSIST_SIMPLE_RW_NAME, rwPort)) {
         return false;
     }
 
@@ -111,6 +136,7 @@ static bool persist_simple_recover(void)
     int rwFd = fileport_makefd(rwPort);
     PERSIST_LOG("simple: fileport_makefd control=%d rw=%d errno=%d\n", controlFd, rwFd, errno);
     if (controlFd < 0 || rwFd < 0) {
+        persist_simple_forget("fileport_makefd failed");
         return false;
     }
 
@@ -118,6 +144,7 @@ static bool persist_simple_recover(void)
     uint64_t slide = [primitive[@"KernelSlide"] unsignedLongLongValue];
     if (base == 0) {
         PERSIST_LOG("simple: stashed base is zero\n");
+        persist_simple_forget("stashed base is zero");
         return false;
     }
 
@@ -130,6 +157,7 @@ static bool persist_simple_recover(void)
     if (magic != 0xFEEDFACF) {
         control_socket = previousControl;
         rw_socket = previousRw;
+        persist_simple_forget("verify failed, stashed sockets decayed");
         return false;
     }
 

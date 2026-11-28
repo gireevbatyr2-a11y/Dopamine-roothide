@@ -762,4 +762,15 @@ uint64_t get_l2_block_count(void);
 #define L2_BLOCK_MASK get_l2_block_mask()
 #define L2_BLOCK_COUNT get_l2_block_count()
 
+
+typedef struct {
+	bool valid;
+	int control_socket;
+	int rw_socket;
+	uint64_t kernel_base;
+	uint64_t kernel_slide;
+} krw_persist_info_t;
+extern krw_persist_info_t gKRWPersistInfo;
+void krw_persist_set_krw(int control_fd, int rw_fd, uint64_t base, uint64_t slide);
+
 #endif
