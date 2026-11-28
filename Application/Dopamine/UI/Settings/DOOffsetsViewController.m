@@ -4,7 +4,7 @@
 //
 
 #import "DOOffsetsViewController.h"
-#import "DOEnvironmentManager.h"
+#import "DOEnvironmentManager.h"#import "DOUIManager.h"
 #import "DOJailbreaker.h"
 #import <libjailbreak/libjailbreak.h>
 
