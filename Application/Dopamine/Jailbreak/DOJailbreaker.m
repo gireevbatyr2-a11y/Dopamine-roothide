@@ -770,12 +770,17 @@ int DOKRWHelperMain(const char *socketPath)
         return nil;
     }
     if ([self exploitRanThisBoot]) {
-        // The stashed sockets can decay during the boot: when the last fd
-        // reference dies, soclose runs pru_detach regardless of the leaked
-        // so_usecount, which frees the ICMPv6 filter and breaks setsockopt.
-        // ClearSword/DarkSword rebuild their own sockets and surfaces on every
-        // run, so instead of demanding a reboot, self-heal by re-running the
-        // exploit once in this launch.
+        // Device-verified (iPhone13,2 / iOS 16.6, ClearSword+Titan and
+        // DarkSword): re-running the exploit in the same boot panics at the
+        // PPL-bypass stage (GFX NMI). Auto re-run is therefore opt-in only
+        // via the FFKRWRerunOnRestoreFailure preference; the default is a
+        // clean failure asking for a reboot.
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"FFKRWRerunOnRestoreFailure"]) {
+            DOKRWLog(@"obtainKernelRW: recovery failed and the exploit already ran this boot; same-boot re-run panics (GFX NMI) - reboot required");
+            return [NSError errorWithDomain:JBErrorDomain
+                                       code:JBErrorCodeFailedExploitation
+                                   userInfo:@{NSLocalizedDescriptionKey : @"Kernel R/W from this boot could not be recovered (stashed state decayed). Reboot the device and run it again."}];
+        }
         static BOOL rerunAttempted = NO;
         if (rerunAttempted) {
             DOKRWLog(@"obtainKernelRW: recovery failed and re-run was already attempted this launch; reboot required");
@@ -784,7 +789,7 @@ int DOKRWHelperMain(const char *socketPath)
                                    userInfo:@{NSLocalizedDescriptionKey : @"Kernel R/W from this boot could not be recovered. Reboot the device and run it again."}];
         }
         rerunAttempted = YES;
-        DOKRWLog(@"obtainKernelRW: recovery failed and the exploit already ran this boot; re-running it to rebuild KRW");
+        DOKRWLog(@"obtainKernelRW: recovery failed and the exploit already ran this boot; re-running it to rebuild KRW (opt-in, known panic risk)");
     }
     NSError *error = [self obtainKernelRWInProcess];
     if (error) return error;
