@@ -6,6 +6,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <dlfcn.h>
 #include <errno.h>
 #include <string.h>
 #include "fileport.h"
@@ -36,18 +37,38 @@ static bool transfer_krw_to_launchd_ios16(void);
 // without launchd-side sandbox extensions. fileport keeps the socket file
 // description alive through the registered send right, which is all kread/kwrite
 // need (the kernel-side socket objects are leaked by so_usecount).
+// bootstrap_unregister is not exported by iOS liblaunch, so resolve it at
+// runtime; when unavailable, a stale registration can only be kept or ignored.
+static kern_return_t persist_simple_unregister(mach_port_t bp, const char *name)
+{
+    static kern_return_t (*fn)(mach_port_t, const char *);
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        fn = (kern_return_t (*)(mach_port_t, const char *))dlsym(RTLD_DEFAULT, "bootstrap_unregister");
+        if (!fn) PERSIST_LOG("simple: bootstrap_unregister unavailable on this OS\n");
+    });
+    return fn ? fn(bp, name) : KERN_FAILURE;
+}
+
+static bool persist_simple_recover(void);
+
 static bool persist_simple_register(mach_port_t bp, const char *name, mach_port_t port)
 {
     kern_return_t kr = bootstrap_register(bp, name, port);
-    if (kr != KERN_SUCCESS) {
-        // Re-runs in the same boot produce fresh sockets; replace the stale
-        // registration so the stash always points at the live primitive.
-        PERSIST_LOG("simple: register %s kr=0x%x (%s), retrying after unregister\n",
-                    name, kr, mach_error_string(kr));
-        bootstrap_unregister(bp, name);
-        kr = bootstrap_register(bp, name, port);
+    if (kr == KERN_SUCCESS) {
+        PERSIST_LOG("simple: register %s kr=0x0 (ok)\n", name);
+        return true;
     }
-    PERSIST_LOG("simple: register %s final kr=0x%x (%s)\n", name, kr, mach_error_string(kr));
+    PERSIST_LOG("simple: register %s kr=0x%x (%s)\n", name, kr, mach_error_string(kr));
+    // Re-runs in the same boot produce fresh sockets; replace the stale
+    // registration so the stash always points at the live primitive.
+    kern_return_t ur = persist_simple_unregister(bp, name);
+    PERSIST_LOG("simple: unregister %s kr=0x%x (%s)\n", name, ur, mach_error_string(ur));
+    if (ur != KERN_SUCCESS) {
+        return false;
+    }
+    kr = bootstrap_register(bp, name, port);
+    PERSIST_LOG("simple: re-register %s kr=0x%x (%s)\n", name, kr, mach_error_string(kr));
     return kr == KERN_SUCCESS;
 }
 
@@ -56,8 +77,8 @@ static void persist_simple_forget(const char *reason)
     PERSIST_LOG("simple: forgetting stash (%s)\n", reason);
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:PERSIST_SIMPLE_KEY];
     [[NSUserDefaults standardUserDefaults] synchronize];
-    bootstrap_unregister(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME);
-    bootstrap_unregister(bootstrap_port, PERSIST_SIMPLE_RW_NAME);
+    persist_simple_unregister(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME);
+    persist_simple_unregister(bootstrap_port, PERSIST_SIMPLE_RW_NAME);
 }
 
 static bool persist_simple_stash(void)
@@ -93,9 +114,15 @@ static bool persist_simple_stash(void)
         return false;
     }
 
-    if (!persist_simple_register(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME, controlPort) ||
-        !persist_simple_register(bootstrap_port, PERSIST_SIMPLE_RW_NAME, rwPort)) {
-        return false;
+    bool controlRegistered = persist_simple_register(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME, controlPort);
+    bool rwRegistered = persist_simple_register(bootstrap_port, PERSIST_SIMPLE_RW_NAME, rwPort);
+    if (!controlRegistered || !rwRegistered) {
+        // Undo any half-registered new ports, then keep the old registration if
+        // it is still alive; otherwise future launches will just re-run.
+        if (controlRegistered) persist_simple_unregister(bootstrap_port, PERSIST_SIMPLE_CONTROL_NAME);
+        if (rwRegistered) persist_simple_unregister(bootstrap_port, PERSIST_SIMPLE_RW_NAME);
+        PERSIST_LOG("simple: register failed; checking existing registration\n");
+        return persist_simple_recover();
     }
 
     NSDictionary *primitive = @{
