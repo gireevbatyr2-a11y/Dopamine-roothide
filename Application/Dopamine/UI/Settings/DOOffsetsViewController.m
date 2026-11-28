@@ -54,7 +54,6 @@
             return true;
         });
         [rows addObjectsFromArray:offsets];
-        xpc_release(info);
     }
 
     _rows = rows;
